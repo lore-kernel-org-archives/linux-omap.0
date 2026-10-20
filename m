@@ -1,98 +1,82 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.53
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.43
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792442248;
-	b=CSqAG3RFafjdUJAupyMu0JTZ5iYxACAtX4PWqGm1l+4knqz5kyMUFR11B1W8h/EQFhJa
-	 z4nwHe5LTd5MinJOKXjw5hLo2p/eXwSUC2o8o5RvDPPw/8QGoRf3AqNfqScw7j1ta+iZ0
-	 mhmF6byoOJQU/C7DZeA6FeVDXfi3FIx+3ksrIT9hE52Cr/XegnfNm0zMPkFoDS9iiZWf4
-	 l3ZLv4GPDgwaSEUpoQgGuk7GVlU5O7GZ5ZXSDRiL7orywKM8Hn4V25HLWEz9FjzTddCFq
-	 s4ZXOTa/HJIID3cvMmMTX+F6c/SSQxBB5tVMSoqeMIXaX3GhYBdw/IhWhf7rduZM+Tg==
+	t=1792491529;
+	b=cmd5bOVT+EL+p3mgjbhteRPZxaKK/s9D99HMIKBGanLSdPhoYmUlWtwcw/csBAfK3Zc7
+	 yovgTOr8k3Wc+Wx6lvRn0b7wNYlqlfd1k4Af+ybeHh/7EDnVaPnFoSijFnO+BeL1wWim6
+	 3k8y/H4pNDdh5ITDLUznXqHts0zx+8Dx2ueMa3z7kuSIS/FFnnjEbKDDQ7N5SNbO9XtrQ
+	 +KdIZqMVA7PW6IeFWt6D/+iTvmJm7X1MHt6gPtdM5BS/i3F4I05Ystzk0XiDYJVNMeILh
+	 LttYgXCJDxB1d53iNXsXaoO+UtV23r1jV8wjaw8XjHVriBtJr4mzWET0Ubu1C/s/DvQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792442248;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792491529;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To;
-	bh=OlQWf86SXokSuh4SBBMFiqlQD7tg29+MR0deKhyYBLU=;
-	b=DfalS4xYR9v9VlT8Heu9LYxupi3F2+nK2Z7wEb96r8WazDWZWDY28Q1mLnVFnTGS2Qcg
-	 z+dnrMyWOyZOlzBANWCzn5JNPYQmxnuXjZ5mTgkjsUcCUHNlDVpK+SKXi7XRTme5svFjW
-	 kOMxAUrL57a9j5RHJJEbTNeeFitUmODX8YkfXn8m52V9tHz4IbRpEs0dhWXEmSXXagHow
-	 uqlBM+R8jZ/pKCu8rn1HN54SompybjCnLVwugnAvhrQHEbaeC0htyF2ltmvNIgY7zhzOY
-	 2IUADh9FAEfcmQjtFQeP3xVQOu5/7+3mjN+OBhMEZsHHsq3iThyJb/zK+ybjgTVOsmQ==
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:Mime-Version:
+	 Content-Transfer-Encoding:Content-Type:Date:Message-Id:Subject:From:
+	 To:Cc:X-Mailer:References:In-Reply-To;
+	bh=E3POQm3q9rQRS55TaGFyyCf123uDYsTNmr7KQ/BPaAE=;
+	b=0Zp3wdxVhrNzn6noNNGDF+xHA798w+spIkBQzWkLLu40ZazakCUfAJV6rjs56BOXjhM1
+	 lMWwShzTwGmDTyDsdctsI8K+P2ke+D2o2sKAOjsUrGurmNHF6PhCtyml7SQazMtMsFX3M
+	 LCmbp2kQSNMjWzQev/PqWDG9Kyt6PTEMVMY1tMOut3qeIuXPL4pnp02lMkL2XJrduhtVa
+	 LgL35LaIoob1gzX57Ceo1NMPIWkKIpsJVunNT7RhtsKb9Ea/DlChzMg4eao+miued7z02
+	 xMZwB0Q/TlaMQZqZUGke7dNlr4iLnmI5P0xUxAwfespw7Ad7pTo/gbz+czJ3/wukSEg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=TbdVKbnQ;
-	arc=none smtp.remote-ip=209.85.128.53
-Received: from mail-wm1-f53.google.com (mail-wm1-f53.google.com [209.85.128.53])
+	dmarc=pass header.from=linaro.org;
+	spf=pass smtp.mailfrom=linaro.org;
+	dkim=pass header.d=linaro.org header.i=@linaro.org header.a=rsa-sha256 header.s=google header.b=I55feIN4;
+	arc=none smtp.remote-ip=209.85.128.43
+Received: from mail-wm1-f43.google.com (mail-wm1-f43.google.com [209.85.128.43])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03035606A321
-	for <linux-omap@vger.kernel.org>; Mon, 19 Oct 2026 20:37:22 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 03035606A321
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0716606A329
+	for <linux-omap@vger.kernel.org>; Tue, 20 Oct 2026 10:18:48 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A0716606A329
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=TbdVKbnQ
-Received: by mail-wm1-f53.google.com with SMTP id 5b1f17b1804b1-4a021c809e3so22302825e9.0
-        for <linux-omap@vger.kernel.org>; Mon, 19 Oct 2026 13:37:22 -0700 (PDT)
+	dkim=pass (2048-bit key, unprotected) header.d=linaro.org header.i=@linaro.org header.a=rsa-sha256 header.s=google header.b=I55feIN4
+Received: by mail-wm1-f43.google.com with SMTP id 5b1f17b1804b1-4a180fbeef5so23463345e9.1
+        for <linux-omap@vger.kernel.org>; Tue, 20 Oct 2026 03:18:48 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792442241; x=1793047041; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=OlQWf86SXokSuh4SBBMFiqlQD7tg29+MR0deKhyYBLU=;
-        b=TbdVKbnQRRp9vEsLOXaAXOe8RCtxTDKUbwKg9QY2mqDPSPar/3P4WhNaodDxDY+BkL
-         z5fhNg+9YEHPJPYwu73YuJ24D3oaA7K6HDZKf5aH+c1Pe/B7GdlWJdKoI7eTwRUs+eNR
-         XWTT2Bvx1AyIFnoplHVTcghLleDAmLt5NYnTajZ7eY321BIDTd3dT989KlGwDKD9NDGP
-         cr4C9uSJVWcYwgvwncn6c7MjZTP1GInixxG1DDJuJeIPCWhUwBxCX3CPl8BcL+65FzdA
-         UkvSpS6m+3pS+D/8aBkplRzK1r/Qv+7uSg5JACP5SEL+A+he8lOE68px7ghnG77sVgpW
-         fEuQ==
+        d=linaro.org; s=google; t=1792491527; x=1793096327; darn=vger.kernel.org;
+        h=in-reply-to:references:cc:to:from:subject:message-id:date
+         :content-type:content-transfer-encoding:mime-version:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=E3POQm3q9rQRS55TaGFyyCf123uDYsTNmr7KQ/BPaAE=;
+        b=I55feIN4tyXGD9Ilk8kOCGKJvDvDZYrSBgvyREUAv+WEFGc9pL0orf7sqE3yL9MNfO
+         R2VrpP5SEEvXpTFA9eYMpHEPDHdTlFswXPTsVj45R2gEamEu7POVA/leoyoyB/c5XukI
+         2FfuL1w8av4tzC07CKSCGbNI+bExwzy+2zRaeGoonanLy/erO6S/KJnMnrZCWi6O08en
+         5tHqGgy/FbguN6/0K5uWtCnmv816AnEER7UCpXMw780MT2isfUN+u2qNQZ3/T2ySqpst
+         hp5dBxskeYDNMGJggdOS3fe1GzDte/bRvu1cbJeWi5iyAi30b+S4cO64QX1PQFVwobpB
+         q+qA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792442241; x=1793047041;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
+        d=1e100.net; s=20260707; t=1792491527; x=1793096327;
+        h=in-reply-to:references:cc:to:from:subject:message-id:date
+         :content-type:content-transfer-encoding:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=OlQWf86SXokSuh4SBBMFiqlQD7tg29+MR0deKhyYBLU=;
-        b=CufZasc4fd/1V7ebATf0NIA6kFS6NNFD4Sm2MT1wOsmgp1Q+K6B8g93TZm2T23aD0Z
-         PDNMS+BIyWikC/L5+mmpmNctvbW73o+KimZU6Gcc9eCN/DWwSmrd0wtHAzWfSK5scgU9
-         /qTFNKtlmGlNCdTTe//CDVKN5qm3v0GEkA4Mp6k+ToTGhqpVKT9udPQPoiH2QiO7Zaiw
-         cJ9SDpiS2QAxWnl47QBydj4TjzfdAYiAKo8lE53m1gS/bCHcOHDkdfj8atziHtUXneJQ
-         CUsa1u8e7QPBzmt8sUzc+RQ1/cToD5eHKK8jbG/nYGhOc2nO/84qBTvpIYgnq62K/wVq
-         EvAw==
-X-Forwarded-Encrypted: i=1; AKwUvByM9yHuw7c4gQrs0gHai6sZ1KngqLsMQHBO3BFDYWkRsq6Sa+DhcWpn7vk8L9kWUr2CLBEfE8Ztp+Xp@vger.kernel.org
-X-Gm-Message-State: AFq9FYIRcznbl12zgBByMzZ0Viy3m7kLNboHFm1l8wNxxAPVzYEOY2rg
-	w9IakwrlAd6eBOUlY2ofb50HzdRs0EfUskgBko6SL1KLRK/zB8bSbRuN
-X-Gm-Gg: AYBFou1UPHaaHXkwnL7KjF/gERB2rZEmET/8lqsqKfyaK8gU9nq6hI2M8iCkFnEb1Gg
-	nLNGgev4JnAvW91MaMtf1FT5LDNJZAJXBZtAiBsoVAywwno+BlZRv4zp9+haEsD203Alwn1P569
-	qAi4P6e2cCF4Ei5Iqd+v1ZlwQzkAZdyyIZVh2NTr6TnLd+iRaoAFqlzs67NM5noHN92AWhLiwaM
-	S/rEhd5ngwOg0G1wJOVdmKP1SorSAKJJ62WV6fNct4recTvPskiH+lxa3X7UpvDi44ywT/mjy9f
-	Q2zJ1adr1Kjy7XVlLcn8EKdVFifniEyyopb+WUJ6biT6rsYRkWE031qL8prLA29iEcj+3QUOzL9
-	rI7jzAVtkw4cUhHH6i5DTSNMTjsyyWZ1jPRKuJt4Q9ofJTdM3D9HAfDr1sSl0vhp12C8h6cvRsx
-	XNpNodMRxL3XkXgGjjZxdG/kkKglU9W7HY92flGK6TJkd3cAFUXHg6rZ4Si1vVLs64LypOw8IIX
-	FcnAboWuR4zIKkDKH/ra4L6b19PC/Z9UTPlMbrJQmufWWnRL1ovSxWpjtxEWJ/5Fi1W5/+mHGje
-	q8vHpx6866vSDx714SLrTzBBK1vubuZjCk5GkUFczN+SnsYv9dWNd4jCp2GQlSWyz+Bel1xM8oE
-	eg56jH/e+
-X-Received: by 2002:a05:600c:3e85:b0:4a1:d798:b08a with SMTP id 5b1f17b1804b1-4a1d798b0d4mr175531195e9.21.1792442241144;
-        Mon, 19 Oct 2026 13:37:21 -0700 (PDT)
-Received: from unknown748F3CBA5068 (dynamic-2a02-3100-a4e0-4601-c43a-536a-04a3-af7d.310.pool.telefonica.de. [2a02:3100:a4e0:4601:c43a:536a:4a3:af7d])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a1f2c9e9c3sm15967405e9.3.2026.10.19.13.37.19
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 19 Oct 2026 13:37:20 -0700 (PDT)
-Date: Mon, 19 Oct 2026 22:37:17 +0200
-From: Karl Mehltretter <kmehltretter@gmail.com>
-To: Siddharth Vadapalli <s-vadapalli@ti.com>
-Cc: netdev@vger.kernel.org, Roger Quadros <rogerq@kernel.org>, 
-	Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, 
-	Paolo Abeni <pabeni@redhat.com>, Keerthy <j-keerthy@ti.com>, Kevin Hao <haokexin@gmail.com>, 
-	Alexander Sverdlin <alex@sverdlin.org>, Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH net v2] net: cpsw: fix netdev cleanup on probe failure
-Message-ID: <atZ8lCW0VVPzoHwb@gmail.com>
-References: <20261019060430.33254-1-kmehltretter@gmail.com>
- <c20d708a-f4d6-4e66-a516-056d93264825@ti.com>
+        bh=E3POQm3q9rQRS55TaGFyyCf123uDYsTNmr7KQ/BPaAE=;
+        b=vM5inVSW0ZDva/XEnv1IFOca0kEVnNd6VEtOo+BZCl7s3nvA37wV8Wt2lwb7EY2Nwh
+         8LcBzGACCHjc6eyDeAp9/LGIpJv954LQx2JQt2/imiQ4CvVcErFpO0re91t1EakKG/hx
+         t0gBAt19majU8IEow6O9l3RaDhP7RQJXP9USzUqyz9kp8VUQiqrfgClWm7Qde0q0gUoC
+         a5HqKXRvUkDkKJKjOCWWn69asdVnq3BEpGoPcYIoYb2IfnyZw9mGD4FoQnrjx//NVNlS
+         q4zixJIkQT6T9xyR+jHb31qbyBfNcWwdqXL1OiBs1pmJiM4AmP6fV1oPG5M1xSfrcLRB
+         Yn7Q==
+X-Gm-Message-State: AFq9FYKljkm265pnv8qfjRvRDyc36xDTtP9MucoXNAyJeztq6fLcTsUy
+	aaCWMZzRxRa70y/rsSo6LF09YldYn+bLaqIvXAR0u+JoNGqbdrYc7Pg5HLG+PTzSG54=
+X-Gm-Gg: AYBFou1h1hyNGbiiNrNcrCwEBtwzoKozTIoWga7lAE7YAtJhlJEmwzUZHob+gG0zd+4
+	RvzEQiKllB7o7gwe4IzH5gKH5+p3A/gC7wgMuV7GrrZZ3Z3pZiR8BfqFBAN2/3EWKkcoS3w2yRo
+	DBE2AKX6m0FchoBhamhzbDw9dQmTM5sx7pCrUk3YFL1IB+QcTqFSYrMn7/dATKJb7XYEBMe6FA2
+	/Tdv5GAO5/+CxQeL0yHmbB+vUtK8wdp+DtAYKl2kuYDU/d3fRYc48eGoNxKvbpx0QNbXXCHG30X
+	Qvo+cV/EBieshfl5jXkX3hfAYozIrQ6dlVLGa+cTnywEiyorO3cc+mc71ewd1hYSZBS3C0l0hfu
+	prn/PwVoTjGiJ9DUxg2Ph1Gv24/qLOiUGNE4muH//WKvgwxwVsjf4Mah+kn+h4QPSjINZ7e4XAw
+	xMa0QZD3FF2pbfveYCekaSqgfGWtO90j3DrUr1u2cWHrfAf6umFG4S8jtL3hn1z82rb5xH5EwW0
+	jPPaTH5cboZGUu2EBop1LEVZpQKx74+ltnYGGaSFd+uEn4ynbmCiW/j6uE2EqQq
+X-Received: by 2002:a05:600d:82c5:b0:4a1:e575:33dd with SMTP id 5b1f17b1804b1-4a1e57533efmr141959155e9.18.1792491526824;
+        Tue, 20 Oct 2026 03:18:46 -0700 (PDT)
+Received: from localhost ([151.41.28.233])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a1f2cc809csm63088925e9.8.2026.10.20.03.18.45
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 20 Oct 2026 03:18:46 -0700 (PDT)
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -101,30 +85,134 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <c20d708a-f4d6-4e66-a516-056d93264825@ti.com>
+Mime-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Date: Tue, 20 Oct 2026 12:18:45 +0200
+Message-Id: <DM9L7QLLNMOR.1NHOUWGMQK181@linaro.org>
+Subject: Re: [PATCH 02/10] dt-bindings: pinctrl: Add devicetree bindings for
+ DM816x SoC Pinctrl
+From: "Ettore Chimenti" <ettore.chimenti@linaro.org>
+To: "Krzysztof Kozlowski" <krzk@kernel.org>, "Ettore Chimenti"
+ <ettore.chimenti@linaro.org>, "Paul Walmsley" <paul@pwsan.com>, "Aaro
+ Koskinen" <aaro.koskinen@iki.fi>, "Andreas Kemnade" <andreas@kemnade.info>,
+ "Kevin Hilman" <khilman@baylibre.com>, "Roger Quadros" <rogerq@kernel.org>,
+ "Tony Lindgren" <tony@atomide.com>, "Russell King" <linux@armlinux.org.uk>,
+ "Rob Herring" <robh@kernel.org>, "Krzysztof Kozlowski"
+ <krzk+dt@kernel.org>, "Conor Dooley" <conor+dt@kernel.org>, "Christopher
+ Obbard" <chris.obbard@oss.qualcomm.com>, "Andrew Goodbody"
+ <andrew.goodbody@linaro.org>, "Linus Walleij" <linusw@kernel.org>, "Rouven
+ Czerwinski" <rouven.czerwinski@linaro.org>
+Cc: <linux-omap@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
+ <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
+ <linux-gpio@vger.kernel.org>
+X-Mailer: aerc 0.22.0-0-gc2f86b7abde3
+References: <20261016-patch-ektor5-dm8168-dts-v1-0-b4ce30217028@linaro.org>
+ <20261016-patch-ektor5-dm8168-dts-v1-2-b4ce30217028@linaro.org>
+ <ec27fd26-1862-43cf-803a-428846d66663@kernel.org>
+ <DM6CUP7TSOMH.31T789KQ3Q6OB@linaro.org>
+ <46414ff2-1273-4690-9001-4d1f825d8cf6@kernel.org>
+In-Reply-To: <46414ff2-1273-4690-9001-4d1f825d8cf6@kernel.org>
 
-On Mon, Oct 19, 2026 at 12:19:11PM +0100, Siddharth Vadapalli wrote:
-> > +		unregister_netdev(ndev);
-> > +		disable_work_sync(&priv->rx_mode_work);
-> 
-> Although the above code is a refactor, it appears to me that the correct
-> sequence should be:
-> 	disable_work_sync(&priv->rx_mode_work);
-> 	unregister_netdev(ndev);
-> RX Mode work (cpsw_ndo_set_rx_mode_work) does have a 'netif_running' check
-> so it might still be fine if the sequence isn't followed.
-> 
-> Please correct me if I am mistaken regarding the above. Rest of the patch
-> looks good to me.
-> 
+Hi Krzyszrof,
 
-Both orders are safe here. The worker and unregister_netdev() serialize
-on RTNL, so a worker running after unregister exits at !netif_running().
+On Mon Oct 19, 2026 at 8:46 AM CEST, Krzysztof Kozlowski wrote:
+> On 16/10/2026 17:07, Ettore Chimenti wrote:
+>> Hi Krzyszrof,
+>>=20
+>> On Fri Oct 16, 2026 at 4:51 PM CEST, Krzysztof Kozlowski wrote:
+>>> On 16/10/2026 16:41, Ettore Chimenti wrote:
+>>>> Add devicetree bindings for TI DM816x SoC pinctrl configuration.
+>>>> Using same definition as OMAP2/3 except pullup/down enable macros, whi=
+ch
+>>>> are inverted in this SoC.
+>>>>
+>>>> Signed-off-by: Ettore Chimenti <ettore.chimenti@linaro.org>
+>>>> ---
+>>>>  include/dt-bindings/pinctrl/dm816x.h | 20 ++++++++++++++++++++
+>>>>  1 file changed, 20 insertions(+)
+>>>>
+>>>> diff --git a/include/dt-bindings/pinctrl/dm816x.h b/include/dt-binding=
+s/pinctrl/dm816x.h
+>>>> new file mode 100644
+>>>> index 000000000000..15aa15bca9bd
+>>>> --- /dev/null
+>>>> +++ b/include/dt-bindings/pinctrl/dm816x.h
+>>>> @@ -0,0 +1,20 @@
+>>>> +/* SPDX-License-Identifier: GPL-2.0-only */
+>>>> +/*
+>>>> + * This header provides constants specific to DM816X pinctrl bindings=
+.
+>>>> + */
+>>>> +
+>>>> +#ifndef _DT_BINDINGS_PINCTRL_DM816X_H
+>>>> +#define _DT_BINDINGS_PINCTRL_DM816X_H
+>>>> +
+>>>> +#include <dt-bindings/pinctrl/omap.h>
+>>>
+>>> I do not see this being used here, IWYU.
+>>>
+>>>> +
+>>>> +#undef PULL_UP
+>>>> +#undef PULL_ENA
+>>>
+>>> Why are you undefining other macros? That's not a easy to follow code.
+>>=20
+>> Do you prefer to duplicate `omap.h` defines? Only the defines above do n=
+ot
+>> apply to DM816x.
+>
+> Not sure what you need to duplicate, but if you add header with bindings
+> for this device, then you should not include headers for other devices.
 
-This matches cpsw_new, so I'd keep the current order.
+I basically used dm814x.h as a template which does that, is that not
+correct?
 
-Thanks,
-Karl
+>
+>>=20
+>>>
+>>>
+>>>> +
+>>>> +/* DM81xx mux bit defines */
+>>>> +#define PULL_ENA		(0 << 3)  /* Pullup enabled  =3D> 0 */
+>>>> +#define PULL_DIS		(1 << 3)  /* Pullup disabled =3D> 1 */
+>>>> +#define PULL_DN			(0 << 4)
+>>>> +#define PULL_UP			(1 << 4)
+>>>
+>>> I do not see this used by drivers, so why do we need one more header?
+>>> What part of SW are you binding here?
+>>>
+>>=20
+>> I added those (DN/UP) because they are not defined in `omap.h`. It may b=
+e
+>> convenient for future board upstreaming. I can drop those if undesired.
+>
+> Just add the header to proper place - DTS. These are just not looking as
+> bindings.
+
+Sorry, does dm814x.h not look as bindings? I'm a bit confused.
+FWIW, dm8148-evm.dts is not including the header, dm814x.dtsi is.
+Following=20
+
+Basically PULL_ENA define in omap.h is wrong for DM8168 SoCs.=20
+
+For a better solution, you would prefer:
+- Keep omap.h in dm816x.dtsi
+- Add a variant like DM816X_PULL_{ENA,DIS} in dm816x.h
+- Replace defines in dm8168-evm.dts
+- Add the header in dm8168-evm.dts
+
+or:
+
+- Keep omap.h in dm816x.dtsi
+- Add a variant like DM816X_PULL_{ENA,DIS} in omap.h
+- Replace defines in dm8168-evm.dts
+
+Thanks for your review,=20
+Ettore
+
+>
+> Best regards,
+> Krzysztof
+
+
