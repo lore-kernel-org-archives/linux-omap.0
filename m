@@ -1,44 +1,44 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1792584925;
-	b=jTURgFZAnpHQUAATTW8bXtGEtZ0yGbad70HcZ6SVII0NPrGcASXFi8K2Pt0CCxwBthWM
-	 +tSi6svt8nlhDKE6IKdS9j3Hf03aS5Fn6Ts2Nel9cSj5tV0nyNlx3VjtLtYmTxrWn0dyI
-	 Vw+bApgeZJRZzIRXIyrWC2mXoC/lBtrKrgsU6VTKD8N0RPKwm8WdlhKsUDVI1fXRCb380
-	 Qv75uhE9FGCXuWKC06m73UOoYWcztQkiGvjK00emhOE8qS+TtVOA/jpRAVAExMENIFXEq
-	 P3WsORrMlcU0PUYlj3jFi6WlrS+OHklQUIOzz3UrmHnfBDZJYfe7TVojpyt2txkB80g==
+	t=1792584992;
+	b=d8iYrQO9QtKwC3OYgE00jn1U3j9qRu8RCfLQ7NrvHpPLXeRP9uwQMxE3b71dIa9GByI0
+	 EElXwz7vti8+9CNZfci9Co1cFZBocCqP0pllVtqb2GW2IrP/L79BRYZ2U1YslcbSR6kv1
+	 wcqNV5U2Y7U1Ltnf/fFNOCHxcYMK+AmH+SaBWkXbor3JF/DHxhClGHU+Ez3rnmWDAYhSD
+	 2BSsVyxTxTuQBMqsZdyxlWnuo5f57JT/2+cjtkZaDZjQmQPPlvbdiQmeuwqccMzTxfXWG
+	 Jf1BTWkjMQ7un3XjOUbg/xDV5z9qL8JDEf/fMe2+mq1bZzBR4VM1/4OWppVkD7qf8WQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1792584925;
+	a=rsa-sha256; c=relaxed/relaxed; t=1792584992;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
 	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=CeKuOGKuwAuAMezw1s10+HeI/EWg/OQKaDbbMqvL/ZA=;
-	b=B2JW3CIT8TYE8zGlZNh1IU0wVvaCpFYHbLVDJToJ5PBaClk62h4HEx2z+8B1KSnE0nrt
-	 m2rKDkPpC1aZKKNkg16tU3DfGZqfJlYpJyBZvqLoaA8xI+w/Q6WimLRurmD97MTX140zv
-	 Xpz+XSvx6ga4vbyixN3mWsuAandVbvgn0MYilg2URzWbhqAhMeILuSpICE9zDdvdBWZnx
-	 qD+ZI3n5ibGcjWNH7acSQpxHzu+71yBYcTMXx6bFPRvaUrYtIkNM2MxhrOFo0Hup+XwSE
-	 VQa9HH/D+K6jOijAX9FDM7354Td+vqHMo7ZAa8FILRSeJ7oe7qwQMq6Vw9Y7nOQfWxA==
+	bh=47JPxnKtn88z3FWrX9k+DRLaFxM6US7BskZPlDapUxU=;
+	b=gLSQEsiOm40TLyGhmiIwyTgnyomIz05u3etOCyReAHDgLnm8Jwr/vxwZ3MK5EFwGTdbc
+	 hIPIJaKroUpL9opSWBruaNsPo/oI3blTuzUDU90Qv2kYTinDoCzPjeIrAWWsK9RHt4hmn
+	 HtJbqnWtk+M//gbqoPQmc3PZLHh0RtwjDtD4RQ16kIaUSBj3FvPidI/ytHC8GIQcc1PLx
+	 38veuN6i36GNEDQE+hBEid4ad811oCG2OkBNTpdTx1MMDXQLnytVe+OCvfuMxLiS5Nt9b
+	 zxstXWtCAM5WckBXs2KjrNfhq+hp06C9cD7HJqtSHHoFCAjK9ncqQm3vMPzZ6sQUGlA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=CQZsBKi8;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="HTiFI/gR";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17CFD606A328;
-	Wed, 21 Oct 2026 12:15:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 826F8606A319;
+	Wed, 21 Oct 2026 12:16:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=CQZsBKi8
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F9A71F000C4;
-	Wed, 21 Oct 2026 12:15:22 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=HTiFI/gR
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BC531F000C4;
+	Wed, 21 Oct 2026 12:16:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1792584924;
-	bh=CeKuOGKuwAuAMezw1s10+HeI/EWg/OQKaDbbMqvL/ZA=;
+	s=k20260515; t=1792584992;
+	bh=47JPxnKtn88z3FWrX9k+DRLaFxM6US7BskZPlDapUxU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=CQZsBKi8i4v5ejsOMyF3Enj1WGyF5VDdqsvv7brQZsFjq+CDEmQxmNE7K6Hx8ozqn
-	 1Aj7zsw/T+rVRO4wPRZQbpJgU1TPonCSCp17k3ak2sGX82Tg4JnKhqdPsA4iFdb833
-	 8JDq1Vkda2a82dOVxsQs8a1yyE03GAOlA0TPx5ROKwPVEwzJZE7x9vCqBaChg8C8lz
-	 ofAnwwMLiVMgO3djzKJscVTcoUkAMLjF5ehilSBcc/2Lqzt4yZ0tPr6R4zeRAWVQdx
-	 YfyOLOeyNnL9P/nJRRacI6w75Hl32kMFgy2I10/wUN78xvTouFoppWO/IAeeljf7wg
-	 aw0F12Gl8CMvg==
+	b=HTiFI/gRAcXJTgd7xuiXoBfiPSvqelwO/3RGk7rZqNg9NEI06XjAWsSMka1CZWFeq
+	 Oda3v69dDUnNcFSn8LTRVg06ujoNhH5JZH7FgG7PKjMckKMz+LYx2GrGH/+pOMTloO
+	 wsR6Ov/rFgIamo696hV23UrspCuwcexBH9nSoEST4GbaxoZTRXmgHgLv+GEBff7E/C
+	 iknsZ3pM2HH7E+6p4sf5mZNYPYOJhx8tUz2LAoKTxb1Fz4tNNesUL4l8Oq9r6FnIYh
+	 UZ8Gb467kxSKG6wa3kG9sO95Pwvm3ZaeElzfUDeYRBYYJaNnabtu6gta6/T3O4gJ4o
+	 CFmpji5cAy1jA==
 From: Lee Jones <lee@kernel.org>
 To: lee@kernel.org,
 	Aaro Koskinen <aaro.koskinen@iki.fi>,
@@ -46,17 +46,15 @@ To: lee@kernel.org,
 	Kevin Hilman <khilman@baylibre.com>,
 	Roger Quadros <rogerq@kernel.org>,
 	Tony Lindgren <tony@atomide.com>,
-	Kai Svahn <kai.svahn@nokia.com>,
-	syed khasim <x0khasim@ti.com>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Peter Ujfalusi <peter.ujfalusi@ti.com>,
+	AnilKumar Ch <anilkumar@ti.com>,
+	Milo Kim <woogyom.kim@gmail.com>,
 	linux-omap@vger.kernel.org,
 	mfd@lists.linux.dev,
 	linux-kernel@vger.kernel.org
 Cc: stable@vger.kernel.org
-Subject: [PATCH 14/28] mfd: twl-core: Clear twl_priv pointer on teardown and probe failure
-Date: Wed, 21 Oct 2026 12:09:36 +0000
-Message-ID: <20261021121245.3111563-14-lee@kernel.org>
+Subject: [PATCH 24/28] mfd: tps65217: Manage IRQ domain teardown via devres
+Date: Wed, 21 Oct 2026 12:09:46 +0000
+Message-ID: <20261021121245.3111563-24-lee@kernel.org>
 X-Mailer: git-send-email 2.56.0.218.g1ec904b173-goog
 In-Reply-To: <20261021121245.3111563-1-lee@kernel.org>
 References: <20261021121245.3111563-1-lee@kernel.org>
@@ -71,79 +69,110 @@ Precedence: list
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-twl_probe() allocates the file-scope twl_priv state with devm_kzalloc()
-and checks for a non-NULL twl_priv at entry to reject multiple device
-instances.  However, twl_remove() and the early error paths in
-twl_probe() never reset twl_priv to NULL, a failure when adding MFD
-child devices bypasses twl_remove() by jumping to free instead of fail,
-and twl_remove() tears down the IRQ domain and dummy I2C clients before
-child devices are unregistered.  After devres frees the underlying
-memory on probe failure or unbind, twl_priv remains a dangling pointer,
-causing subsequent exported API calls to dereference freed memory and
-blocking future probe attempts with -EBUSY.
+tps65217_irq_init() creates tps->irq_domain with an unmanaged call and
+requests the parent interrupt via devm_request_threaded_irq(), while
+tps65217_remove() manually disposes mappings and removes
+tps->irq_domain.  Because tps65217_remove() executes before devres
+teardown, the IRQ domain is destroyed while tps65217_irq_thread() and
+child MFD devices are still active, allowing a concurrent interrupt to
+dereference a freed or NULL domain.  Furthermore, if probe fails after
+irq_domain_create_linear() or if tps65217_irq_init() fails, the IRQ
+domain is leaked, and if the device is probed without an interrupt
+(client->irq == 0), tps65217_remove() unconditionally passes a NULL
+tps->irq_domain to irq_domain_remove().
 
-Unregister DT-populated and MFD child devices at the start of
-twl_remove(), ensure mfd_add_devices() failures unwind via fail, and
-reset twl_priv to NULL in twl_remove() and on probe error exit.
+Register a devres action to tear down the IRQ domain in
+tps65217_irq_init() prior to devm_request_threaded_irq(), propagate
+errors from tps65217_irq_init() in tps65217_probe(), and drop
+tps65217_remove().
 
-Fixes: 80a97ccd33be ("mfd: twl-core: Collect global variables behind one private structure (global)")
-Closes: https://sashiko.dev/#/bug/linux-73e82f84-94de-4d08-82a4-f22d42a1dedf
+Fixes: 40a50f8b307d ("mfd: tps65217: Fix page fault on unloading modules")
+Closes: https://sashiko.dev/#/bug/linux-7e358c08-6d75-48be-87d2-35dc037ea953
 Cc: stable@vger.kernel.org
 Signed-off-by: Lee Jones <lee@kernel.org>
 ---
- drivers/mfd/twl-core.c | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ drivers/mfd/tps65217.c | 40 ++++++++++++++++++++++------------------
+ 1 file changed, 22 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index 64b45fe79159..21fc0acb827b 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -689,6 +689,11 @@ static void twl_remove(struct i2c_client *client)
- {
- 	unsigned i, num_slaves;
+diff --git a/drivers/mfd/tps65217.c b/drivers/mfd/tps65217.c
+index c240fac0ede7..a1e9b9e22d82 100644
+--- a/drivers/mfd/tps65217.c
++++ b/drivers/mfd/tps65217.c
+@@ -146,6 +146,21 @@ static const struct irq_domain_ops tps65217_irq_domain_ops = {
+ 	.map = tps65217_irq_map,
+ };
  
-+	of_platform_depopulate(&client->dev);
++static void tps65217_irq_exit(void *data)
++{
++	struct tps65217 *tps = data;
++	unsigned int virq;
 +
-+	if (twl_class_is_6030())
-+		mfd_remove_devices(&client->dev);
-+
- 	if (pm_power_off == twl6030_power_off)
- 		pm_power_off = NULL;
- 
-@@ -706,6 +711,7 @@ static void twl_remove(struct i2c_client *client)
- 		twl->client = NULL;
- 	}
- 	twl_priv->ready = false;
-+	twl_priv = NULL;
- }
- 
- 
-@@ -880,10 +886,10 @@ twl_probe(struct i2c_client *client)
- 			num_cells = ARRAY_SIZE(twl6030_cells);
- 		}
- 
--		status = devm_mfd_add_devices(&client->dev, PLATFORM_DEVID_NONE,
--					      cells, num_cells, NULL, 0, NULL);
-+		status = mfd_add_devices(&client->dev, PLATFORM_DEVID_NONE,
-+					 cells, num_cells, NULL, 0, NULL);
- 		if (status < 0)
--			goto free;
-+			goto fail;
- 
- 		if (of_device_is_system_power_controller(node)) {
- 			if (!pm_power_off)
-@@ -900,8 +906,10 @@ twl_probe(struct i2c_client *client)
- 	if (status < 0)
- 		twl_remove(client);
- free:
--	if (status < 0)
-+	if (status < 0) {
- 		platform_device_unregister(pdev);
-+		twl_priv = NULL;
++	for (int i = 0; i < TPS65217_NUM_IRQ; i++) {
++		virq = irq_find_mapping(tps->irq_domain, i);
++		if (virq)
++			irq_dispose_mapping(virq);
 +	}
++
++	irq_domain_remove(tps->irq_domain);
++	tps->irq_domain = NULL;
++}
++
+ static int tps65217_irq_init(struct tps65217 *tps, int irq)
+ {
+ 	int ret;
+@@ -165,6 +180,10 @@ static int tps65217_irq_init(struct tps65217 *tps, int irq)
+ 		return -ENOMEM;
+ 	}
  
- 	return status;
++	ret = devm_add_action_or_reset(tps->dev, tps65217_irq_exit, tps);
++	if (ret)
++		return ret;
++
+ 	ret = devm_request_threaded_irq(tps->dev, irq, NULL,
+ 					tps65217_irq_thread, IRQF_ONESHOT,
+ 					"tps65217-irq", tps);
+@@ -333,7 +352,9 @@ static int tps65217_probe(struct i2c_client *client)
+ 	}
+ 
+ 	if (client->irq) {
+-		tps65217_irq_init(tps, client->irq);
++		ret = tps65217_irq_init(tps, client->irq);
++		if (ret)
++			return ret;
+ 	} else {
+ 		int i;
+ 
+@@ -373,22 +394,6 @@ static int tps65217_probe(struct i2c_client *client)
+ 	return 0;
  }
+ 
+-static void tps65217_remove(struct i2c_client *client)
+-{
+-	struct tps65217 *tps = i2c_get_clientdata(client);
+-	unsigned int virq;
+-	int i;
+-
+-	for (i = 0; i < TPS65217_NUM_IRQ; i++) {
+-		virq = irq_find_mapping(tps->irq_domain, i);
+-		if (virq)
+-			irq_dispose_mapping(virq);
+-	}
+-
+-	irq_domain_remove(tps->irq_domain);
+-	tps->irq_domain = NULL;
+-}
+-
+ static const struct i2c_device_id tps65217_id_table[] = {
+ 	{"tps65217", TPS65217},
+ 	{ /* sentinel */ }
+@@ -402,7 +407,6 @@ static struct i2c_driver tps65217_driver = {
+ 	},
+ 	.id_table	= tps65217_id_table,
+ 	.probe		= tps65217_probe,
+-	.remove		= tps65217_remove,
+ };
+ 
+ static int __init tps65217_init(void)
 -- 
 2.56.0.218.g1ec904b173-goog
 
