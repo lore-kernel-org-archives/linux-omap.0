@@ -1,129 +1,146 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=148.163.154.28
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793002771;
-	b=BW2ZxfbA2Jbd6FPSLmDC79d44peR6lR8zbSDS8CPMpWul1GkV525ybab1Jt7ZmfDXQ4k
-	 ypGeNa/TtMoyifFH2Wt7vF+HJvq+qwG5dMbciVsMp60CoPHwLft0jbmfvncsbppW4A+91
-	 Xj1JlZ9lUAc7IR3Gn/Q7DvH+S4Z1F/rW8jtQ622w83N8vFD3F7c54FbihIZJ2Rd83dgS9
-	 rE0OJhz9iBJfEqie4qHnu/Ai9hP54ZLggzxpL+6PqzlBKxrDvWKvY7GZ1e+i2Ft3qUrc6
-	 yIIH6Sb68/WsSWZhxkL2FbLEzS5qJbAKkonfPS5uNzkCYznj+rQ8Q2obh7yxOcigzvQ==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793002771;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:DKIM-Signature:
-	 Received:Received:X-MS-Exchange-Authentication-Results:Received-SPF:
-	 Received:Received:Received:Received:Received:Message-ID:Date:
-	 MIME-Version:User-Agent:CC:Subject:To:References:Content-Language:
-	 From:In-Reply-To:Content-Type:Content-Transfer-Encoding:
-	 X-EOPAttributedMessage:X-MS-PublicTrafficType:
-	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
-	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
-	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
-	 X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-Exchange-RoutingPolicyChecked:
-	 X-OriginatorOrg:X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-Id:
-	 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped:
-	 X-Proofpoint-ORIG-GUID:X-Proofpoint-GUID:X-Proofpoint-Spam-Info:
-	 X-Authority-Analysis:X-Proofpoint-Spam-Details-Enc:
-	 X-Proofpoint-Virus-Version:X-Proofpoint-Spam-Details;
-	bh=OSGm+j6TzrArWBMkwbVqFznJkjj3uoS83TAtX0n8jpA=;
-	b=ygSK9j1h4Tm6qlN9ToRimoDQ3asNBu+pDGOu7jv77c0kofawoTejZDx7LmCUPzobMa8d
-	 Fj9ydnxe+SQIGED4I+IHresfwsaCFxu4t6BzYbFKgQRTO7udD31nWFVnwG4hOIQ+js4nZ
-	 BtwXcX+N1DJbrm7qevlOr35qvQy4PS0Tq9PTByaMn6tO+dPyF6gJhL4yPnF2Z9beretns
-	 Yf7mjDW+9A30lSdKzNSk2UvZF5f0Y7YoDCTNKWb1YDQ9QTAT1VkLdrp8mKsDstqxx4+cV
-	 OPK0zrFnTFc+9VtynTyDFi/YQ85u2VEmo2854rR1uHkDhgSEUx8u16G/xCYAn2wZP2w==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=ti.com;
-	spf=pass smtp.mailfrom=ti.com;
-	dkim=pass header.d=ti.com header.i=@ti.com header.a=rsa-sha256 header.s=proofpoint-05-2026 header.b=jT6yJUCa;
-	dkim=pass header.d=ticloud.onmicrosoft.com header.i=@ticloud.onmicrosoft.com header.a=rsa-sha256 header.s=selector1-ticloud-onmicrosoft-com header.b=Eg+0T3Ac;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=148.163.154.28
-Received: from mx0b-0002e601.pphosted.com (mx0b-0002e601.pphosted.com [148.163.154.28])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.47
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1793032166;
+	b=nb7X4fqqjyXHMRf9t2iJuJCA+Qf773n6pRKrWX+e1XukGkfb9ZOEBCyqIlw8aRqhDSD/
+	 kFE15Ejil+K4dg6CiiCQ29Y6tadhJDKxF/LC9LN+3wGCpj5zEU/+P2cX/Vj7gpv5uSKlH
+	 uYX3ZWTADq9+D8FZehVVcjaP6ZKjYSNiVxxYGK6zh83qf8r0g84vllEk2LeJzOHs/S2GC
+	 C9Dvqp2IqKAp7lMkScUUdqWtKVgVg0T0nw3nFRlCIZlHJC/c6V22sGWrWwPejtXKuNBVg
+	 gCnutx+RFx0KvxKFbwiGdOWv0fTb6N2cJQdUEmFI5pcvU1i4FV5IgP0EWWSZOOOf0WA==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793032166;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:Content-Type:
+	 X-Developer-Signature:X-Developer-Key:Content-Transfer-Encoding;
+	bh=ITqbDSTjwjfbrrpkyujx4v8CTbfspgT4IGjU+cO6egY=;
+	b=C7aQ3ESvlInFfTP0BR+LAJ5ESxLSsCJk/1wQLU/tqGmapdLhsckgRQzG5JEG9sqCzHme
+	 KnI7P0EtxUXz/rzNzCV4Nh8oXYLo3MBBs8fxifo3zNZJfgRwj+YXYc0nrGgQwfknDWzDv
+	 xt8uwd6NX0N1uHoxoQO6thUYlOiVV5P0b5pCI5MN0GleM+P7bMoJ8kuGF0Jn7zsteMk/9
+	 daUMHkvY0v5PIMpp85dqIsUYTj+xFjzlhbtxB1XbUdellEWONQo5koeR8FWh5/Ksh1BPl
+	 KlY0rpIONE8EwFZWGZLe7RF4uCiINFx92UlHF6MS6lVG29pvy/6lCLuz9N740vQD9Dg==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=none header.from=baylibre.com;
+	spf=pass smtp.mailfrom=baylibre.com;
+	dkim=pass header.d=baylibre.com header.i=@baylibre.com header.a=rsa-sha256 header.s=google header.b=DifXhBTJ;
+	arc=none smtp.remote-ip=209.85.128.47
+Received: from mail-wm1-f47.google.com (mail-wm1-f47.google.com [209.85.128.47])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C43E9606A31A;
-	Mon, 26 Oct 2026 08:19:29 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C43E9606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=ti.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ti.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 549FE606A322
+	for <linux-omap@vger.kernel.org>; Mon, 26 Oct 2026 16:29:24 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 549FE606A322
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=ti.com header.i=@ti.com header.a=rsa-sha256 header.s=proofpoint-05-2026 header.b=jT6yJUCa;
-	dkim=pass (1024-bit key, unprotected) header.d=ticloud.onmicrosoft.com header.i=@ticloud.onmicrosoft.com header.a=rsa-sha256 header.s=selector1-ticloud-onmicrosoft-com header.b=Eg+0T3Ac
-Received: from pps.filterd (m0374955.ppops.net [127.0.0.1])
-	by mx0b-0002e601.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69Q7R4622083876;
-	Mon, 26 Oct 2026 03:19:08 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ti.com; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=
-	proofpoint-05-2026; bh=OSGm+j6TzrArWBMkwbVqFznJkjj3uoS83TAtX0n8j
-	pA=; b=jT6yJUCaf9VopWwDHqxdoeTyBGR3SWC/LbYWRVTfpALVfutawmzUN533n
-	b7FlK4268EEMuZ9ieQmhFspm2aYwV0Z+vdh0D/hrh3TkooXntMnnm7dnFjAIOWyX
-	5MzJo6DVc4l+KTEV9NKu/Ou4gSLWT31T3b3Xi6VTfQ7nEc2aSONrdt+0uMYVMc+r
-	rXAOBn25AT70qrypvOviWTVqD6zjGtGqyEBgcS3EJmJBJyHHJHIb+m9gJGhV/ZyP
-	l87vwkqNP8evUlRGq+2h31BHqWfbXzIb5apfhocOrs1QoXpgM/RKWBOXhMIUm/Hv
-	2G/I0IB+46KBkjrp05cxR75hyDevA==
-Received: from cy7pr03cu001.outbound.protection.outlook.com (mail-westcentralusazon11010061.outbound.protection.outlook.com [40.93.198.61])
-	by mx0b-0002e601.pphosted.com (PPS) with ESMTPS id 4hj2g1085q-1
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-	Mon, 26 Oct 2026 03:19:08 -0500 (CDT)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=MTuiTcuVdpfvTBxHgyi1tC4q8wljtXWlGjzB09YcwD9xPCPR7gv3EJQG4WAHCGoM9/S9NzlwNdlXCnCV7hivE2Q/mcUMQzQ2ZaP+EGhQRLkiNVH2QT5GikaPa2Q2eFuLPFTjQCKtnzShqf1mRDREZlFe0t3yrdkCvGmSDywSViprhxjc6exNcvH7qu3Gf0ABIenjap6rYJE3m68oFUCypANK1yyWou5+FAjHNkd3LK2HuGh+Yfp27pVKHeIUWOCYyLHc5a3GwId8BdfBVPMBxPHgR1wTYFcDyO3AvqLga1CBTGg3FpPTyC2Uh8fp72RWPS85b9EZYf71IN0X9El2hw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=OSGm+j6TzrArWBMkwbVqFznJkjj3uoS83TAtX0n8jpA=;
- b=A+0e9dVvgSm60LLlaURXRBCokfLrZuGuBsih7jm62FxJbEKXduCRpNKde+mRA8cegYilP21gCf+DEzB7QZBlqP2MnUSE2L3d/TYVByuwmvfy5wA+kGM7daYRD4Qfi0se3Y9m2D/Re5izCFrz5oCqR6fMM9Jxc6UOcDvRSrPudBOJC4ffDZvUwDidY2V4HFKRtHGNFiEZbCdl0UZW84fFPLUvlSXmbt/3+BSJ7a120jH8STW1C0gFv6SyDzQEtXe6bJ4Oq3tNeAoWUqnDybkmeVWiR0GXsoKSSENf5h4Nly43q9cFMNumHgx4/mcsKnLG0xTxA/FYNg1J060sSXLo2g==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 198.47.23.195) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=ti.com;
- dmarc=pass (p=quarantine sp=none pct=100) action=none header.from=ti.com;
- dkim=none (message not signed); arc=none (0)
+	dkim=pass (2048-bit key, unprotected) header.d=baylibre.com header.i=@baylibre.com header.a=rsa-sha256 header.s=google header.b=DifXhBTJ
+Received: by mail-wm1-f47.google.com with SMTP id 5b1f17b1804b1-4a5087a5348so13863025e9.0
+        for <linux-omap@vger.kernel.org>; Mon, 26 Oct 2026 09:29:24 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=ticloud.onmicrosoft.com; s=selector1-ticloud-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=OSGm+j6TzrArWBMkwbVqFznJkjj3uoS83TAtX0n8jpA=;
- b=Eg+0T3Acytp3W5jm0LCARcgRHsIyTuf1H4gUJ5Xr26a06V5C6DrAbWVsjjqkwEUFDqgANlFOps0C1Dsffgjh7D2Wp0BsHiSgZ4wTdH8GH5+62e3/F3mCL1KXpuDgHZORduTP+l8RQDnt/vZgvxrB/amDvM31Vfc9km/i03JQOBY=
-Received: from MW4PR03CA0310.namprd03.prod.outlook.com (2603:10b6:303:dd::15)
- by LV8PR10MB7800.namprd10.prod.outlook.com (2603:10b6:408:1f0::22) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.546.21; Mon, 26 Oct
- 2026 08:19:03 +0000
-Received: from MWH0EPF000C6185.namprd02.prod.outlook.com
- (2603:10b6:303:dd:cafe::a8) by MW4PR03CA0310.outlook.office365.com
- (2603:10b6:303:dd::15) with Microsoft SMTP Server (version=TLS1_3,
- cipher=TLS_AES_256_GCM_SHA384) id 15.21.546.16 via Frontend Transport; Mon,
- 26 Oct 2026 08:19:03 +0000
-X-MS-Exchange-Authentication-Results: mx.microsoft.com 1; spf=pass (sender IP
- is 198.47.23.195) smtp.mailfrom=ti.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=ti.com;
-Received-SPF: Pass (protection.outlook.com: domain of ti.com designates
- 198.47.23.195 as permitted sender) receiver=protection.outlook.com;
- client-ip=198.47.23.195; helo=lewvzet201.ext.ti.com; pr=C
-Received: from lewvzet201.ext.ti.com (198.47.23.195) by
- MWH0EPF000C6185.mail.protection.outlook.com (10.167.249.117) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.21.569.4 via Frontend Transport; Mon, 26 Oct 2026 08:19:03 +0000
-Received: from DLEE202.ent.ti.com (157.170.170.77) by lewvzet201.ext.ti.com
- (10.4.14.104) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.45; Mon, 26 Oct
- 2026 03:18:44 -0500
-Received: from DLEE210.ent.ti.com (157.170.170.112) by DLEE202.ent.ti.com
- (157.170.170.77) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.45; Mon, 26 Oct
- 2026 03:18:44 -0500
-Received: from lelvem-mr05.itg.ti.com (10.180.75.9) by DLEE210.ent.ti.com
- (157.170.170.112) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.45 via Frontend
- Transport; Mon, 26 Oct 2026 03:18:44 -0500
-Received: from [10.24.68.238] (uhda0492258.dhcp.ti.com [10.24.68.238])
-	by lelvem-mr05.itg.ti.com (8.18.1/8.18.1) with ESMTP id 69Q8Iex9373562;
-	Mon, 26 Oct 2026 03:18:41 -0500
-Message-ID: <3f439232-75d5-418a-9581-420a9f683d9e@ti.com>
-Date: Mon, 26 Oct 2026 13:48:40 +0530
+        d=baylibre.com; s=google; t=1793032163; x=1793636963; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:mime-version:message-id:date
+         :subject:cc:to:from:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=ITqbDSTjwjfbrrpkyujx4v8CTbfspgT4IGjU+cO6egY=;
+        b=DifXhBTJvVk6Znsfpih+FjoF5Wrg8MrElM8vyIYQMuriEdZUtnmV1Ytb2fl6ArI9rS
+         D+7w6w3VpIz+TsP1rgGV2DdnTf+azKO0nz7iMBN/ilkiUuoHSciiqM8LieFFsMm7HXTC
+         OF24i9+3qwQtdvqBQQnWKSKIl6x9VkXIuL4LDFEbsEJNC0zgbXm2cgUwYJOLnJG/zhOI
+         cE6NBCl16W61Eqz27cCC0I+HYoboIJMACuuniRG48Hfab5GyC/3a52VvGpFR5KSNjwmQ
+         AcBqRQugntBg1pxLccN5iKH5pEMTNRivZ1B2IN3ifWFJctq1M1c2XptTKy6HcKE0++lG
+         0DGA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793032163; x=1793636963;
+        h=content-transfer-encoding:content-type:mime-version:message-id:date
+         :subject:cc:to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=ITqbDSTjwjfbrrpkyujx4v8CTbfspgT4IGjU+cO6egY=;
+        b=ttkOQ+nNsQlCjds0yN5/xGYC65g2V9AxmG/A1jdSodXJfOeYCxeovzkGPv9OOPELQL
+         yXUb0mnAHH3CWNDoMatfAInr/JHFZ5msmX5df4dxmL2rO8/dl3Pmzwao8NWZPh6qMnRo
+         zKnSCiYmT+S3dADYu3NzpK7PRALKOAEM4AV5uCF7lYl72eO6hmSBzpZsVEZmx3T1bIrd
+         ZOKm41o2YcKJzrCeIHmuu1tCdYdg29xu+hhaF6jRJyTev5pCo9Y8vdzNhqr+9r9xesKI
+         EacHxazreE9DnhER/piP3P0Ifvb/nHlNS/NGEF04DD+MPQXj3Mnv1soQ2hwVQmXUUFDL
+         uCSA==
+X-Forwarded-Encrypted: i=1; AKwUvBzdZBlkaQx0j3JwQlndk7M15Cws4nenydtpfTsGYTafM2ZYGykiI+RiuhGRGix1c1NxJ4gly1ArkuQP@vger.kernel.org
+X-Gm-Message-State: AFq9FYJPi7n9qND9il3J8ZZdTvkQ8HO8OoEegwZ1tfcuHiVBnUQLtfU1
+	24bbsmHHQvoR898GvbhYFSKG6yIFkbzpQ4y5F6NCb8Od2XRHX5v8StUzG1M8J0GfncY=
+X-Gm-Gg: AYBFou11qClzboyJWx+rp/VPGpAbOe1Ghua0/cVrc0Ye/DmV0IFKY+ZaaSqVU/dleNO
+	YfOPwDS0C739s9i2Gl1l991sJcZWbym9f2RdFUAcr79T8/AaYq5czgRUqQOnoOL8KGvrETct5Jb
+	XaP0ZHsV3BNemHJlqVzCHnYx9rZqodkPCyNk4FmpUN5BpeVZdjXOxG4mDCqfNpZjKpddoLBIyiL
+	B/LSOKwFfOnIVTnCGOl0fL7BiCzuQ1IDgVs+h+wOzWTP0FKYiv5SzFmOIHG9xNyGdtGgNM+yHqk
+	Lln00B4PxwSJLe9MNqIZ+3J+whH7Jz+JiWNDztGOOjTzFpJBrFtwxegVGErrzXucop+BhJRgZIi
+	dRMrIz53GKLiNnjunXwc7FhhTqeTDErf7xS8dQKodj2FpGjYVJySbRIk1K+9zlJh5RhI98PTF4C
+	sL3zjd8tUdakgubQXQIhzBw8Bi+C3qtBFKn5vkjzhZK8chfU3M9jzRPzCxPElmfWRTUGjnVatxI
+	k0oXdupG1auTyga15z9P+D10yy6rQggCEf8holE+/AmQW6ArT/3ZOFgGbAcWEwYc7JYwINZ7V2l
+	8A4PtD5S2NCG7KCXCDn4ymNgIC6NpLN4C7YU4FgA/M4=
+X-Received: by 2002:a05:600c:474a:b0:4a1:78c5:79f5 with SMTP id 5b1f17b1804b1-4a35acb9afamr139448685e9.33.1793032162560;
+        Mon, 26 Oct 2026 09:29:22 -0700 (PDT)
+Received: from localhost (p200300f65f19a904cbccaa7a4d73ac15.dip0.t-ipconnect.de. [2003:f6:5f19:a904:cbcc:aa7a:4d73:ac15])
+        by smtp.gmail.com with UTF8SMTPSA id ffacd0b85a97d-48e3ecd8dcfsm17304483f8f.50.2026.10.26.09.29.21
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 26 Oct 2026 09:29:21 -0700 (PDT)
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig=20=28The=20Capable=20Hub=29?= <u.kleine-koenig@baylibre.com>
+To: Linus Walleij <linusw@kernel.org>,
+	Bartosz Golaszewski <brgl@kernel.org>
+Cc: Andy Shevchenko <andy@kernel.org>,
+	linux-gpio@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Yang Shen <shenyang39@huawei.com>,
+	Lixu Zhang <lixu.zhang@intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Ray Jui <rjui@broadcom.com>,
+	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>,
+	Florian Fainelli <florian.fainelli@broadcom.com>,
+	Scott Branden <sbranden@broadcom.com>,
+	Eugeniy Paltsev <Eugeniy.Paltsev@synopsys.com>,
+	Frank Li <Frank.Li@nxp.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Pengutronix Kernel Team <kernel@pengutronix.de>,
+	Fabio Estevam <festevam@gmail.com>,
+	Imre Kaloz <kaloz@kernel.org>,
+	Conor Dooley <conor.dooley@microchip.com>,
+	Valentina Fernandez <valentina.fernandezalanis@microchip.com>,
+	Daire McNamara <daire.mcnamara@microchip.com>,
+	Daniel Palmer <daniel@thingy.jp>,
+	Romain Perier <romain.perier@gmail.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	imx@lists.linux.dev,
+	linux-arm-kernel@lists.infradead.org,
+	linux-riscv@lists.infradead.org,
+	Hoan Tran <hoan@os.amperecomputing.com>,
+	Alan Borzeszkowski <alan.borzeszkowski@linux.intel.com>,
+	Mika Westerberg <westeri@kernel.org>,
+	Israel Cepeda <israel.a.cepeda.lopez@intel.com>,
+	Hans de Goede <hansg@kernel.org>,
+	Matti Vaittinen <mazziesaccount@gmail.com>,
+	"Enrico Weigelt, metux IT consult" <info@metux.net>,
+	Viresh Kumar <vireshk@kernel.org>,
+	virtualization@lists.linux.dev,
+	Yinbo Zhu <zhuyinbo@loongson.cn>,
+	Thierry Reding <thierry.reding@kernel.org>,
+	Jonathan Hunter <jonathanh@nvidia.com>,
+	linux-tegra@vger.kernel.org,
+	Geert Uytterhoeven <geert+renesas@glider.be>,
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
+	Srinivas Neeli <srinivas.neeli@amd.com>,
+	Michal Simek <michal.simek@amd.com>,
+	linux-aspeed@lists.ozlabs.org,
+	asahi@lists.linux.dev,
+	linux-mediatek@lists.infradead.org,
+	openbmc@lists.ozlabs.org,
+	linux-omap@vger.kernel.org,
+	linux-renesas-soc@vger.kernel.org,
+	linux-unisoc@lists.infradead.org,
+	linux-rockchip@lists.infradead.org,
+	linux-stm32@st-md-mailman.stormreply.com,
+	Michael Buesch <m@bues.ch>,
+	William Breathitt Gray <wbg@kernel.org>,
+	Robert Richter <rric@kernel.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	linux-acpi@vger.kernel.org
+Subject: [PATCH v3 00/22] gpio: Improvements around device-id arrays
+Date: Mon, 26 Oct 2026 17:28:11 +0100
+Message-ID: <cover.1793030820.git.u.kleine-koenig@baylibre.com>
+X-Mailer: git-send-email 2.56.0.rc1
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -133,180 +150,184 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-CC: Andrew Lunn <andrew+netdev@lunn.ch>,
-        "David S. Miller"
-	<davem@davemloft.net>,
-        Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski
-	<kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>, Roger Quadros
-	<rogerq@kernel.org>,
-        Richard Cochran <richardcochran@gmail.com>,
-        "Grygorii
- Strashko" <grygorii.strashko@ti.com>,
-        <linux-omap@vger.kernel.org>, <netdev@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <s-vadapalli@ti.com>
-Subject: Re: [PATCH net] net: ethernet: ti: cpts: drop stale events before the
- misc IRQ can fire
-To: Hung-Chun Tseng <alan.tseng.cs@gmail.com>
-References: <20261026072314.663980-1-alan.tseng.cs@gmail.com>
-Content-Language: en-US
-From: Siddharth Vadapalli <s-vadapalli@ti.com>
-In-Reply-To: <20261026072314.663980-1-alan.tseng.cs@gmail.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MWH0EPF000C6185:EE_|LV8PR10MB7800:EE_
-X-MS-Office365-Filtering-Correlation-Id: b147c92e-875c-4722-e618-08df3339cbcb
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|7416014|376014|82310400026|1800799024|36860700016|23010399003|6133799003|22082099003|18002099003|3023799007|56012099006|5023799004|261021121427099003|10067099003|261009223027099003|261022075727099003|261021123027099003|261022105027099003;
-X-Microsoft-Antispam-Message-Info:
-	/d5FThTxXQunorU3xxmRoKgCGQT8eKovjH5p+u4nrVjvSDa/CzcBru8US72MgTVjN2D07luZQu3pLB5GK5HlrpJY8rxU2qppLpP1UDW78iq+flfEswwTtiLIxaN3eciU88nY0gjJFMqJMTNW1Z98IFQy6FPtGygsauhdop1mxXC2BsqGw0myXD8fjzUNJkO6q9j2ZAjZPaSS+9YeQoJFYhwsIkxMmHYkci6JyNgcV0bKknNYboODb2UuWdAs0lJhxBeh9b8no2NlQUxS7kAZLpeaAAlKS5XXyyfvtwKyrflO5W0+Pyqf8VlygS6YRyz+8ytDUkzhzsUs7ycnM9zUAlHsMvIIHQV/NoGWQLS/aK1hwtnLcm4GzQiz6e3iKRK+4a5nIV1a4Q0Ucjh6iTCwS9M042JuwjMNOPQ5tILF/l4IpuzxwJWdPrPHeiOKO4CqKG0r66EewPaIbJY1mbSngWatZxUWmujzNKP1nH8TaXlpRBtQUlQxoXRyIfU/QaiVydyYEwIzT60xtArzzHZ7335VwG+cbQvkdTC11VWNqr89GOaWOuraDpjbkjfYbV5mFFfnHm7ZOFToCUS0Ca9HlSr0ycQGVcpmJaFCD/aPziufJhWRsvkOWhRZaDr0jUWG6QrsqOaQbtmYNAnzwu3+0P3uwzmvf5Ou9u03ZJ+vmS5pY7X8GJUJQOHqVAvdzpQni4hs2E6mqgfeKL2VukFdIA==
-X-Forefront-Antispam-Report:
-	CIP:198.47.23.195;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:lewvzet201.ext.ti.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230040)(7416014)(376014)(82310400026)(1800799024)(36860700016)(23010399003)(6133799003)(22082099003)(18002099003)(3023799007)(56012099006)(5023799004)(261021121427099003)(10067099003)(261009223027099003)(261022075727099003)(261021123027099003)(261022105027099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	nGZ0ja6xTXeHy3zRHzsFqVJA2rfJ0V+v21C0pO0wjMblB9e3LP/T3BiPZp68pp4udpHxMtWHfAWuWuw4dtzBFi3Ccn5qXI+Xd5tpxSg/zB93+Doymj/muQIRT1GqbBseP/Pxk4pERYegssrde9CJtRn9VjOpGpmIleJE85aIefe+jCLFmo0tLK/GGLsqUkm0GKykRIac8rgpRxkK5mF2NOEAeaY6bGjk052UgHTrwd3q774fpfGJ9RPJE25N01h5OnxpCvcfOR7IRdjK4P8eDMznLW/JrtJK6YyTvuSTf645xRkSCjMOCbwK1BUJnYrmJmLOWLGnQSPj+UpV9OuZFbh+n3Rr7+nXvxtWB418voI1zieUn2JKMY/YGJFUbEosEcV5GZSlskyV6lMp9K8bVEffmNAMl5hpJgv0/kAD3ss5C4F4kSrGmG5uQ+38IWQo
-X-Exchange-RoutingPolicyChecked:
-	E38b2MxkTGBFTd4p0phsHHDcyM+AcQAiUxcXF0De7yErhL08gzfIZTLFm4RuuLtcEcUu7H9Edmht822++SOIiISZaDNmV9fHtG5h1nxO/f5WHzzErY99ciBszKMFj+gzfxVc5Fjzz1SmZ/FdQVZYEqAS9iKee0qu3GUnkr8otisCbjDFRUU9/dypPY5eiv/fqmUCJJCZZruJKGQHht8iqYLxXeUpmruc2qTnMgnSFHO39oPNivIzo+SNrEWjGMALa60f6I65czzDTUzs9Y3aj3ppjcYgfO2MLmMxaxQevd8QgW6sCo89WHle8pkHLcsXz3Mt/gDLuEqtxDKIx3SbWA==
-X-OriginatorOrg: ti.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 Oct 2026 08:19:03.3892
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: b147c92e-875c-4722-e618-08df3339cbcb
-X-MS-Exchange-CrossTenant-Id: e5b49634-450b-4709-8abb-1e2b19b982b7
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=e5b49634-450b-4709-8abb-1e2b19b982b7;Ip=[198.47.23.195];Helo=[lewvzet201.ext.ti.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	MWH0EPF000C6185.namprd02.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV8PR10MB7800
-X-Proofpoint-ORIG-GUID: QS8mnfiMA3RgWp_g3e56XJjlBNXrsqQL
-X-Proofpoint-GUID: QS8mnfiMA3RgWp_g3e56XJjlBNXrsqQL
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMDI2MDAzMiBTYWx0ZWRfX30DnBOv3pPkZ
- tMVeWRRE49kNC43Yc3/HugWiZ1dqlNgH2IA4V7IWPQHqcpoK+jeR3DMVkAAi79harEH8QwOHR7G
- wsz/qCQjAyvUlrCntxe6FGozccHZAUA=
-X-Authority-Analysis: v=2.4 cv=buPZl0ai c=1 sm=1 tr=0 ts=6adf0cfc cx=c_pps
- a=tFiMKzbuKqM0PzijJMXBtQ==:117 a=f+v6EHfkeJbVwR46tk4DMg==:17
- a=6eWqkTHjU83fiwn7nKZWdM+Sl24=:19 a=XM9J6TYdycIBol3m:21 a=IkcTkHD0fZMA:10
- a=660iZSQnnn4A:10 a=s63m1ICgrNkA:10 a=AlMIdn_sM9wA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=Z8NIEmU8O1QQgoT56wFK:22 a=fPAWb5peG099m5CrUpKH:22
- a=pGLkceISAAAA:8 a=mnUfda406AYcND7Nu2QA:9 a=QEXdDO2ut3YA:10
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDI2MDAzMiBTYWx0ZWRfX75BLUL/4KN7L
- sYyWSHpYqWgs8uZeosZsSeRMFa6LQxyf9Yb667DjCyG2B8ZgQMLiInQwQOjQwqn8te7pD1axyde
- KxsGOgowfivTorrGxNA9fs8zVm5xE1WGNwWpRsri+MrjhJppMZBPuLYrDUUXxb6m9B2QyeDvvgn
- j4Ms5uee54N1h7aeoMobT94dZNn4Vv7B5pbU632vGqkRqMEJ76sIfMGQmV9fO2IOURU3KoaV8K6
- n341AQz26sQYdgfStH3EYOdxn+5KMdhjiw72DpLoiQYyNX5oQTBdi2dl4ET3hUabxpXmOUKCyoN
- 7ciMh3phU4YgUzL6om196YUZTGqZLkXbKcwr62HoWzCI5VdsdVFt8J9TfXs6tEuKFrTUFGnPUsf
- fqtj8Q+76g7A5bABZeHOObAQH810FbxrqIyYjcnxdyML6dvOvCCRlGpeHPwJaGkW2/u7/BCfEU+
- hYTd709+KpaPUWBdHJg==
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
- definitions=2026-10-26_01,2026-10-21_02,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- clxscore=1011 impostorscore=0 lowpriorityscore=0 suspectscore=0 bulkscore=0
- priorityscore=1501 adultscore=0 phishscore=0 spamscore=0 malwarescore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2610190000 definitions=main-2610260032
+Content-Type: text/plain; charset=UTF-8
+X-Developer-Signature: v=1; a=openpgp-sha256; l=8375; i=u.kleine-koenig@baylibre.com; h=from:subject:message-id; bh=/oBogVX4W/l/tSbRcbLeyK5GzZPZsHFXHxISWg2r7FU=; b=owEBbQGS/pANAwAKAY+A+1h9Ev5OAcsmYgBq33+c3CfzXRBmptFu1GW2GtVslcFR47MrFB6ag QI8Xzy686OJATMEAAEKAB0WIQQ/gaxpOnoeWYmt/tOPgPtYfRL+TgUCat9/nAAKCRCPgPtYfRL+ TixACACdtBFK6kNYWLMcAtstDryOYl7PdfPG1N2WQbOF3hzVRHuidZJEElOlxQOHOxjmH5QxfjG oK6tEHPvQpPYGNE6X2ddRlR3vKhFUQXZie3uQhpRkFU+T2B/9DaN4bQiSXUkhXTzFYvqdfGt+bx UbRl8w0O3UDWE1J1O3+WraRa9pLQ1EiCUZzbGW6h1FRI28X6Atl+O3zYxu2WImvV46mPVm5T7XZ b0jHMwW4knA+B/zWMTvL7A92KmAeoLFPWwfaif9ujRL8DnOG5TkQO7aEpnmwLg6WGA9ruZ09COA LKAAW+CtN1A3UjlRp4pFGny5ogYUqSyfQs1hycndKa4RLwtW
+X-Developer-Key: i=u.kleine-koenig@baylibre.com; a=openpgp; fpr=0D2511F322BFAB1C1580266BE2DCDD9132669BD6
+Content-Transfer-Encoding: 8bit
 
-On 10/26/26 12:53 PM, Hung-Chun Tseng wrote:
-> cpsw requests its misc IRQ at probe, but the CPTS event pool is only set
-> up later, in cpts_register() from ndo_open. That is fine from a cold boot,
-> where the CPTS comes out of reset stopped with its interrupt masked. After
-> a kexec it is not: the previous kernel leaves the CPTS running with
-> TS_PEND_EN set and events in its FIFO, so the interrupt fires as soon as
-> it is requested and cpts_fifo_read() takes an entry from the still empty
-> pool list:
-> 
->    Unable to handle kernel NULL pointer dereference at virtual address 00000010 when write
->    PC is at cpts_fifo_read+0xa4/0x3c8
->    Call trace:
->     cpts_fifo_read from cpsw_misc_interrupt+0x30/0x4c
->     cpsw_misc_interrupt from __handle_irq_event_percpu+0x74/0x378
->     ...
->     __setup_irq from request_threaded_irq+0xbc/0x170
->     request_threaded_irq from devm_request_threaded_irq+0x70/0x104
-> 
-> On a BeagleBone Black the CPTS registers read control=0x1, int_enable=0x1
-> and intstat_raw=0x1 in cpts_create() after the kexec, with one event
-> queued.
-> 
-> Mask the CPTS interrupt and drain the FIFO in cpts_create(), before
-> either cpsw driver requests the IRQ. cpts_register() unmasks it again
-> once the pool exists. The CPTS is left enabled: clearing CPTS_EN at this
-> point made TS_PEND_RAW read back as set, which would hand the handler a
-> bogus event.
-> 
-> Masking alone is not enough, as the interrupt may already be latched by
-> then, and clearing the wrapper's misc_en before requesting the IRQ does
-> not help either, since cpsw_misc_interrupt() sets it again on the way
-> out.
-> 
-> Fixes: 84ea9c0a95d7 ("net: ethernet: ti: cpsw: enable cpts irq")
-> Signed-off-by: Hung-Chun Tseng <alan.tseng.cs@gmail.com>
-> ---
-> Tested on a BeagleBone Black (AM335x, cpsw_new) on top of net 7076f684d5:
-> 
->   - Cold boot from U-Boot: probe and link come up and /dev/ptp0 is
->     registered, as before.
->   - kexec_load from a kernel without this patch into one with it, and from
->     a patched kernel into itself: no oops, link comes up, /dev/ptp0 is
->     registered and its time advances.
-> 
-> Without the patch the kexec'd kernel oopses as quoted above on every boot.
-> 
-> Not tested: the legacy cpsw driver, and Keystone netcp_ethss, which also
-> calls cpts_create(). The CPTS_EN behaviour described above was only
-> observed on AM335x.
-> 
-> How this was made: the investigation, the fix and this description were
-> done with an AI coding assistant (Claude Code) driving my board. Three
-> earlier attempts (clearing misc_en at probe, clearing CPTS_EN, draining and
-> then clearing CPTS_EN) were tried on the hardware and dropped; the register
-> values quoted above come from a debug print added for that. I have
-> reviewed the patch and can answer for it.
-> 
->   drivers/net/ethernet/ti/cpts.c | 14 +++++++++++++-
->   1 file changed, 13 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpts.c
-> index 2ba4c8795d..3cc908ac90 100644
-> --- a/drivers/net/ethernet/ti/cpts.c
-> +++ b/drivers/net/ethernet/ti/cpts.c
-> @@ -747,7 +747,8 @@ struct cpts *cpts_create(struct device *dev, void __iomem *regs,
->   			 struct device_node *node, u32 n_ext_ts)
->   {
->   	struct cpts *cpts;
-> -	int ret;
-> +	u32 high, low;
-> +	int ret, i;
->   
->   	cpts = devm_kzalloc(dev, sizeof(*cpts), GFP_KERNEL);
->   	if (!cpts)
-> @@ -779,6 +780,17 @@ struct cpts *cpts_create(struct device *dev, void __iomem *regs,
->   	if (ret)
->   		return ERR_PTR(ret);
->   
-> +	/* After a kexec the CPTS may still be running from the previous
-> +	 * kernel, with its interrupt enabled and events in the FIFO. The misc
-> +	 * IRQ is requested before cpts_register() sets up the event pool, so
-> +	 * mask the interrupt and drop the stale events now.
-> +	 */
-> +	cpts_write32(cpts, 0, int_enable);
-> +	for (i = 0; i < CPTS_FIFO_DEPTH; i++) {
-> +		if (cpts_fifo_pop(cpts, &high, &low))
-> +			break;
-> +	}
+Hello,
 
-Thank you for posting this patch to fix the issue. While it will solve this 
-particular issue, I believe that the underlying problem is that CPTS 
-remains powered-on during the kexec sequence. Therefore the proper fix will 
-be to power-off and power-on the CPTS module (to perform a complete reset) 
-rather than fixing this particular symptom (please note that the remaining 
-registers of CPTS retain their state as well, and a subset of the 
-underlying cause is addressed by this patch).
+as with v1 and v2 the original motivation for this series are the
+patches that convert the arrays to use named initializers, see
+https://lore.kernel.org/all/cover.1780048925.git.u.kleine-koenig@baylibre.com/
+for the idea behind it. Then by not closing the eyes for small issues
+spotted while working on that, this series grew a bit.
 
-Regards,
-Siddharth.
+Changes since v2 (available at
+https://lore.kernel.org/all/cover.1784133987.git.u.kleine-koenig@baylibre.com/)
+
+ - Rebase to current next/master (new changes to
+   drivers/gpio/gpio-mlxbf.c, drivers/gpio/gpio-mlxbf2.c,
+   drivers/gpio/gpio-74x164.c)
+ - Fix a few commit logs to reference the right *_device_id names
+ - Drop all tags for Andy
+ - Drop a questionable MODULE_DEVICE_TABLE(acpi, ...) for drivers/gpio/gpio-usbio.c
+
+Checkpatch only reports two undocumented device-tree compatibles:
+
+	WARNING: DT compatible string "apm,xgene-gpio-v2" appears un-documented -- check ./Documentation/devicetree/bindings/
+	WARNING: DT compatible string "marvell,pxa1928-gpio" appears un-documented -- check ./Documentation/devicetree/bindings/
+
+I felt free to ignore these as this is a pre-existing issue and
+out-of-context for this series.
+
+Andy didn't like how this series is split into patches before, I do. I
+think it's not possible to please everyone's opinion regarding minimal
+changes per patch vs grouping similar changes in patches and about what
+is considered churn. I'm happy about every patch in this series that
+goes in, so feel free to apply patches that you like and that don't get
+resistance even if other's do. If patches don't apply, just drop them,
+I'll catch up on them eventually.
+
+Best regards
+Uwe
+
+Uwe Kleine-König (The Capable Hub) (22):
+  gpio: Remove __maybe_unused annotations from acpi_device_id arrays
+  gpio: fxl6408: Remove __maybe_unused annotations from of_device_id
+    array
+  gpio: Drop unused assignment of acpi_device_id driver data
+  gpio: max7301: Drop unused assignment of spi_device_id driver data
+  gpio: mmio: Drop unused assignment of platform_device_id driver data
+  gpio: ljca: Drop unused assignment of auxiliary_device_id driver data
+  gpio: xgene: Add missing ACPI module annotation
+  gpio: sodaville: Add missing PCI module annotations
+  gpio: Add missing OF module annotations
+  gpio: pxa: Add missing platform module annotations
+  gpio: pl061: Use empty initializer for amba_id terminator
+  gpio: Use named initializers for acpi_device_id array
+  gpio: pcf857x: Use named initializers for of_device_id array
+  gpio: bd73800: Use named initializers for platform_device_id array
+  gpio: Use named initializers for spi_device_id array
+  gpio: virtio: Use a named initializer for virtio_device_id array
+  gpio: Unify style of acpi_device_id arrays
+  gpio: Unify style of of_device_id arrays
+  gpio: max77620: Unify style of platform_device_id array
+  gpio: Unify style of spi_device_id arrays
+  gpio: Unify style of pci_device_id arrays
+  gpio: Unify style of various *_device_id arrays
+
+ drivers/gpio/gpio-74x164.c          |  4 ++--
+ drivers/gpio/gpio-adnp.c            |  4 ++--
+ drivers/gpio/gpio-aggregator.c      |  2 +-
+ drivers/gpio/gpio-altera-a10sr.c    |  2 +-
+ drivers/gpio/gpio-altera.c          |  4 ++--
+ drivers/gpio/gpio-amd8111.c         |  2 +-
+ drivers/gpio/gpio-amdpt.c           |  8 ++++----
+ drivers/gpio/gpio-aspeed-sgpio.c    | 10 ++++-----
+ drivers/gpio/gpio-aspeed.c          | 10 ++++-----
+ drivers/gpio/gpio-ath79.c           |  2 +-
+ drivers/gpio/gpio-bcm-kona.c        |  1 +
+ drivers/gpio/gpio-bd73800.c         |  4 ++--
+ drivers/gpio/gpio-blzp1600.c        |  4 ++--
+ drivers/gpio/gpio-brcmstb.c         |  2 +-
+ drivers/gpio/gpio-bt8xx.c           |  2 +-
+ drivers/gpio/gpio-cadence.c         |  6 +++---
+ drivers/gpio/gpio-creg-snps.c       |  5 +++--
+ drivers/gpio/gpio-davinci.c         |  8 ++++----
+ drivers/gpio/gpio-dwapb.c           | 14 ++++++-------
+ drivers/gpio/gpio-em.c              |  4 ++--
+ drivers/gpio/gpio-ep93xx.c          |  1 +
+ drivers/gpio/gpio-ftgpio010.c       |  3 ++-
+ drivers/gpio/gpio-fxl6408.c         |  2 +-
+ drivers/gpio/gpio-graniterapids.c   |  4 ++--
+ drivers/gpio/gpio-grgpio.c          |  2 +-
+ drivers/gpio/gpio-gw-pld.c          |  4 ++--
+ drivers/gpio/gpio-hisi.c            |  6 +++---
+ drivers/gpio/gpio-hlwd.c            |  4 ++--
+ drivers/gpio/gpio-imx-scu.c         |  1 +
+ drivers/gpio/gpio-ixp4xx.c          |  4 ++--
+ drivers/gpio/gpio-ljca.c            |  4 ++--
+ drivers/gpio/gpio-loongson-64bit.c  |  4 ++--
+ drivers/gpio/gpio-lp3943.c          |  2 +-
+ drivers/gpio/gpio-lpc32xx.c         |  4 ++--
+ drivers/gpio/gpio-macsmc.c          |  4 ++--
+ drivers/gpio/gpio-max3191x.c        | 12 +++++------
+ drivers/gpio/gpio-max7301.c         |  2 +-
+ drivers/gpio/gpio-max7360.c         |  8 ++++----
+ drivers/gpio/gpio-max77620.c        |  4 ++--
+ drivers/gpio/gpio-max77759.c        |  2 +-
+ drivers/gpio/gpio-mb86s7x.c         |  2 +-
+ drivers/gpio/gpio-ml-ioh.c          |  2 +-
+ drivers/gpio/gpio-mlxbf.c           |  6 +++---
+ drivers/gpio/gpio-mlxbf2.c          |  6 +++---
+ drivers/gpio/gpio-mlxbf3.c          |  4 ++--
+ drivers/gpio/gpio-mm-lantiq.c       |  2 +-
+ drivers/gpio/gpio-mmio.c            |  3 +--
+ drivers/gpio/gpio-mockup.c          |  4 ++--
+ drivers/gpio/gpio-moxtet.c          |  4 ++--
+ drivers/gpio/gpio-mpc5200.c         |  9 ++++----
+ drivers/gpio/gpio-mpc8xxx.c         | 25 +++++++++++-----------
+ drivers/gpio/gpio-mpfs.c            |  1 +
+ drivers/gpio/gpio-mpsse.c           |  3 +--
+ drivers/gpio/gpio-msc313.c          |  1 +
+ drivers/gpio/gpio-mt7621.c          |  2 +-
+ drivers/gpio/gpio-mvebu.c           | 13 ++++++------
+ drivers/gpio/gpio-mxc.c             |  2 +-
+ drivers/gpio/gpio-mxs.c             |  4 ++--
+ drivers/gpio/gpio-nomadik.c         |  7 ++++---
+ drivers/gpio/gpio-novalake-events.c |  4 ++--
+ drivers/gpio/gpio-npcm-sgpio.c      |  6 +++---
+ drivers/gpio/gpio-octeon.c          |  2 +-
+ drivers/gpio/gpio-omap.c            |  2 +-
+ drivers/gpio/gpio-palmas.c          | 10 ++++-----
+ drivers/gpio/gpio-pca953x.c         |  4 ++--
+ drivers/gpio/gpio-pca9570.c         |  2 +-
+ drivers/gpio/gpio-pcf857x.c         | 26 +++++++++++------------
+ drivers/gpio/gpio-pci-idio-16.c     |  3 ++-
+ drivers/gpio/gpio-pcie-idio-24.c    |  8 +++++---
+ drivers/gpio/gpio-pisosr.c          |  4 ++--
+ drivers/gpio/gpio-pl061.c           |  2 +-
+ drivers/gpio/gpio-pmic-eic-sprd.c   |  2 +-
+ drivers/gpio/gpio-pxa.c             | 20 ++++++++++--------
+ drivers/gpio/gpio-qixis-fpga.c      |  3 +--
+ drivers/gpio/gpio-rcar.c            |  2 +-
+ drivers/gpio/gpio-rda.c             |  2 +-
+ drivers/gpio/gpio-realtek-otto.c    |  2 +-
+ drivers/gpio/gpio-rockchip.c        |  4 ++--
+ drivers/gpio/gpio-sama5d2-piobu.c   |  2 +-
+ drivers/gpio/gpio-sifive.c          |  2 +-
+ drivers/gpio/gpio-sl28cpld.c        |  2 +-
+ drivers/gpio/gpio-sodaville.c       |  3 ++-
+ drivers/gpio/gpio-spear-spics.c     |  3 ++-
+ drivers/gpio/gpio-sprd.c            |  2 +-
+ drivers/gpio/gpio-stmpe.c           |  2 +-
+ drivers/gpio/gpio-stp-xway.c        |  2 +-
+ drivers/gpio/gpio-tegra.c           |  6 +++---
+ drivers/gpio/gpio-tegra186.c        | 32 ++++++++++++++---------------
+ drivers/gpio/gpio-thunderx.c        |  3 +--
+ drivers/gpio/gpio-tps65218.c        |  2 +-
+ drivers/gpio/gpio-ts4800.c          |  4 ++--
+ drivers/gpio/gpio-ts4900.c          |  2 +-
+ drivers/gpio/gpio-twl4030.c         |  4 ++--
+ drivers/gpio/gpio-usbio.c           | 12 +++++------
+ drivers/gpio/gpio-vf610.c           |  4 ++--
+ drivers/gpio/gpio-virtio.c          |  4 ++--
+ drivers/gpio/gpio-visconti.c        |  2 +-
+ drivers/gpio/gpio-waveshare-dsi.c   |  2 +-
+ drivers/gpio/gpio-xgene-sb.c        |  6 +++---
+ drivers/gpio/gpio-xgene.c           | 10 +++++----
+ drivers/gpio/gpio-xgs-iproc.c       |  2 +-
+ drivers/gpio/gpio-xilinx.c          |  4 ++--
+ drivers/gpio/gpio-xlp.c             |  6 +++---
+ drivers/gpio/gpio-xra1403.c         |  6 +++---
+ drivers/gpio/gpio-zevio.c           |  5 +++--
+ drivers/gpio/gpio-zynqmp-modepin.c  |  2 +-
+ drivers/gpio/gpiolib-acpi-quirks.c  |  2 +-
+ 107 files changed, 269 insertions(+), 252 deletions(-)
+
+
+base-commit: 20a33c6b6cbe7e4805dfb6cd68816937443aa148
+-- 
+2.56.0.rc1
+
