@@ -1,101 +1,117 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.53
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.45
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793071578;
-	b=DuylNjqP3IHNOxn0kvZvhU2+/t+ehqzuCFob30BtQfuHGtib/jOfqFo74pDz+hwsZo8B
-	 W0V+x/FjGVHDv9cNpaaBndCIK5aZv3Re7oenMtQDzpHrEn5586cQWN1col6bhs9/01brf
-	 FNi1LqxBIMpQ9VmexI1zvBQHKnuQvF5pg1e6vq/MG5lo5F9S5nN936Ejqg9erfJf+QJlF
-	 gbOmdWYX7PKbNHix0J1OlBOsWyXe3v07OiRZWsJIQ7DYgMv+au0B2HC4DzVTYX8mYsUdm
-	 Br/GPbL0kIFKLKRFGRDHDtIuWs/Az9lOkNi3x6wrR4hKXnDCF5FdXSMa2CZ3o6MKCRA==
+	t=1793094117;
+	b=gz9KoDyK0sLtLAY6BSrMAkzORsBIi1Q/mWkLuOBCOr9omwz+e4g69DUotTt58tJb0fRK
+	 bZWeoXHcPYwn/0rvn2Y3vkoeFpixEi9ICxDSfuYvuJ6an/LxIDecD0e9KQaqAZmgzbwEK
+	 0s3bPK6YnpFk6oGsK0iJjAn4ipZa/xdm0pTXHULhCKIbSQahhfB4PXAsUZ6enTq5L6iJZ
+	 1kTQlTQQsMPtDTGpktWd9Ub26LdCpP2AK8cwpPdnupFoMUKdPw8slMiBko5MgQ3HKEMs8
+	 uxQafKV+rw2/0RRV3Mj6OZRz/2wNxwyN7iGNSAfFfhABG2+zcfsJfZw1WZSSJ1TE1Tg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793071578;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793094117;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=2QK2iE7noXFpUwQUNk0LfJ3uQv+Asv37AvrfE0uGxCo=;
-	b=R4keLl88n1ZaDHizlOxl6TOYVPk2+pwEf7n2S0TvOOg+8pfueOYITku5B315EeOoUOTI
-	 WmJHitkiIHX21u9jD/VroaA3/URfEuQlXec0BugJG5c2sp952zp5dvkjHqJa1B9UdSTBP
-	 W30vAEkCGrG9EbaBvJSmefYJxPZWRkyDZ87FN7s6xSim8uNZw7SG6kRZ0I/FI2XQdxcL+
-	 rRHNsKWxC7IQGT902FnRb/YucuPTi2y+uK9VgLFWWLjbGh4rwyIutJGhCKA0n4ysGpJ06
-	 /67Dn9YqxGRjNqq3hxZnIkn7SyuQi6QxLWRshkvxI93Ldi6Ah9xmAXhXcN5lbbZeTxw==
+	 Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To;
+	bh=0G5Gh9P2KO0+5GGiKNPkOdO6AKt1oHHc652uqXaZcqY=;
+	b=CgbIFOLjW/vSXC2hCNUlNLsUyqMq2XK4/2vDu9zyBmQP2Z+FzjdW5DiYjMTSZNcyD95P
+	 k4wKLYuwYjL1rSHCi4cYCjwnB+J1kvusoZCh70LxlkPCEH/LopXDramEIFM36szG4l8t9
+	 d2mFBt+2vqJIPbwtLkqiMiO9vg5KhpwDG6ueYqPZ4k3VedvNgyJJJ31kyw4mWpeEhXaL6
+	 34BjxE6XIctlMraFq6iSzDbp0PrJ0TEypTiI0NKg4LAbw+VbW2RHGoSHwSSMQLiy5RGBI
+	 Q3jJ31gqjtvYhaW+Z/SarzhtQRVIFKJUbA+bhpy6t+k9d24SIVhXS/YUBKBlRoSJrpA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=peE75+7g;
-	arc=none smtp.remote-ip=74.125.82.53
-Received: from mail-dl1-f53.google.com (mail-dl1-f53.google.com [74.125.82.53])
+	dmarc=none header.from=baylibre.com;
+	spf=pass smtp.mailfrom=baylibre.com;
+	dkim=pass header.d=baylibre.com header.i=@baylibre.com header.a=rsa-sha256 header.s=google header.b=Lrgqg8Sw;
+	arc=none smtp.remote-ip=209.85.128.45
+Received: from mail-wm1-f45.google.com (mail-wm1-f45.google.com [209.85.128.45])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBE74606A31B
-	for <linux-omap@vger.kernel.org>; Tue, 27 Oct 2026 03:26:17 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BBE74606A31B
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 778E1606A321
+	for <linux-omap@vger.kernel.org>; Tue, 27 Oct 2026 09:41:56 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 778E1606A321
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=baylibre.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20251104 header.b=peE75+7g
-Received: by mail-dl1-f53.google.com with SMTP id a92af1059eb24-18cdcfc05ffso4526168c88.1
-        for <linux-omap@vger.kernel.org>; Mon, 26 Oct 2026 20:26:17 -0700 (PDT)
+	dkim=pass (2048-bit key, unprotected) header.d=baylibre.com header.i=@baylibre.com header.a=rsa-sha256 header.s=google header.b=Lrgqg8Sw
+Received: by mail-wm1-f45.google.com with SMTP id 5b1f17b1804b1-4a59100fa83so18163685e9.0
+        for <linux-omap@vger.kernel.org>; Tue, 27 Oct 2026 02:41:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1793071577; x=1793676377; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=2QK2iE7noXFpUwQUNk0LfJ3uQv+Asv37AvrfE0uGxCo=;
-        b=peE75+7giTLgdy0neqNE+JHr8K/D+on9j8SKao4hj7hAu/Wbm5v5rH00RFK8CJx1qZ
-         mHQ1q2xpj4F/gbbgfG2AWJKh+fSisAgSbnrlcC38YjhxTuXOdgUDGe8gZRDlik8U1Ytd
-         DaGFJvYg/aW8JxXWKSwm4R8qAQ9xKP3LWXvhQ2IY8Y+ShvFF89ErNRAYQCo2EFCmNBoN
-         RzD9XWfm5V4EbfuKJ5oSAMwOhnmkl7KXzl2vTAbQTFVRTbYULDsiTd8TX84tquj5aRfG
-         Nnx6evrTPRvDPH87t9dy8eoVSg8sGJE0W2voOo8dJOTo99BFweHJpu+ARo78Vc0P/DU/
-         QsKA==
+        d=baylibre.com; s=google; t=1793094115; x=1793698915; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=0G5Gh9P2KO0+5GGiKNPkOdO6AKt1oHHc652uqXaZcqY=;
+        b=Lrgqg8Sw8B0MTFHOgBFBsZea8yJ5PGupCUU44KFrLSJFOaY7P+6n7vJiqmkm/ccK36
+         mnRTBEXSzJjw7xIZDs+5PWEyIB3Wnj60O8VDRG9CRFrmAAqy0R3jrwSfYzp2RC+iR/da
+         CX+EOdAr1Jmfgg5HdNz0YL53TuoXKnFmWUVNvqvRiGwB3nJhgXmXudPcUEBUs2LGCCW0
+         LQyNCaOKCXuojR58IHPS9Xzm4UhEno4FBNeMmanacYHfeaoNrvJdsY835na+t3EpbJf7
+         NUxkcOBM73+LfGKKxWz0wEGr7pjwv7WTp6KLUY4Dk+hm7tkmDbCofa1WaCwsvjoa4tVW
+         RVcA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793071577; x=1793676377;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=2QK2iE7noXFpUwQUNk0LfJ3uQv+Asv37AvrfE0uGxCo=;
-        b=iO2fl1FXC7g8J55FfxYRsYp9uL+ev4ULrKMymETYHOEjHZGPgVy4qsfzjXSI96ybnN
-         0ipB0AE7lsAAn4bGXlq9ClsIfOboYkYlmzkCsATU3+ohHTjTrDhcGU7oCDvckrpgWHMr
-         WbYGM5O4k9yRhE8yewFcM+zzYTTV4GbAn6+0VYbf1I+lJGKzszxz4TGeGUMwdQ4ycTKC
-         j4z7oxoKUUgMkVewDewlVSrECj5oT4bau47MXrGK69Cf+1yB1S0xQVNgOE59mWzQaKnN
-         oyNsMvWEQc6OUfcOfXe2GwQqglnGmGPj+E7A24SJerAsy2vbMEO3D6alzn6bOemEl9RP
-         5qYA==
-X-Forwarded-Encrypted: i=1; AKwUvBxsIkD5g4jr4LWG2nOVMJXIlfbHsRneO0u1gX1pK9cmbpad5eQdgKkMhj+ewMHitrvTxtcJFwhRbyGK@vger.kernel.org
-X-Gm-Message-State: AFq9FYJAdSp9UipZLIO8cDQ/fPWjFd9LLq2S5+BiwWTn9Q+An2ad0HOT
-	xG9Xt+SPXJF0r0NB15FB1w5x3ukIqpoduHILnjMbLZr+HbnmYJOHbgX2
-X-Gm-Gg: AYBFou2H8T+RWw/Bf7/kK7Dn299TIwLI4Yw7lzFHiEYWtARLRLVdUsOAFSw3pHnUS6F
-	nL87Ysnzk3pGXwuI6Pw36GPgYGvXqigok1NmCq3LvYkozVjUafpVwfHmXfJ5clEUDHz9SV1/Tq+
-	tNdP5Mr7zw5ejB6Zbd5g82yYCnSkcLq52SQ8XswkW+b+nNidXAzzbvm7BbGzR7vmDvgz7o6RL7A
-	PSij+C2NUUrzpAveujoWs+LsbyxHRjeZx9wUpp5Zh9jGe6+3+sPl954gmOIoSddB9f1j9mpQJVT
-	qD5K/WnqtsK1+VI5kftkyQW6ca6AalhluQRiWWWJYNsuvKvH5niRYgRbos1XFE65L9Tn9XgeZwJ
-	hotrkb48mNrRkaD2p6xdvE8oBMzNf8b2L+idtowzXt7x8RvKHXDJ0Z8xgaobJIO/MhtzKLFBSsy
-	hVBqN6Z5ZuZdTK6JpoGDLaMrHvIxItqRwQiu0H4de+mbEIlTk4GPQRphTVpW9DM+m9a8Xku3tA2
-	qC1IJWLb3Z1Dj9BqB67hGaDToj2OtjJL8vKeKUG4SrLXcPuxZVvhdnrXtQoRNjWJXdmmfFS+2YO
-	x65ZUEMZtp2avslkVA==
-X-Received: by 2002:a05:7022:b886:b0:16a:b995:dc7c with SMTP id a92af1059eb24-19935be80e7mr11905109c88.21.1793071576759;
-        Mon, 26 Oct 2026 20:26:16 -0700 (PDT)
-Received: from lgs.. ([47.82.67.49])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-198a0d98660sm32317865c88.9.2026.10.26.20.26.12
+        d=1e100.net; s=20260707; t=1793094115; x=1793698915;
+        h=in-reply-to:content-disposition:content-type:mime-version
+         :references:message-id:subject:cc:to:from:date:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=0G5Gh9P2KO0+5GGiKNPkOdO6AKt1oHHc652uqXaZcqY=;
+        b=oxrwczqemEANNcn8p21EfWNSp+lPqmT5uPtS9CPzX7t3DVLOtZNDW6Dm4VaYh+VBPr
+         ctoQMErIyzYTWdBVudWDC3qGviOadjyIHHGDciSRAa4D0iLchmikHIXwBQyF6Nf0nIa/
+         EJgNqj6t1L8TSQ4aoXqTIW2YlcJg7xAiNAvV60b6OdvrBnbRQvF/u6NwGLrZZMoXKAEu
+         YtYdx6o3ZZ+vDbbxnMnhFbSoUWJfjXfJc/6z5ZYGRtr00aaLdhlprjtSv8Ar+XtN+oYT
+         eVL/8frPSEkuTIX9dq3RixESlQxQl1DehiSrnox3bJOPlmn/JKakosTjtCIx8Q1wzfUL
+         A7Dg==
+X-Forwarded-Encrypted: i=1; AKwUvByLXEqeNIYJXVelPA295VtJDJEZ+aIirnVNLUADe5tctbhWk+3+L5bstiP6ZhnJ6X9er+b7jG8ftlF0@vger.kernel.org
+X-Gm-Message-State: AFq9FYLx06uosegryvG0lSktfPZhVcx3Rc65c0uNp41XY94puOx7kwRz
+	TOjgkqsRB7ByVIOYZlNaZxIGZrmtzClgMoxyvQJDss5PSREGE6B2Ud9DyIHz+WqA3AE=
+X-Gm-Gg: AYBFou3ypYClt5QJxFd8C8DufIPldUi2tnmn8aPORtRHwnIGFLHL8hoWtG2h3RK4D47
+	WafkG5abFClY2qJ086r2eiyFaVT4kxAPpJUlqsjMc/ffN9AhseQo3nqstd4jkKuQXvbfyjys4Mq
+	iem+KLWfo/qRacAnFlO133f+9NFhbpjbcq12eJsbHmT5ke/rJR2FbiODH+JRTDmp3SdT3QT1/7F
+	FlM3YmwSjjYjVINGE4/JqjGVXntGSn4GBXigIMyjVupCtlzt/+uL4TwX2lv1wk3C0nEAfXe6X2m
+	9pRwPXJI4THcWKlKZFL2g4X/D4hNNyACp0HTQ+QZIxp2pphmgGDvR4jdS/5w9t1Lbz0XF9NJk5M
+	kMipi68fjxI/RbOdEcdcCpbA1zAQGZEFKka6+fBNqH5aa3Uxe1E55GDb0fc7Qd1QD7LlRQxnVjX
+	cfVMi0cWhQ5l65d82gDKAI9KvF+/4C8EyNzj3L0Fx1g6/Imk0z3mxaHEOtOgxAh9LKgZPRnbxQy
+	kLC11v13VlIqVITXR7j9fTmdKHjPHA+oGe9YKJGA89/IZd1AbD1WOJzd3OV3TFnbK4iMgBtJcjo
+	LVXGZJ06fOu6sH8vFySdGURp6IkubDAqa0nLLsgOpnw=
+X-Received: by 2002:a05:600c:8a08:b0:4a4:7a8d:c736 with SMTP id 5b1f17b1804b1-4a47a8dc93bmr110335135e9.9.1793094114509;
+        Tue, 27 Oct 2026 02:41:54 -0700 (PDT)
+Received: from localhost (p200300f65f19a904240e81f1f32a429c.dip0.t-ipconnect.de. [2003:f6:5f19:a904:240e:81f1:f32a:429c])
+        by smtp.gmail.com with UTF8SMTPSA id 5b1f17b1804b1-4a35a59d998sm263939065e9.15.2026.10.27.02.41.53
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 26 Oct 2026 20:26:16 -0700 (PDT)
-From: Guangshuo Li <lgs201920130244@gmail.com>
-To: Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Andreas Kemnade <andreas@kemnade.info>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>,
-	Tony Lindgren <tony@atomide.com>,
-	Lee Jones <lee@kernel.org>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Peter Ujfalusi <peter.ujfalusi@ti.com>,
-	linux-omap@vger.kernel.org,
-	mfd@lists.linux.dev,
-	linux-kernel@vger.kernel.org
-Cc: Guangshuo Li <lgs201920130244@gmail.com>,
-	stable@vger.kernel.org
-Subject: [PATCH] mfd: twl6040: fix IRQ action memory leaks during teardown
-Date: Tue, 27 Oct 2026 11:26:08 +0800
-Message-ID: <20261027032609.119226-1-lgs201920130244@gmail.com>
-X-Mailer: git-send-email 2.43.0
+        Tue, 27 Oct 2026 02:41:53 -0700 (PDT)
+Date: Tue, 27 Oct 2026 10:41:52 +0100
+From: Uwe =?utf-8?Q?Kleine-K=C3=B6nig_=28The_Capable_Hub=29?= <u.kleine-koenig@baylibre.com>
+To: Frank Li <Frank.li@oss.nxp.com>
+Cc: Linus Walleij <linusw@kernel.org>, 
+	Bartosz Golaszewski <brgl@kernel.org>, Andy Shevchenko <andy@kernel.org>, linux-gpio@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, Lixu Zhang <lixu.zhang@intel.com>, 
+	Sakari Ailus <sakari.ailus@linux.intel.com>, 
+	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>, Florian Fainelli <florian.fainelli@broadcom.com>, 
+	Eugeniy Paltsev <Eugeniy.Paltsev@synopsys.com>, Frank Li <Frank.Li@nxp.com>, 
+	Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, 
+	Fabio Estevam <festevam@gmail.com>, Imre Kaloz <kaloz@kernel.org>, 
+	Conor Dooley <conor.dooley@microchip.com>, Valentina Fernandez <valentina.fernandezalanis@microchip.com>, 
+	Daire McNamara <daire.mcnamara@microchip.com>, Daniel Palmer <daniel@thingy.jp>, 
+	Romain Perier <romain.perier@gmail.com>, Robert Jarzmik <robert.jarzmik@free.fr>, imx@lists.linux.dev, 
+	linux-arm-kernel@lists.infradead.org, linux-riscv@lists.infradead.org, 
+	Hoan Tran <hoan@os.amperecomputing.com>, Alan Borzeszkowski <alan.borzeszkowski@linux.intel.com>, 
+	Mika Westerberg <westeri@kernel.org>, Hans de Goede <hansg@kernel.org>, 
+	Matti Vaittinen <mazziesaccount@gmail.com>, "Enrico Weigelt, metux IT consult" <info@metux.net>, 
+	Viresh Kumar <vireshk@kernel.org>, virtualization@lists.linux.dev, Yinbo Zhu <zhuyinbo@loongson.cn>, 
+	Thierry Reding <thierry.reding@kernel.org>, Jonathan Hunter <jonathanh@nvidia.com>, 
+	linux-tegra@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>, 
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, Srinivas Neeli <srinivas.neeli@amd.com>, 
+	Michal Simek <michal.simek@amd.com>, linux-aspeed@lists.ozlabs.org, asahi@lists.linux.dev, 
+	linux-mediatek@lists.infradead.org, openbmc@lists.ozlabs.org, linux-omap@vger.kernel.org, 
+	linux-renesas-soc@vger.kernel.org, linux-unisoc@lists.infradead.org, 
+	linux-rockchip@lists.infradead.org, linux-stm32@st-md-mailman.stormreply.com, 
+	Michael Buesch <m@bues.ch>, William Breathitt Gray <wbg@kernel.org>, 
+	Robert Richter <rric@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+	linux-acpi@vger.kernel.org
+Subject: Re: [PATCH v3 00/22] gpio: Improvements around device-id arrays
+Message-ID: <auBxfVzkveb7KlEk@monoceros>
+References: <cover.1793030820.git.u.kleine-koenig@baylibre.com>
+ <at-CGVq5jVsMQief@SMW015318>
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -105,82 +121,53 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="qlk6jmpzfns64bdk"
+Content-Disposition: inline
+In-Reply-To: <at-CGVq5jVsMQief@SMW015318>
 
-twl6040_remove() currently removes the regmap IRQ chip before
-removing the MFD child devices. This destroys the IRQ mappings
-before the child drivers can release their interrupt handlers.
 
-The parent driver also registers READY and thermal interrupt
-handlers using devm_request_threaded_irq(). These handlers are
-normally released by device-managed cleanup after remove returns,
-when the corresponding IRQ descriptors have already been removed.
+--qlk6jmpzfns64bdk
+Content-Type: text/plain; protected-headers=v1; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Subject: Re: [PATCH v3 00/22] gpio: Improvements around device-id arrays
+MIME-Version: 1.0
 
-Consequently, free_irq() cannot find the IRQ descriptors and the
-allocated struct irqaction objects are not freed. The associated
-IRQ threads also cannot be stopped through the normal cleanup path.
+Hello,
 
-The probe error paths have a similar issue, as they destroy the IRQ
-chip before the device-managed IRQ handlers are released.
+On Mon, Oct 26, 2026 at 11:38:49AM -0500, Frank Li wrote:
+> On Mon, Oct 26, 2026 at 05:28:11PM +0100, Uwe Kleine-K=F6nig (The Capable=
+ Hub) wrote:
+> > [...]
+> >  drivers/gpio/gpio-imx-scu.c         |  1 +
+> > [...]
+> >  drivers/gpio/gpio-mxc.c             |  2 +-
+> >  drivers/gpio/gpio-mxs.c             |  4 ++--
+>=20
+> For all imx part:
+>=20
+> Acked-by: Frank Li <Frank.Li@nxp.com>
 
-Remove the MFD child devices first, then explicitly free the
-parent's READY and thermal IRQ handlers using devm_free_irq()
-before removing the regmap IRQ chip.
+I'll apply this to all patches touching the three files left in my
+quote.
 
-Also update the probe error paths to release successfully requested
-IRQs before destroying their mappings.
+Best regards
+Uwe
 
-This issue was found by our static analysis tool under development.
+--qlk6jmpzfns64bdk
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Fixes: ab7edb149c75 ("mfd: twl6040: Convert to use regmap_irq")
-Cc: stable@vger.kernel.org
-Signed-off-by: Guangshuo Li <lgs201920130244@gmail.com>
----
- drivers/mfd/twl6040.c | 13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+-----BEGIN PGP SIGNATURE-----
 
-diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
-index 562a0f939f6e..7b05d21cd17d 100644
---- a/drivers/mfd/twl6040.c
-+++ b/drivers/mfd/twl6040.c
-@@ -745,7 +745,7 @@ static int twl6040_probe(struct i2c_client *client)
- 					"twl6040_irq_th", twl6040);
- 	if (ret) {
- 		dev_err(twl6040->dev, "Thermal IRQ request failed: %d\n", ret);
--		goto readyirq_err;
-+		goto thirq_err;
- 	}
- 
- 	/*
-@@ -791,10 +791,14 @@ static int twl6040_probe(struct i2c_client *client)
- 	ret = mfd_add_devices(&client->dev, -1, twl6040->cells, children,
- 			      NULL, 0, NULL);
- 	if (ret)
--		goto readyirq_err;
-+		goto mfd_err;
- 
- 	return 0;
- 
-+mfd_err:
-+	devm_free_irq(twl6040->dev, twl6040->irq_th, twl6040);
-+thirq_err:
-+	devm_free_irq(twl6040->dev, twl6040->irq_ready, twl6040);
- readyirq_err:
- 	regmap_del_irq_chip(twl6040->irq, twl6040->irq_data);
- gpio_err:
-@@ -809,9 +813,10 @@ static void twl6040_remove(struct i2c_client *client)
- 	if (twl6040->power_count)
- 		twl6040_power(twl6040, 0);
- 
--	regmap_del_irq_chip(twl6040->irq, twl6040->irq_data);
--
- 	mfd_remove_devices(&client->dev);
-+	devm_free_irq(twl6040->dev, twl6040->irq_th, twl6040);
-+	devm_free_irq(twl6040->dev, twl6040->irq_ready, twl6040);
-+	regmap_del_irq_chip(twl6040->irq, twl6040->irq_data);
- 
- 	regulator_bulk_disable(TWL6040_NUM_SUPPLIES, twl6040->supplies);
- }
--- 
-2.43.0
+iQEzBAABCgAdFiEEP4GsaTp6HlmJrf7Tj4D7WH0S/k4FAmrgcd0ACgkQj4D7WH0S
+/k4RSwf+IK0Zg4d+0uYc5szRXc18DV2GOQKuWytvc6Mb7rb8wBUlhLcCzHXfHJw5
+GKyFFUIrW1GHu/p4aSlsaOLm8RjGYbgR1RTnxQySdf79td9IxG/EXqQcp6FcxSH5
+30Ema9IFNIy1Z1fLQlqcQWR4FaujBuohFx12psbgjzkhMn3OY0x3w6FsZddRxBu6
+hjb1B8M89jP2R7VcM2CC+KYKqlxNoQYiS/XOiE7oyKj9CqBRDIrGPNwKtLxUelaD
+kKhTCJUSL4uTa26RZDC42xIr79ip8u0RW/+hzEwjtlicpsH0uFemsO1TO74xS/ol
+PbKbBRoQJlRhoDMBJ7sTb6K4gJHPEA==
+=KSfn
+-----END PGP SIGNATURE-----
 
+--qlk6jmpzfns64bdk--
