@@ -1,88 +1,123 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.45
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793203592;
-	b=PGR3VvHUdOqzJMEMBq6dKF+DDNztLv2su5BY3SlliBCb1l3noQDLTi/t5FG1R7RsO43n
-	 /l2bZ1TakcxV/ofhCl/Bz1g0nunX31hcQ0sIkxN2e869tElrkMUxq2xaCySNYH9zOvv6X
-	 evG11HcpAFvlb0ewkc0oQVTpJTULvkEP0XrpUARmMyRnv3O/3r3feN09zca3HHHpQ9eze
-	 ot1UbD2Gn/jL9OeUfVlUip2wMUVyFVYrhc/8gggj4p94npmySmW5Rq6bttdCuzlqhvq82
-	 +SfW3BC0Eq++qDqqDsZCFIEHTu1NOAXL7b16DIgzlHww23YYpTJFxqgQY/a+09cTE+A==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793203592;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:Date:Subject:
-	 MIME-Version:Content-Type:Content-Transfer-Encoding:Message-Id:
-	 References:In-Reply-To:To:Cc:X-Mailer:X-Developer-Signature:
-	 X-Developer-Key;
-	bh=wXXJVVE7DxQ4okK75gXR5XkOT+hE06hRlYWzlQtBB0Y=;
-	b=MkJcgxlbTYlmB/+SkSgsK8x5FUlA6ry3P1cRxtrlNj+XZiI+iDhEoiypvHqWiP4jc9MS
-	 h0SRRQla/qqv4frACTPEkUl/OBtO4TvjYuL7vNR9KeUPPGlPg4v9TH/3nDSCjIV3ldxpf
-	 0F/Tz2ISYVdxdtYzHooTuCY/KX2NgE3qWROkYPiVyXKXJtAbmRdPkp/Wyf76wmNt+ALb8
-	 lOe6gFLdsR4f3sOPDkGQZvvxIhqS5mwW5+kyzc1UjdmY2H70PzGzCYZbnbtxOiN14py/y
-	 7XrQ8MRp/iYbtJGwJIMYtbLQRECBEiodx1vZ00KE+sZjfIH7/aGUysMgmNvBp/MqFcg==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linaro.org;
-	spf=pass smtp.mailfrom=linaro.org;
-	dkim=pass header.d=linaro.org header.i=@linaro.org header.a=rsa-sha256 header.s=google header.b=insoPdhe;
-	arc=none smtp.remote-ip=209.85.128.45
-Received: from mail-wm1-f45.google.com (mail-wm1-f45.google.com [209.85.128.45])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=205.220.168.131
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1793207693;
+	b=u8b6TkkKDFuysrqZUGlihImue2BwzL8805TEgAihFTUdyfjimrz+gd2i5wYVIy50vpri
+	 2tYZE8iZ/z5K6BxccYCSYMzVW1NINAY1iqVkoaj3qsERDDbDCvI8jwpIr62MtUN6vZCc/
+	 mHAbwzW/wuQH4Z21L+O7JnIiqbwj74Nrt0O4DgBG0xnFLUfBamiUzCEOxMqXI0nvvPddP
+	 Vny4l0EEAA9NR6/yM53cFrxpNT965wkyfoTXfTzSgnjyg98X76NbT5pUR8zgyLt/IPSK5
+	 wneEYaF6zz2jpZnXGwyBRyzBFmhkXATaNcRM86R0J88yV4+U/QrQosi+/elUmt6nGMw==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793207693;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
+	 DKIM-Signature:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:X-Received:MIME-Version:
+	 References:In-Reply-To:From:Date:X-Gm-Features:Message-ID:Subject:To:
+	 Cc:Content-Type:Content-Transfer-Encoding:X-Proofpoint-ORIG-GUID:
+	 X-Authority-Analysis:X-Proofpoint-Spam-Details-Enc:X-Proofpoint-GUID:
+	 X-Proofpoint-Spam-Info:X-Proofpoint-Virus-Version:
+	 X-Proofpoint-Spam-Details;
+	bh=yS6+yqmCO/Z+9Hwxo+UG43eJfa5XgYXkK/nQJzs6W+o=;
+	b=hvvFwXoLwArknelTjRvnxSEmV/j2hlOkjf94RAG1a2k215jHVzhn/W+cV11axDdyyLvF
+	 vPrA8Bc5ZmXYlkZ7Q83ujGkzXF5GoLc9WffqGCe1N+I4/nc3DZLNXcAmQv/5qEOI+4Ki0
+	 Sy4iwOO7wO0zTqOQHQ+CSwhfdwv8SyP+aUl+twP0we6vro0wNIyJrNOOpb1zPpdU1ozhG
+	 c3dKBiJ/va5ROYz7PBeRY3K3NXQV8Yo/MyJnvGslM8pJVsjR7HGyPV0x35u5aGZJnMh9L
+	 FScNoQiBENXtXZ3JjeI4lA9S8FzKgy8+BfRbRPwNZ1zqvGGQkKApebwb+pLqvb7bw9w==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=oss.qualcomm.com;
+	spf=pass smtp.mailfrom=oss.qualcomm.com;
+	dkim=pass header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b="iRx/cHJz";
+	dkim=pass header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=NarLSL3f;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=205.220.168.131
+Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B71B60A2630
-	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2026 16:06:32 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3B71B60A2630
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FE6B606A321
+	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2026 17:14:52 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3FE6B606A321
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.qualcomm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=linaro.org header.i=@linaro.org header.a=rsa-sha256 header.s=google header.b=insoPdhe
-Received: by mail-wm1-f45.google.com with SMTP id 5b1f17b1804b1-4a35a60499eso9260955e9.0
-        for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2026 09:06:32 -0700 (PDT)
+	dkim=pass (2048-bit key, unprotected) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=iRx/cHJz;
+	dkim=pass (2048-bit key, unprotected) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=NarLSL3f
+Received: from pps.filterd (m0279865.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69SFA44O2568839
+	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2026 17:14:52 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
+	yS6+yqmCO/Z+9Hwxo+UG43eJfa5XgYXkK/nQJzs6W+o=; b=iRx/cHJzTqSXbnd1
+	EW3bP32/wrfXEOSOuU77enf5hCUcTggU6ya/hrvzNSMUgjsuC6lXdTTgyhqlHwz2
+	FWkwmhdMjw8VVKcjIEbzYxbPy8oanDTRhKZ2EGuSlvEHXm2Sev6VDKwfEcFiU0PQ
+	7Yf/Jj+GOjTb26gUfTRKcg5bJ3iV7J9qkgE+X15PswAU5aSMqiqCPR3I77Zt0Gb/
+	A4RTIe3B1dyoeNLI38LPq5QkwzYLzeQ8DMbZNwEYBnVjlWDsYSHtOhCDPg2MmO5J
+	pixrbkq45iRF/3qnKtySL2l03ZHCv3QXtl80Je9mG/g2uwATw3lPF+BtbiKiy7rd
+	nuHwGQ==
+Received: from mail-pg1-f197.google.com (mail-pg1-f197.google.com [209.85.215.197])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4hk12pvsqe-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2026 17:14:52 +0000 (GMT)
+Received: by mail-pg1-f197.google.com with SMTP id 41be03b00d2f7-cd60a365440so856915a12.2
+        for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2026 10:14:52 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1793207692; cv=none;
+        d=google.com; s=arc-20260327;
+        b=W/IwkNeVcKcSKgVI0S+jeMxFs15qvLSvpiCjzvxRxgR7IvLqHKhNaVPoAXGh6t4tar
+         UZTLIKkQrY3yqWkfSB/JAk+asGiFJ6meVIDEPcM3z1JkzYlI2wqiJtUUUsOp+VHTvDYN
+         TwQfZHLSirM0xNgh1/1A2I4XGXrP4iOtsoITruMEA8NAcIU3UycBYEBslD3+S0Ql2SCe
+         d7vXEoMVxJuK5g6jmz0D8E5C3uIZK6Ajp7FWtpgQ3cg+iB/m+5WBIU7o6ecHft0kYbiv
+         NsARBQih2OW5F3qDlsZqTuvkwkEgnKd534xvNUBWEnRGmWhvLsc+hh64lAuGElm6KDx7
+         PpEQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=yS6+yqmCO/Z+9Hwxo+UG43eJfa5XgYXkK/nQJzs6W+o=;
+        fh=hqqhKMYwazHe+NEVR/4gWK90kh0sskDd7I5oeDZQSPc=;
+        b=EGuEpeckcHhuTKklNE4Sn+OiAElFyFJntvNL57crVx13CMpWNy8EBikqXgrK9H/fvD
+         xeH78cF6/7EcSPW/rBuYx3P02zb1fYqOdXJFryFn0wKI011f1Zbfgmq+RfTrR4LAX32W
+         6i4aylvtg01EApM/iaPlZ4KODmaRja0X7CdJDfUaVi0a1+0SZElp+xIWPbDXFItffRx4
+         PfwoTMOzNAmZN3CxczCcWvd7atYoAwOrKZDeaTorQLUFT8V7Zw/p5M4uMezohQIDAdYS
+         VRV69+LomqD4T2QlLEBT5DdZ+ToGHMtVvLXco6Zes/fQszGcSP9ZpDGgLjAOYKj8rHQL
+         2IcQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1793203591; x=1793808391; darn=vger.kernel.org;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :content-type:mime-version:subject:date:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=wXXJVVE7DxQ4okK75gXR5XkOT+hE06hRlYWzlQtBB0Y=;
-        b=insoPdheYxSCdxOOzoRrXooV9JVAQIrxsYoaKktBhFGBZZhUcFjMs2zGg7r8kSUkqw
-         nvWfLaxqJGEE77cFjMgaB7LvPJ4StFC387ts4bvKVDtSnwV/kfQmF1Wz3CNeR4Ak7vuT
-         iTerwB1bgnBQHKO7zgQr8FjTYDofeIXnK15mFLwMsOXrJMOoC1RkkGxpwM6hzjNmYigP
-         TIRJRdCEJtckFEL9rdiiknclkqrdFFp4B1ly0aNBrpU/gDFl7x+YdZb5aqHovqWLF//L
-         sfS6dFMfnQoOJf7R6ctw67bEb4r5irupWHH34y6NdhqhO2s+5evV0pwQDgFaj9OomRT5
-         5GbQ==
+        d=oss.qualcomm.com; s=google; t=1793207692; x=1793812492; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=yS6+yqmCO/Z+9Hwxo+UG43eJfa5XgYXkK/nQJzs6W+o=;
+        b=NarLSL3fQSwvAx099tbHHoxIxEBj2QGMim9VohsnJNYB6ULicVUZxBD18+xAk70wY7
+         +W4f54noecwrkJhWzeoVeC24EQcJNnwLYMlTyXOPyzTLSWQ9yCx/ur+VlC45E3K4JhBh
+         bLbA83a5c+nTMfmFoPkF+WNy0bJte42r+iO94eIt55JcbUxzN4Ns9FFyurSQql1rHBBr
+         0ogbdvqumyWsNUK64zGv6bcX+eyUMx6kwcpVDuLtWQ/F10yTatXj4LdMXoYLzvA5LbXz
+         TOSsoo7sQQRbYrlG1H68l5Z8BbZqupsyujqrSen/7aYZd2pJeI7Qn/E/ztqSVX53pxeU
+         qrHA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793203591; x=1793808391;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :content-type:mime-version:subject:date:from:x-gm-gg
+        d=1e100.net; s=20260707; t=1793207692; x=1793812492;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=wXXJVVE7DxQ4okK75gXR5XkOT+hE06hRlYWzlQtBB0Y=;
-        b=0oSG6jSZyK+CerkysE5ARkfAme36oFVp1AjYPIxp6H3LGXM+/j2LwV3hbo9Uxlcigm
-         AHt6w+9DkicmdJ4fmMmWTwJzXibyDIspQ1tpDEQIYeqJcoHX/TXumU1e1OlU1HzF3prG
-         U48Af4efSvqtQPCyUxaE+gvnu42j1izKfio8REhsKTx4kGmoqlJ/rmTfvnSQaAi+ChAI
-         rwXH92hGsUX/nWlm0WHQFUQkvBP2BO0gbp896K0NAphP8j5G86cpD7QM25n6uhyYmVJD
-         3dscGJXG8HrJHgo8tOiMPmjGxzitIgFw0x/BWcFJTgin5LCh3sAzDTA0W+OnJkk2mXr9
-         vUtQ==
-X-Gm-Message-State: AFq9FYIaEkLhGGcfDlBjjdzJ0MgfrI2sTio2ea6bdKo4r72FUPd7HNsK
-	DJiCWyVTkTAbR9zXTL0Oh3FVgnWGl2/NKjCQDp/3yOThx0R5VEat7VL4yt7F1z0eDEA=
-X-Gm-Gg: AYBFou3PB+NY9sG+JZOv/M93M3MxZrk0PE3xxQ8UChpNiQczW23rA7NJwTr1EQYo+6X
-	OFhtcAYAzyrvjrkaRaKYWMcLTo1DfIRghIyUyKNbcNG7z6w4TX1erkUpWHX0jJmwDTGXAtYbrkC
-	FCb44KLeXYzGvKKWBsqVRW5PaUJp+YDe3OChs/ZRACVbt74vwnk3zUvxFPt7i6muaPbswwF/nJh
-	Ne+cq9knQaLPtFNRxM47W7CBVIZRDI3jo79lWYmq06kqOMkj197IIYZPsKjvugp/9M2+yf61blw
-	agdu9vuu7s0HWmwYaGbors5eQBVDftiFrglV3G9MJl2pvLmzoy6OUirLldyEicPuwPCtjcpoebH
-	XvCKk42984ftenvDXa4eihNbcntpczIyPP0x9KrXFthw6lyPwYBaSjbw9SnbbK34vc+cZaKBSkz
-	3heF3hMl4Ay/k9sZYKsifWfr3ELZGjVZ0Z9s4nVGHLIASGftK31VbWSYS6pXngCzxbA1asoGbbY
-	vOAXS8Iia77Nahck8XA7FtMh5sm0LOVEVnW3565siofEwq5rml5NQc29xXanle23+n+2MDtrxT1
-	Z/eVQVg3Wwc5+nmBW+siEWvtl8/ChFmgjWK8ReD1QZL0XE67G63wmFWeKNGAup+EKq5MDeL3Ebz
-	fwc/KNuv1ARr98XW4TcdQTb0LiQ==
-X-Received: by 2002:a05:600c:1f87:b0:4a5:1cf1:b7bd with SMTP id 5b1f17b1804b1-4a966a563ebmr60980175e9.16.1793203590626;
-        Wed, 28 Oct 2026 09:06:30 -0700 (PDT)
-Received: from z13-ek5.local ([151.40.161.170])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4aa81a896ecsm1625875e9.9.2026.10.28.09.06.29
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 28 Oct 2026 09:06:30 -0700 (PDT)
-From: Ettore Chimenti <ettore.chimenti@linaro.org>
-Date: Wed, 28 Oct 2026 17:06:07 +0100
-Subject: [PATCH v2 6/9] ARM: dts: omap: dm816x: Update USB node
+        bh=yS6+yqmCO/Z+9Hwxo+UG43eJfa5XgYXkK/nQJzs6W+o=;
+        b=zhuAt45SEHyOP6JU3gGsPONfxC6Gi2LeKO+gkugPyoNV2y2a/1KfXiK6EeHkk7iWJe
+         o0GvGsDO/lA16va43+DVKqbaF267TVA4JqyB0UawRkk0I/HsnUa4MWNXs21Yu85Z1sVS
+         0eZdgh353KCeemGYSqSDRQjL3BvGicsqwavoqRZ8SXG/6q3DA8NvxrugrbZQ/MydGkKS
+         ahKcL7NC18eiTSImmBfpgeZUntZo/zczV47aEYZNx9ZwK9DY3jUaei1sLh7fMM/pGPDJ
+         Ra1fGRcGCj1/VHdsNewQlCz54WWmYi1pj3cLc1Cr/RPY23l2ErYFtsO79GTCX+HDQSo9
+         l1RA==
+X-Forwarded-Encrypted: i=1; AKwUvBwADrTrubmR3FLNRxqDJ6RSfwEaUp6ew2pIJ3anx1w7e2D/M/aOzHxDty/wJCYDIuOg8VFve5oy4oQc@vger.kernel.org
+X-Gm-Message-State: AFq9FYJnZ3KdaknPVhaLv9ZgVcKR0KuY14YriXxB4uLyv/kcbVfqzOSR
+	P2c+LWsjEHxlXVnBoGPNJMZUPMw6RIaXq9IPP14IYf7VYQ6gIXej6juRrfK8a3bM674ZgLjl9oB
+	h1wxJI6v3A+QiqBjKkXg9QHk/pkIKF/4RIe+aSFYw+jF0xYAi5ObRWUFpUjxAidFPThyoFNxjk4
+	P0oDHJ3qme7m0mWUqp03pw1Hni4K4AnV8BZZ/EIQU=
+X-Gm-Gg: AYBFou1mpnNnHk9dAJZe+KwebMAQ23+owVMl7mtvhBvVWeMP513Pbwwdjlinsf2qazi
+	RqgOIma0iPJZ/vHcHxK9denndWVu24OnERomSZpezIaBsIihUFYsii9mnTlVfLVppGsKuO4dV7T
+	UVTyRHAOu22kePdRUlmbWqBOhuEWUtgZdQd1Izk1KiOgrVIEmqT3YxCRJVKg==
+X-Received: by 2002:a05:6a21:4995:b0:3e1:a4ac:2d5b with SMTP id adf61e73a8af0-3e9023a615emr1998174637.41.1793207691831;
+        Wed, 28 Oct 2026 10:14:51 -0700 (PDT)
+X-Received: by 2002:a05:6a21:4995:b0:3e1:a4ac:2d5b with SMTP id
+ adf61e73a8af0-3e9023a615emr1998158637.41.1793207691380; Wed, 28 Oct 2026
+ 10:14:51 -0700 (PDT)
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -92,121 +127,104 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20261028-patch-ektor5-dm8168-dts-v2-6-4544429251e2@linaro.org>
-References: <20261028-patch-ektor5-dm8168-dts-v2-0-4544429251e2@linaro.org>
-In-Reply-To: <20261028-patch-ektor5-dm8168-dts-v2-0-4544429251e2@linaro.org>
-To: Aaro Koskinen <aaro.koskinen@iki.fi>, 
- Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
- Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
- Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
- Conor Dooley <conor+dt@kernel.org>, 
- Christopher Obbard <chris.obbard@oss.qualcomm.com>, 
- Andrew Goodbody <andrew.goodbody@linaro.org>, 
- Paul Walmsley <paul@pwsan.com>, Russell King <linux@armlinux.org.uk>, 
- Rouven Czerwinski <rouven.czerwinski@linaro.org>
-Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, 
- linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
- Ettore Chimenti <ettore.chimenti@linaro.org>
-X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1793203582; l=2910;
- i=ettore.chimenti@linaro.org; s=20261014; h=from:subject:message-id;
- bh=slycG2bg5gDe3DFzSfzkYLyssn6vrxkDhJMrxvxkKfw=;
- b=CAn3Pa2ZHnYtIwdjo6NSmPuazofF42Njlg4liHLqzDNdRICH3wGD2TnpAM+QNrywnOh9XkpyP
- YVhwhSGAVfEDcW7aKsQtTiqLmkDtN1AhmfNWnU1CKy0guzhJ8JEi11x
-X-Developer-Key: i=ettore.chimenti@linaro.org; a=ed25519;
- pk=wCaUblFVaqhuBTQt/hAtysafsAaEsqj/yOD9SPlz6NM=
+References: <20260929124522.2141124-1-runyu.xiao@seu.edu.cn>
+In-Reply-To: <20260929124522.2141124-1-runyu.xiao@seu.edu.cn>
+From: Ulf Hansson <ulf.hansson@oss.qualcomm.com>
+Date: Wed, 28 Oct 2026 18:14:36 +0100
+X-Gm-Features: AclHuK_ZWeAQi2Xa-B21F76suzhqXwNnsAdO0BsvOyeyMH6jBWqA5XunpZY6OxY
+Message-ID: <CAPx+jO-9DXrH+b5Y_TMmiyydLTkCQcNZKrHEy39OK8iYkZ3JOQ@mail.gmail.com>
+Subject: Re: [PATCH] mmc: omap: synchronize clock timer before disabling fclk
+To: Runyu Xiao <runyu.xiao@seu.edu.cn>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Ulf Hansson <ulfh@kernel.org>,
+        linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Jianhao Xu <jianhao.xu@seu.edu.cn>,
+        stable@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+X-Proofpoint-ORIG-GUID: ToXbV00tGU7tiCUkcp3qynsLeoAU09UN
+X-Authority-Analysis: v=2.4 cv=DtDDa2/+ c=1 sm=1 tr=0 ts=6ae22d8c cx=c_pps
+ a=rz3CxIlbcmazkYymdCej/Q==:117 a=IkcTkHD0fZMA:10 a=660iZSQnnn4A:10
+ a=s4-Qcg_JpJYA:10 a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22
+ a=Um2Pa8k9VHT-vaBCBUpS:22 a=VwQbUJbxAAAA:8 a=ywtp7fW4YtRplKC3Ii8A:9
+ a=QEXdDO2ut3YA:10 a=bFCP_H2QrGi7Okbo017w:22
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDI4MDA2OCBTYWx0ZWRfX248FaP9VBLxv
+ +sBLy77QzXjYxl111WSBF9W2PDgq4IUSXRmkQlgtbI+B4YeySv5QmVJptNyKlmuppb70ZBC1Gws
+ dX7CGWVRflNuOKS3Q8McuG/mJARveaS6jGKj8MA+oygaJ8oepj/qJ191qLfE518IzcNNpw2OTK7
+ ZT+x+APTXIJ1Hx/ielW3KIIcN1MNBdlUBkaN/pY+hyPOllByPq4LhZfCZ96SW1R6u8ZlHTMKERr
+ +JDiR7qQEXKFzlq2Dnva7rCUzJLZB7uR5ruhmXzXcpY4zHgPiibilbiLcssqvTIWM8OWRT6G2NR
+ aOQPQC6+wkVqQl6b2h9vC7bNLOPD3xmjMNQ+ClqEatIogZZ4+qhL+VDU2+mdm7Ld9qcNUuiqo05
+ 3sEyvhj1a2zhdJzBg7nf+KerWC8VeJ7YuFcQjuU4rMjbf2MXSmN1Malqoc1ppaDKKyHuQ8whCJR
+ t8PwDZPUGXl4tUd3PmQ==
+X-Proofpoint-GUID: ToXbV00tGU7tiCUkcp3qynsLeoAU09UN
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMDI4MDA2OCBTYWx0ZWRfX/R149sGOL9xD
+ 2PLF0qx6o5EhmrYvwzlqZLs7K4ziOnbCtYea+6JLaWUA3gGSq38hvOg4UYlmk/HVN4Qiay919ta
+ i+yDM1PlYY+omYZD0UY7DJx6S7/7n5w=
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
+ definitions=2026-10-28_05,2026-10-21_02,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ priorityscore=1501 spamscore=0 adultscore=0 phishscore=0 malwarescore=0
+ suspectscore=0 lowpriorityscore=0 bulkscore=0 clxscore=1015 impostorscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2610190000 definitions=main-2610280068
 
-From: Andrew Goodbody <andrew.goodbody@linaro.org>
+On Tue, Sep 29, 2026 at 2:45=E2=80=AFPM Runyu Xiao <runyu.xiao@seu.edu.cn> =
+wrote:
+>
+> mmc_omap_select_slot() removes clk_timer with timer_delete() before
+> switching slots and changing the functional clock state.  timer_delete()
+> only removes a pending timer and does not wait for a callback that is
+> already running.
+>
+> If mmc_omap_clk_timer() is already running, it can therefore call
+> mmc_omap_fclk_enable() while the request or slot-switch path changes the
+> same clock state.  During host removal, the same window can overlap the
+> final clock shutdown.
+>
+> Use timer_delete_sync() so the callback has completed before slot switchi=
+ng
+> or changing the functional clock state.  Keep the timer restartable for
+> normal request handling.
+>
+> Fixes: 0807a9b5739a ("MMC: OMAP: Lazy clock shutdown")
+> Cc: stable@vger.kernel.org
+> Assisted-by: LLM
+> Signed-off-by: Runyu Xiao <runyu.xiao@seu.edu.cn>
 
-USB node was not working correctly with DMA enabled as the supporting
-code had been updated without updating this SoC's device tree. Bring the
-device tree more up to date so that it works with DMA enabled.
+Applied for fixes, thanks!
 
-Signed-off-by: Andrew Goodbody <andrew.goodbody@linaro.org>
-Signed-off-by: Ettore Chimenti <ettore.chimenti@linaro.org>
----
- arch/arm/boot/dts/ti/omap/dm816x.dtsi | 45 +++++++++++++++++++++--------------
- 1 file changed, 27 insertions(+), 18 deletions(-)
+Kind regards
+Uffe
 
-diff --git a/arch/arm/boot/dts/ti/omap/dm816x.dtsi b/arch/arm/boot/dts/ti/omap/dm816x.dtsi
-index e3d49651b44e..b839ee29e9eb 100644
---- a/arch/arm/boot/dts/ti/omap/dm816x.dtsi
-+++ b/arch/arm/boot/dts/ti/omap/dm816x.dtsi
-@@ -574,19 +574,28 @@ uart3: serial@48024000 {
- 		};
- 
- 		/* NOTE: USB needs a transceiver driver for phys to work */
--		usb: usb_otg_hs@47401000 {
--			compatible = "ti,am33xx-usb";
--			reg = <0x47401000 0x400000>;
--			ranges;
-+		usb: target-module@47400000 {
-+			compatible = "ti,sysc-omap4", "ti,sysc";
-+			ti,hwmods = "usb_otg_hs";
-+			reg = <0x47400000 0x4>,
-+			      <0x47400010 0x4>;
-+			reg-names = "rev", "sysc";
-+			ti,sysc-mask = <SYSC_OMAP4_SOFTRESET>;
-+			ti,sysc-midle = <SYSC_IDLE_FORCE>,
-+					<SYSC_IDLE_SMART>;
-+			ti,sysc-sidle = <SYSC_IDLE_SMART>;
-+			ti,sysc-delay-us = <2>;
-+			clocks = <&default_clkctrl DM816_USB_OTG_HS_CLKCTRL 0>;
-+			clock-names = "fck";
- 			#address-cells = <1>;
- 			#size-cells = <1>;
--			ti,hwmods = "usb_otg_hs";
-+			ranges = <0x0 0x47400000 0x8000>;
- 
--			usb0: usb@47401000 {
-+			usb0: usb@1000 {
- 				compatible = "ti,musb-dm816";
--				reg = <0x47401400 0x400
--				       0x47401000 0x200>;
--				reg-names = "mc", "control";
-+				reg = <0x1000 0x200>,
-+				      <0x1400 0x400>;
-+				reg-names = "control", "mc";
- 				interrupts = <18>;
- 				interrupt-names = "mc";
- 				dr_mode = "host";
-@@ -622,11 +631,11 @@ &cppi41dma 11 1 &cppi41dma 12 1
- 					"tx14", "tx15";
- 			};
- 
--			usb1: usb@47401800 {
-+			usb1: usb@1800 {
- 				compatible = "ti,musb-dm816";
--				reg = <0x47401c00 0x400
--				       0x47401800 0x200>;
--				reg-names = "mc", "control";
-+				reg = <0x1800 0x200>,
-+				      <0x1c00 0x400>;
-+				reg-names = "control", "mc";
- 				interrupts = <19>;
- 				interrupt-names = "mc";
- 				dr_mode = "host";
-@@ -662,12 +671,12 @@ &cppi41dma 26 1 &cppi41dma 27 1
- 					"tx14", "tx15";
- 			};
- 
--			cppi41dma: dma-controller@47402000 {
-+			cppi41dma: dma-controller@2000 {
- 				compatible = "ti,am3359-cppi41";
--				reg = <0x47400000 0x1000>,
--				      <0x47402000 0x1000>,
--				      <0x47403000 0x1000>,
--				      <0x47404000 0x4000>;
-+				reg =  <0x0000 0x1000>,
-+				       <0x2000 0x1000>,
-+				       <0x3000 0x1000>,
-+				       <0x4000 0x4000>;
- 				reg-names = "glue", "controller", "scheduler", "queuemgr";
- 				interrupts = <17>;
- 				interrupt-names = "glue";
 
--- 
-2.56.0
-
+> ---
+>  drivers/mmc/host/omap.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+> index 527b89a5e..02d288e4e 100644
+> --- a/drivers/mmc/host/omap.c
+> +++ b/drivers/mmc/host/omap.c
+> @@ -214,7 +214,7 @@ static void mmc_omap_select_slot(struct mmc_omap_slot=
+ *slot, int claimed)
+>         host->mmc =3D slot->mmc;
+>         spin_unlock_irqrestore(&host->slot_lock, flags);
+>  no_claim:
+> -       timer_delete(&host->clk_timer);
+> +       timer_delete_sync(&host->clk_timer);
+>         if (host->current_slot !=3D slot || !claimed)
+>                 mmc_omap_fclk_offdelay(host->current_slot);
+>
+> @@ -273,7 +273,7 @@ static void mmc_omap_release_slot(struct mmc_omap_slo=
+t *slot, int clk_enabled)
+>                 /* Keeps clock running for at least 8 cycles on valid fre=
+q */
+>                 mod_timer(&host->clk_timer, jiffies  + HZ/10);
+>         else {
+> -               timer_delete(&host->clk_timer);
+> +               timer_delete_sync(&host->clk_timer);
+>                 mmc_omap_fclk_offdelay(slot);
+>                 mmc_omap_fclk_enable(host, 0);
+>         }
+> --
+> 2.34.1
