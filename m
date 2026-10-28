@@ -1,58 +1,63 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=178.238.236.174
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793198097;
-	b=f4PG4qoM6wSmouzumbrX/wPLkZznyc/LnXc5JXv7qtHoRgUvGXPwxCm5bOCwOAHts/3W
-	 glq5601X00O/016xqgIggHEY1qBS4nZhtRcIFh0/ze9b1JZjzC/KJZBi5ZrolOV1z3+E+
-	 HkdwL7xKe0wGIswzMa3HVZexHRsgVKrOPCHtfOQjq4wph/HRH3JzcrEcqXYki72mkoXlf
-	 9nmadZ1svCTlKJAGFeZ9KDPsSdMNgk8XFDPcbXM/oUYAeVt8MezogZtv3QRozOLqGEydi
-	 YawgFovCJ6PAqk0mDGRe3glecHim+Wv4f2Mf3nYkTl/Y9OPmkw8OjAAWD4iUicx31hA==
+	t=1793202625;
+	b=PaIyYw0NXLkDyNL4pMuarlW5OR+kqb/LesZaaX9gVIkNPTs1SaG2ati8KK/eSCMxG3Pn
+	 Dw/yYuEOQ31SFIgBkNSf710aN1L3yP6TQqkjpJJHi5N8kpOZRTVuLKw4FhkBp01iQrEPC
+	 Y2GUzsAPUxDpwZFZrjaN5OnIkdbQ8Zm4OoMoPEyOBSmbON5j1c91qT5gfqUUmBzSDlBSo
+	 8QG7oUzrPnWbPnQLzq0yxmoi6CFZMesp1a3dqaASb8PfQguO3nFyFFg4HY6AZwa3s3u96
+	 vZ/ZCbDPC54O//wkDhTC2FH6QYvwQg3j4Oi3KGzXncFWUl00Nelbk8sjBcMRUoQrCSw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793198097;
-	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
-	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
-	 X-Mailer;
-	bh=vGJwTqYdbrZtckhZYhD/RIzHIRbhV2RUl+NlHGXe2VM=;
-	b=U9C6RtnRPlP6phhNTsr6yhdDCza4B2bDPTB/bv21LeecrWJBWi5UEVdEwTaJwMcIGfuE
-	 DxjXlFGLl4aQewhdVsq7V0PgmKFpz/ShiLFPRA5NdA6GBNEteZ5HA3N1OXrLsQbI3KuJD
-	 Dfq40hmaqTdIGrntCUYshQiZca84Z5cm5hm4UMYjpl+os/mU6c+KYjVaC6vuAx3eRluz8
-	 8cLD7I3F6tgXPq6PwkMZDOGQJGc6WVmJJaF7Jhjgg38ZynhnOwfIERAK5YEipr0ix0xEn
-	 mAgARD19DakQkIFdHRPW/xe67Hr5rZ1nXl3Yg4rkJZB9/LJrnN8u3CM/3roHPriygIQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793202625;
+	h=DMARC-Filter:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 In-Reply-To:References:X-Mailer:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=P5gHNQzeRGB5ay4L4jhyXK5TgEBlTihVO3XydtF8iLo=;
+	b=0wQc6HHilAXOQgBxWGt+MQMkqfEYq+78Pboj5If1hgoz9Luafte4V5s4rdwaaggeVDvS
+	 RBQIphAfJbmwzU8oA3uaVAvxmhojZHrKtWkTM5N2ip1QqyrqyBzKN+NSimDAAY0xIBjE1
+	 YEDtdZTS9Lc2afFxs3gSG3jbAjmqwCccUlQ4sQTbsY9RAVWGLhpXrMBYtJE2+ZFZVQ+uw
+	 6MQJo6Ii7mQn6kLzp19L6s1CX0dDx6REEBM1bdNwIqB11fGkDtAUIpxHGf6dpsGwDNhZQ
+	 iqcKsdELXc406SxmoZR22G619Un2p5NHQtIMmF0vcQTcmHKtGgXcK5LA1H9OMuRkMbQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Y0+VX3Z9;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=kemnade.info;
+	spf=pass smtp.mailfrom=kemnade.info;
+	dkim=pass header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=UrYt0Uum;
+	arc=none smtp.remote-ip=178.238.236.174
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 537C0606A31A;
-	Wed, 28 Oct 2026 14:34:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74A19606A320;
+	Wed, 28 Oct 2026 15:50:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 74A19606A320
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Y0+VX3Z9
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52A7E1F01828;
-	Wed, 28 Oct 2026 14:34:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793198097;
-	bh=vGJwTqYdbrZtckhZYhD/RIzHIRbhV2RUl+NlHGXe2VM=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=Y0+VX3Z9uZSAHU0mZ8PYqiCsNyI5hBqywsEMhb1le3hLmJsz6YS7Hs7V3XkEYLbyx
-	 kmCq3CcfiTu8Txa+pAhaaNlPF6OIJ+tW3xuPcei942b51Q4qmfKFNtpKSBOxzCSRjc
-	 ELt4sxgakcqZXrtPRCqBLWkMvlukXKgw5EsvvETKyKEA5s1SBf2xal3NEk5jp7GO4u
-	 qeF2j0qEy+7rOGL4IG8u/zZpRgXDzLq0lBVy2Xrr4ns0h5tf5AumzAuf1JqZ0Ueh3j
-	 Ehmc4dXS9B8RoeVYMdikDkubgqoMnYRT+Jm265Aw0ivflPLE3g6hBUMmYa2hbuhLAK
-	 aGZUAdoPZACcQ==
-From: Lee Jones <lee@kernel.org>
-To: mfd@lists.linux.dev, Rosen Penev <rosenp@gmail.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, 
- Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
- Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
- Lee Jones <lee@kernel.org>, linux-omap@vger.kernel.org, 
- linux-kernel@vger.kernel.org
-In-Reply-To: <20261017004758.1256875-1-rosenp@gmail.com>
-References: <20261017004758.1256875-1-rosenp@gmail.com>
-Subject: Re: (subset) [PATCH v4] mfd: twl-core: Embed the twl_client array
- in twl_private
-Message-Id: <179319809509.3743962.8693833243810954971.b4-ty@b4>
-Date: Wed, 28 Oct 2026 14:34:55 +0000
+	dkim=pass (2048-bit key, unprotected) header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=UrYt0Uum
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=kemnade.info; s=20220719; h=References:In-Reply-To:Subject:Cc:To:From:
+	Reply-To:Content-ID:Content-Description;
+	bh=P5gHNQzeRGB5ay4L4jhyXK5TgEBlTihVO3XydtF8iLo=; t=1793202625; x=1794412225; 
+	b=UrYt0Uumkdz+F5h4ZhOsNqk2D4rGB1hrpFKYPoaougQP8jXBWwnLnEzYZ4ecKTV1dfACJJulkk7
+	f/WZnpk8R3lRFCkbkJ8SXL0ZZMYDsRQz+wzHWtU7MCK/TQfCtxBrxO4k046lUMs74auazBeBk6Ezw
+	4zkY3i3E6mog0PpaYDz3CLTUXxJ8QdzcW1PMQ+scGRujt/OF+R1hkvGrJ1TCapMySI52l0L1xlVZX
+	n/pysFJLJOJgab8RlFmprCKLarF/XazWxZqlKHlpmh0cYzMTMVr8gO/gCOW6kiHLJ3mTIHA8/1yx4
+	eESTfRvLUA+SYCyvqCJbZKInZWJ/7ulSdZyQ==;
+Date: Wed, 28 Oct 2026 16:50:03 +0100
+From: Andreas Kemnade <andreas@kemnade.info>
+To: Lee Jones <lee@kernel.org>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman
+ <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, Tony Lindgren
+ <tony@atomide.com>, Kai Svahn <kai.svahn@nokia.com>, syed khasim
+ <x0khasim@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Samuel Ortiz
+ <sameo@linux.intel.com>, linux-omap@vger.kernel.org, mfd@lists.linux.dev,
+ linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [PATCH v2 13/27] mfd: twl-core: Clear twl_priv pointer on
+ teardown and probe failure
+Message-ID: <20261028165003.60d0c033@kemnade.info>
+In-Reply-To: <20261027093306.2812695-14-lee@kernel.org>
+References: <20261027093306.2812695-1-lee@kernel.org>
+	<20261027093306.2812695-14-lee@kernel.org>
+X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -62,21 +67,34 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-X-Mailer: b4 0.16-dev-ad80c
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Fri, 16 Oct 2026 17:47:58 -0700, Rosen Penev wrote:
-> At most four I2C slave addresses are ever used (TWL4030 class), so
-> there is no need to allocate the twl_client array separately. Embed a
-> fixed array of TWL_MAX_SLAVES entries in struct twl_private and drop the
-> extra devm_kcalloc() and its error handling.
+On Tue, 27 Oct 2026 09:30:42 +0000
+Lee Jones <lee@kernel.org> wrote:
 
-Applied, thanks!
+> twl_probe() allocates the file-scope twl_priv state with devm_kzalloc()
+> and checks for a non-NULL twl_priv at entry to reject multiple device
+> instances.  However, twl_remove() and the early error paths in
+> twl_probe() never reset twl_priv to NULL, a failure when adding MFD
+> child devices bypasses twl_remove() by jumping to free instead of fail,
+> and twl_remove() tears down the IRQ domain and dummy I2C clients before
+> child devices are unregistered.  After devres frees the underlying
+> memory on probe failure or unbind, twl_priv remains a dangling pointer,
+> causing subsequent exported API calls to dereference freed memory and
+> blocking future probe attempts with -EBUSY.
+> 
+> Unregister DT-populated and MFD child devices at the start of
+> twl_remove(), ensure mfd_add_devices() failures unwind via fail, and
+> reset twl_priv to NULL in twl_remove() and on probe error exit.
+> 
+> Fixes: 80a97ccd33be ("mfd: twl-core: Collect global variables behind one private structure (global)")
+> Closes: https://sashiko.dev/#/bug/linux-73e82f84-94de-4d08-82a4-f22d42a1dedf
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Lee Jones <lee@kernel.org>
 
-[1/1] mfd: twl-core: Embed the twl_client array in twl_private
-      commit: 73f3a89d27c3da9ea28750a420fa2567c0bc1701
+Hmm, couldn't we use devm_add_action_or_reset() for resetting the
+twl_priv pointer? Feels more clean for me.
 
---
-Lee Jones [李琼斯]
-
+Regards,
+Andreas
