@@ -1,88 +1,88 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.52
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.48
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793203593;
-	b=qzFosh32agV5QrxJ1ROD0L/OOakMnWB9h/2/ArbGsL394/F2EHa/IlgRVujSlD18nlLq
-	 SeEQ+H64ZvT2vKt8e/btmSahHEIGVUmVVxRAH0pyMVGfiWRWM/LyTFMB0J7/HawQeX2sl
-	 b51F8N8Vkcib363/l501AWadhAEUbg8jj+xdHWnED993fozHwqMzNcP9Dy4Z9aLGu4p7y
-	 MbzmkNfpbPM8YRNf2CzAtMz0l0rr5hSx49L7cAe4wnR6Hd+AcInoFoXiXZkR0YSGKoYn9
-	 4aF2wdg62k8he6juP1/njNkWp1jddBxkxjA7LygZd3Q3eLxWiUa8Yj5hQzG5G9JhvPw==
+	t=1793203589;
+	b=O75rmV5vkMePJBqxpIFFEUdaDHiTyhG6x8J4oYsb7te45G1QA7e9+xC9QniGWKgHXeDi
+	 le+j+ILOj1KD/iVRwHej7bYbVWOdl8aFMNru9DJqNkKUdk3HTnTX7kGsWpTtQGiEOM3hl
+	 Fhlm1Ftuk9xzNKBHh4AA1hx0ISA31Gk7yvTJiM/qeIvXEzoH+FFvwP0E1m2obCAq71R1b
+	 RjkRpB8xNw5xYkf/2wh8ZZsMdch3168F+yApapFih8oT2dVBi9tlCaRHW2Q3it0BYtKmn
+	 l66WVB51mJKqb0IDBCDBPtQFM6wRqwM8gBCx4esipbkeiZQHAkDvcGlzyhj9WfDvLxg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793203593;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793203589;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:Date:Subject:
 	 MIME-Version:Content-Type:Content-Transfer-Encoding:Message-Id:
 	 References:In-Reply-To:To:Cc:X-Mailer:X-Developer-Signature:
 	 X-Developer-Key;
-	bh=7ZA+lAyHuDEsFhqEslFfArNJzGGWxbNE92ukEzZuxNI=;
-	b=VJODojWDfhfsFBAm64NFosR4ARyMZyOS+FqAuW/Ihr66+6iubNyIE8KzaXI69a9puBrF
-	 NRpsIbpE3B2iEXHJg4cd8SqwtJhTKgP+6kSMM6ZCrK3L49aF6nn12brBZnPYyjlVQsK7i
-	 iBqhuJr1krt5kLE6sAbOhigqvh/fn5UWd8IIgpoTwgFMu8G0lP9MZ3m2DMiIIpBYUqXut
-	 hs+cQQL1vIx1jp1hDHnkquL0DfrK5sIFu63KstnICyBqREdqeK4zeiO/wyfCeP3DnVxS2
-	 tEVgHFLlAveIacmkA5pPQ7PEHPo0X+CnZ5tZmYZE1+PjrgdXMGKTUC3GYWRhyH2WJkQ==
+	bh=7rFZDp5Fkk3pXBS1B4nPunTNFGpd1zfRgzV12OlUjhY=;
+	b=Q9x+OVXYBnq9Cv7NfGiIOzxa4UjhautsyxJPS5vl8mGpKhpfXUHdjMcW5Xf8xB580mnx
+	 RzpWqAwC3yqdXkWngMch3SyGVGyBAKCkuQT+O1Ae+228arXxzY4anYzpwclfLCL/t0u6d
+	 QQUgWg7Bf7SnTjXeYlKIKfp9xo8ct51cn19xQqKcIXdBUEFGVastF1b8kH1j/JFSzXdVd
+	 sOSUb1niU4kX4jw+b41wl0ZvW58XnSdnM73CrjLzvtLzYMw9t65samWBTB5gZv31EzLKZ
+	 /TT6REltjfjkDzlM714Vo9SzpvviepN/rpeJz+31WnjRqGfYATA8GIbaNxytl8nituQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=linaro.org;
 	spf=pass smtp.mailfrom=linaro.org;
-	dkim=pass header.d=linaro.org header.i=@linaro.org header.a=rsa-sha256 header.s=google header.b=cxt3iCfe;
-	arc=none smtp.remote-ip=209.85.128.52
-Received: from mail-wm1-f52.google.com (mail-wm1-f52.google.com [209.85.128.52])
+	dkim=pass header.d=linaro.org header.i=@linaro.org header.a=rsa-sha256 header.s=google header.b=LHY69A8z;
+	arc=none smtp.remote-ip=209.85.128.48
+Received: from mail-wm1-f48.google.com (mail-wm1-f48.google.com [209.85.128.48])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DE6660A2634
-	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2026 16:06:33 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3DE6660A2634
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F283C606B27A
+	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2026 16:06:28 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org F283C606B27A
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=linaro.org header.i=@linaro.org header.a=rsa-sha256 header.s=google header.b=cxt3iCfe
-Received: by mail-wm1-f52.google.com with SMTP id 5b1f17b1804b1-4a2000d5fb1so8494785e9.1
-        for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2026 09:06:33 -0700 (PDT)
+	dkim=pass (2048-bit key, unprotected) header.d=linaro.org header.i=@linaro.org header.a=rsa-sha256 header.s=google header.b=LHY69A8z
+Received: by mail-wm1-f48.google.com with SMTP id 5b1f17b1804b1-4a1b07c3c5fso10612275e9.1
+        for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2026 09:06:28 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1793203592; x=1793808392; darn=vger.kernel.org;
+        d=linaro.org; s=google; t=1793203587; x=1793808387; darn=vger.kernel.org;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :content-type:mime-version:subject:date:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=7ZA+lAyHuDEsFhqEslFfArNJzGGWxbNE92ukEzZuxNI=;
-        b=cxt3iCfeaXPmT0e03ZR6Gpu7Ti+yT+t39ypsg0oOnFF8HvvWrgTuKHbstmvDceG62G
-         nxHNMwbr3vbApZ7ymqgN5mrcvKhVB0N0JB67VgY4T3ULqOZZi8W6gjnHK4baZX+OaLsK
-         8VGtlexj07cz9Xk0JXKAHsoSFVtezCnqKi28n6QWh+MxLX6zSPeUVDEuMSGdZetZ7kjM
-         iN4/MF0rCH8YJknGwMGmkpj8cTedHwTAkdky+8DAjwMTqGZfEp6TDzUMdLHYzYfYWTbW
-         etjTUe4OyAyZ+b4Q4muqSikggEymJ1Tlj8tZocnMtIvwCpVBx5fSU+R9jMscUpyoJT3U
-         Zhow==
+        bh=7rFZDp5Fkk3pXBS1B4nPunTNFGpd1zfRgzV12OlUjhY=;
+        b=LHY69A8zem1uo86TLqWbdiIDHeomOMMuc1jlaBY5+fJbstzoHGUh7oLXUHKpkGViC5
+         4oPwpRAKE8riDfYFeY/2kvk1pmf+AufiCWqnoIfEA0FpA9BasK/hHyAUXUtBFfpOWyHk
+         VFzeRplRrXfDckkj9c2qUNAKIFGDDK2pJ0SZ3lezx8NOlB6HMtpgkVFfsg1dkWT6RQNe
+         tH/QNlJiv5dkag717/pgo2lMex/BkNL6QTru49B/61ah6ADjMXveFsNGwl83yoAEuF1a
+         3FIpnIrrvwzYJf+16JvLakvEnSCQOP3zs5hUngBPv0/7uKT4Soqk76lHcoUx8aIT4J6/
+         qr/w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793203592; x=1793808392;
+        d=1e100.net; s=20260707; t=1793203587; x=1793808387;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :content-type:mime-version:subject:date:from:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=7ZA+lAyHuDEsFhqEslFfArNJzGGWxbNE92ukEzZuxNI=;
-        b=kCRRob1wY0lVBqCGLB6FU5524ugdDO5YhZwqdATYztAm4CAO/p+u6j1VWM6lF6y/8j
-         By9xk1NqKcO5S9sLppTMfdOQSPyoy9nU9he11DaFyajpGSt7+vcmnG6hoJ3xRqJYV1IH
-         FIUlhYpvEQb6yUAYMhztcPrWEA3AHHmQuend5OKgUVUieTfemsmrrQEz4905nzcmoM1+
-         Rv37dBWOi28+WH9xBgeMctw2cwnTC146t6PvkGsVoVP6GNEjw2odYNHFeFi081lCsJVP
-         7ztX8oToUsltPjP87dgUXUbBFZVsCLyZVAkSA5iII27rjl07Fw+x7suBZrcybjCLFnNA
-         +0Zg==
-X-Gm-Message-State: AFq9FYLYhxQ6eiiyYyVz/jebm1fEk2p87Cnvq0gR/qKZEUpgYZ1inWnO
-	sr/CO1GwdkLc5NbQaFPjKgijl+rdYy1FcycU0XtKrXo1m+6yvWwPU+MbM+2y2j0hr+g=
-X-Gm-Gg: AYBFou0MTX+WEztJP5gPtkIXyNljYb9ePGHRB2lDmP4GkZvMv6RYxVBmtCJn6P9D5wV
-	d7ZlZ2k2bXaz3wiFDOurHe8tDUVs7uZFotyOonDCzxjxU7aF52MAJdiy+0Xs0WxsWvJuS/NP5bv
-	KDMN8IFGZpr3C72xR5urxu9hoiho5PEQ6bxKKeGiCLYCHml8H2uvqLPaSSA8srSMFxwjn4u8BiF
-	txbqqlo9AByJ1qXwr22v0yXYx77F6LvGtj4HiSVHxSg6LLTYQLW3+PQIzKI2k+cz1F0vphjOS6W
-	nHzPJhl4p0935tBA1aKPUIIzDIIsnE6fxKKzPm/i4hbpLy1qTE9/V69c79VRSwUpp1QYxi9WO45
-	SvGc+WxSUQqmHOv0ttSgIBFKEBOI9uMYC9W71gwtWch+it4bxr4ap1WqAb/63hJRM6oV/9pRvI0
-	LYquIMLWYAL1o2mSnRwDuBFdtNIrfj/6JDkh7MLmcDgHOeWsjq8F57dmNL6Qsh2cN9oQdzPItgi
-	zw/J7q71jpV7poDM8qzq2Xt0ZvxclsIqozXcGB46OUCMaS5h/K93RS0FpP2aihePfl/AJJRiRdt
-	L7C+l0j2FtVf24+3RgN6mWhS6/KhzIzE6EFplwn6QGK399JuynoTf0G/QqGasP2KKyHvW6YlkgL
-	l99qherKlxut/pOsd4zTgb6JcQw==
-X-Received: by 2002:a05:600c:3556:b0:4a2:1cc:6551 with SMTP id 5b1f17b1804b1-4a9678c3cadmr65712265e9.35.1793203591617;
-        Wed, 28 Oct 2026 09:06:31 -0700 (PDT)
+        bh=7rFZDp5Fkk3pXBS1B4nPunTNFGpd1zfRgzV12OlUjhY=;
+        b=ecrroilZs4m7/dICgfBT7cALrtUd1B/MgcUNylA/kowJe3IQdpBgk5iSRMKbgy/yjE
+         ltwIY5A9Kj0bRE9oy6Q0ZoS6DcnnoAkutscgJJc9/dBJuR4GvGun/W0x/BxC7KH+bMiC
+         HLS41yfZ/TR2qYyT1U4r0xpuYGqHAi9/L4QahQJtwnR2pLKShRqVO/u/VAgdtebANJFk
+         3gEKbSDBMJ/ay43QBcS28YW1JEQDP7bDajkLXfPbmVfKHqxao8YdNmqCp2ZPlO/NRbJ8
+         cyjOymUjEWek2XrrZEjuqLR+Jis02oPxUyNLt5TEYVIgUj49VexDOY630ZjrkJQ2MjDw
+         QZgw==
+X-Gm-Message-State: AFq9FYK4N3qee002W4Pt+x8s4wkIsdF3F0AxGcz7ouGUlF2ujhd62N6T
+	gPjnl6BfeCZU0egP7nwo7jJqc4sisTtXZpUO8oM82h5AeyVU5vn2Tr6kp+ibC2qN730=
+X-Gm-Gg: AYBFou0RGCHR9+1tkMNRHavAezc4BMBlqXZHE+I1aMudf9+b0Mn6XQklCrz2eU+K4dN
+	qwrzmYQKQ/53JDrfhml4FA3c85jRrm6BYgfaRRRj4wxxJ4q5SQpn/P1YBgt4Xiab0tb7RDF1H2I
+	N+ve9slkvhXA61XKKro3oyXVH8bUAlzhURQJW5odzLCEIwbC4pgQxjJO6Q4ME5FL5CcMlC4Otov
+	NjaMroXX4iWkWwZkFeAP5OSfNUUC9ch/ZxRoaAfPIBRQLaJ6KaDqGBPsJ5YgRtEDdMMTbyAD0Kb
+	q+OWJ/7i8C4Zlhchz5i4AzWO6oLQNO5uyvc1mMCcpXiONZ2xd6+X4g5Mrg/G3h1sDSPjJs7MBbP
+	yD/bziZqAbFJaQclsTituHMS0t0FqjDWO5m8YyO18ZxGl5LnNhiEvhtHcQZw4GwX2Zd39LZwh3Y
+	2HznlDf+uf1lwzhus2U/CJhQtx4uaf1pWBfGJj2+JYjlV9VjBb4vOgCWxJAGdgqrfmaQ4DVHcjS
+	CGZI6et7VdTtvx+QhzpNX1efk/z0HRUoy62Co9XnfJbiXorAD0RKWUuksjgIawDX/j02CZpE458
+	7qPA30DxEORLG6YP3CDhaCSCtX8AkYhCMEHXKRKJ1BJj8uOmdxpVdWs0X4/NBpTI4Ai0FRgn1nl
+	zQW0sQnJ1wIe0H2nEppjRHoj89Q==
+X-Received: by 2002:a05:600c:34ca:b0:4a2:133:45e1 with SMTP id 5b1f17b1804b1-4a967202e8emr63277675e9.24.1793203587385;
+        Wed, 28 Oct 2026 09:06:27 -0700 (PDT)
 Received: from z13-ek5.local ([151.40.161.170])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4aa81a896ecsm1625875e9.9.2026.10.28.09.06.30
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4aa81a896ecsm1625875e9.9.2026.10.28.09.06.26
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 28 Oct 2026 09:06:31 -0700 (PDT)
+        Wed, 28 Oct 2026 09:06:27 -0700 (PDT)
 From: Ettore Chimenti <ettore.chimenti@linaro.org>
-Date: Wed, 28 Oct 2026 17:06:08 +0100
-Subject: [PATCH v2 7/9] ARM: dts: omap: dm816x: Remove hwmod code for USB
+Date: Wed, 28 Oct 2026 17:06:04 +0100
+Subject: [PATCH v2 3/9] ARM: dts: omap: dm816x: Fix pinctrl range
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -94,7 +94,7 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20261028-patch-ektor5-dm8168-dts-v2-7-4544429251e2@linaro.org>
+Message-Id: <20261028-patch-ektor5-dm8168-dts-v2-3-4544429251e2@linaro.org>
 References: <20261028-patch-ektor5-dm8168-dts-v2-0-4544429251e2@linaro.org>
 In-Reply-To: <20261028-patch-ektor5-dm8168-dts-v2-0-4544429251e2@linaro.org>
 To: Aaro Koskinen <aaro.koskinen@iki.fi>, 
@@ -108,79 +108,47 @@ To: Aaro Koskinen <aaro.koskinen@iki.fi>,
  Rouven Czerwinski <rouven.czerwinski@linaro.org>
 Cc: linux-omap@vger.kernel.org, devicetree@vger.kernel.org, 
  linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
- Ettore Chimenti <ettore.chimenti@linaro.org>
+ Ettore Chimenti <ettore.chimenti@linaro.org>, 
+ Christopher Obbard <chris.obbard@oss.qualcomm.com>
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1793203582; l=2202;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1793203582; l=1216;
  i=ettore.chimenti@linaro.org; s=20261014; h=from:subject:message-id;
- bh=Ny6o+8O75PYtwR2Tbz8N21c8sCnj9yIYkNJzjWqiRRs=;
- b=e2Cm89NUh+NWLAqlSGnjPS9Qu2O++UotrEcH7tte7NtpZVzxvOd9M+H4nKGn+8JXxX8PSH1PL
- NQS5foBIQrUBlTbY4ZPammQ7bf2KFpxUI4ifneZh92O8oRNb5O/qxZD
+ bh=l89+KyhDD7zp4e3bcIBRXS/O0eyS2NPYdXJ3nkvpksE=;
+ b=FRIsaf92TWQOagF+GOv8n6t9aT9JwhYIl1hTYOAJmhh5eb4lmXgIOUlXafuwYpqaXP0CZzzW3
+ cxWCAzBrZVVAGYkE4JwhQ10VVBHHlU2jeyyfH71jwum/JRrFs++azkm
 X-Developer-Key: i=ettore.chimenti@linaro.org; a=ed25519;
  pk=wCaUblFVaqhuBTQt/hAtysafsAaEsqj/yOD9SPlz6NM=
 
 From: Andrew Goodbody <andrew.goodbody@linaro.org>
 
-Remove the hwmod property from the USB controller node and the matching
-code from the hwmod data file as this is now deprecated.
+The range of addresses accessed for the pinctrl module needs to be
+extended to take account of the fixing of the size of the pinctrl
+register to be 32 bits instead of 16 bits. So in order to allow the
+final pin control register the address range must end on a 32 bit
+boundary, not a 16 bit one.
 
+Fixes: 86800ffe84055 ("ARM: dts: omap: dm816x: Correct pinctrl register")
 Signed-off-by: Andrew Goodbody <andrew.goodbody@linaro.org>
+Reviewed-by: Christopher Obbard <christopher.obbard@linaro.org>
+Tested-by: Christopher Obbard <christopher.obbard@linaro.org>
 Signed-off-by: Ettore Chimenti <ettore.chimenti@linaro.org>
 ---
- arch/arm/boot/dts/ti/omap/dm816x.dtsi      |  1 -
- arch/arm/mach-omap2/omap_hwmod_81xx_data.c | 21 ---------------------
- 2 files changed, 22 deletions(-)
+ arch/arm/boot/dts/ti/omap/dm816x.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/arm/boot/dts/ti/omap/dm816x.dtsi b/arch/arm/boot/dts/ti/omap/dm816x.dtsi
-index b839ee29e9eb..55f4b91fa1fc 100644
+index 261ebca8863d..fc124f9ecfa1 100644
 --- a/arch/arm/boot/dts/ti/omap/dm816x.dtsi
 +++ b/arch/arm/boot/dts/ti/omap/dm816x.dtsi
-@@ -576,7 +576,6 @@ uart3: serial@48024000 {
- 		/* NOTE: USB needs a transceiver driver for phys to work */
- 		usb: target-module@47400000 {
- 			compatible = "ti,sysc-omap4", "ti,sysc";
--			ti,hwmods = "usb_otg_hs";
- 			reg = <0x47400000 0x4>,
- 			      <0x47400010 0x4>;
- 			reg-names = "rev", "sysc";
-diff --git a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
-index 9b5c728fb7da..b9735b507d6b 100644
---- a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
-@@ -646,26 +646,6 @@ static struct omap_hwmod_ocp_if dm814x_default_l3_slow__usbss = {
- 	.user		= OCP_USER_MPU,
- };
+@@ -90,7 +90,7 @@ scrm: scrm@48140000 {
  
--static struct omap_hwmod dm816x_usbss_hwmod = {
--	.name		= "usb_otg_hs",
--	.clkdm_name	= "default_l3_slow_clkdm",
--	.main_clk	= "sysclk6_ck",
--	.prcm		= {
--		.omap4 = {
--			.clkctrl_offs = DM81XX_CM_DEFAULT_USB_CLKCTRL,
--			.modulemode = MODULEMODE_SWCTRL,
--		},
--	},
--	.class		= &dm81xx_usbotg_class,
--};
--
--static struct omap_hwmod_ocp_if dm816x_default_l3_slow__usbss = {
--	.master		= &dm81xx_default_l3_slow_hwmod,
--	.slave		= &dm816x_usbss_hwmod,
--	.clk		= "sysclk6_ck",
--	.user		= OCP_USER_MPU,
--};
--
- static struct omap_hwmod_class_sysconfig dm816x_timer_sysc = {
- 	.rev_offs	= 0x0000,
- 	.sysc_offs	= 0x0010,
-@@ -1250,7 +1230,6 @@ static struct omap_hwmod_ocp_if *dm816x_hwmod_ocp_ifs[] __initdata = {
- 	&dm816x_l4_hs__emac1,
- 	&dm81xx_l4_hs__sata,
- 	&dm81xx_alwon_l3_slow__gpmc,
--	&dm816x_default_l3_slow__usbss,
- 	NULL,
- };
- 
+ 			dm816x_pinmux: pinmux@800 {
+ 				compatible = "pinctrl-single";
+-				reg = <0x800 0x50a>;
++				reg = <0x800 0x50c>;
+ 				#address-cells = <1>;
+ 				#size-cells = <0>;
+ 				#pinctrl-cells = <1>;
 
 -- 
 2.56.0
