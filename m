@@ -1,99 +1,61 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.54
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793173501;
-	b=Xy85IG1f8Kj8bZi3LwGPLV0lBdaEimb4E6FOwPbaKmSa5Dll8PLrTqXMVKHIwP0dcsSL
-	 60wUFis3iQBo8Gif+GLziaSfUUHnI8YbjHV0kuRrnG4wquIDtmXgT5NlLDiNFgvQMiZtM
-	 EyKgF9m5SYE/mXhch+Qw8JzjbGhMwnUaZeGkBJm0Tv9q+5a3jxkUJPqfa7uT/EbXapp/o
-	 tPJyXBXR6UIEG1LMp+7Y8k/RDzr2CuA0Et7KdL2GQtsxT6GxMQhJBFfG8oBMRBasULK4E
-	 IrhuKK0kjiIFVtLWztA875U8Ksz+9s/quQdsshm1uDSzgvYIXrB1qaSt/r0MoYvS+Ig==
+	t=1793180231;
+	b=EDhHUm5huKdw/Crmmxf1/UseaMCOa8u4+e7bILkBNUMOb2L15oVaOWTrq9jsrj81OU28
+	 V2u04RcEPjcHTF4N7O988Ag50OEqF1D80QHfMr/nx6sb+9+3LwM4uajYDzb1lY9PpMbsM
+	 0o9WD1IWFoGvfOR5ab90tRt1u5qSuOLBnh2uI3bLeBZ5vz0UCxKZbUb8SvU3hlNZijeNr
+	 Uhz/Q9rKs3d4p4tisldjZGHaNUruBBRSTpVricCfvPCqWzIM8/g46jgonC8MWJjnrFVmj
+	 NMlDDqkOdvS4rsC+sE1TAPMykL3b5ZdkEO0u44VAqxSs4Ar9R4/cCtYaZrs91me5gbQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793173501;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
-	 MIME-Version:Content-Transfer-Encoding;
-	bh=QgCBPMZCOQV3dhf3hMT8g1VGDheFKuoWsIpy3UHh9yk=;
-	b=FZ2giVMrzt8U7xOCW4Va2ykhtcLNmlpV9HnTcfMKg0ukrAj71xitlxmipBOsUg/1kAlm
-	 ayBeC8/7jRvi2Ck6cZUPKmGjdIEQopVJocVs41+wMu/pUbRXhmonGm0vzOSatmqnaamek
-	 LhSQ/R/LU+Eut1K5NJbKC0CIl4aY9ssZd3ZaM6ePfQJucg2/1q1n18CVjNaK9UIdwKyMN
-	 lwZ/1ARiUSwvPh6lLrz85MYBnPJy6eW+cHWLEByep4TQyaURYCIkP2AkaT2uldB4KXWYL
-	 +c9D0MylBwpYqw2cGEcPSEnZsU990lFK56NwOqHMXtldwQz4cwfHxViDB4KBadExL0g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793180231;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=hkt3J7o6BQgO40vmJfQcUjJjdHsbv2iE23eksw80Rug=;
+	b=Ditz8HRQLnd22HBrHCC3NUhcfO6RAvO0cfNF8+OffaAN0JB2VOeqcaxbCfpfqCApm208
+	 qekuFBhF9Z2LCh7eBwaPZb5cB9Bj/3jNnN6LhS7ezyfqJDkDsDclrr/DiLp8UpOmGMrgv
+	 kPGsD6AU0FG8kJ02BnKVbNKfPZ+eA90wn+UooPCwDOW79iyHpXOM+v2eqtitehShtqI3G
+	 w4TI0CgZcbRg2DSozGRZuN0WqXuQ8+XvLyDY030aeLIBmSBnnMBkePqnYijRVdDq/hX7E
+	 MyF3shlrVaTIl8tIMRck3hRXCkk519EThPwY5x3oGnmpRXSuX8GELY+gCTicbTTyDtA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=amarulasolutions.com;
-	spf=pass smtp.mailfrom=amarulasolutions.com;
-	dkim=pass header.d=amarulasolutions.com header.i=@amarulasolutions.com header.a=rsa-sha256 header.s=google header.b="eN1+/EYN";
-	arc=none smtp.remote-ip=209.85.221.54
-Received: from mail-wr1-f54.google.com (mail-wr1-f54.google.com [209.85.221.54])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=gWzv57eo;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CC58606A330
-	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2026 07:44:46 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4CC58606A330
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=amarulasolutions.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amarulasolutions.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35DD5606A327;
+	Wed, 28 Oct 2026 09:37:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=amarulasolutions.com header.i=@amarulasolutions.com header.a=rsa-sha256 header.s=google header.b=eN1+/EYN
-Received: by mail-wr1-f54.google.com with SMTP id ffacd0b85a97d-48e09aa5264so294786f8f.2
-        for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2026 00:44:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=amarulasolutions.com; s=google; t=1793173485; x=1793778285; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=QgCBPMZCOQV3dhf3hMT8g1VGDheFKuoWsIpy3UHh9yk=;
-        b=eN1+/EYNYIDktRuxOw3uNO+DZhgK1GWfGibNOD5IQI0n647iKIz1uwnOAUiKB+IaUU
-         RGmtoSAUHPd9KTANMfgITpg8Mc3y89eyII0bdCh6frOc6UEOPfv6mhFQ8haF5svShK9E
-         9KZXLr3JaUq2J+MR8hBkWNAmj+iRGkD2iXYtk=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793173485; x=1793778285;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=QgCBPMZCOQV3dhf3hMT8g1VGDheFKuoWsIpy3UHh9yk=;
-        b=Ikk11V5eMOVD5n+SiQY0r3t7c7S7gfPTkpYEiP7R71fCH/ODzAtSyzaZ+3rV4hYsb7
-         EhiklWT0XP2cPFuf+iA2mNpDA/2mt88CkGjdUF9kzPOKEFyesoP8+p9ktN1TPhGLHNUf
-         +SSzi4DuJlzh7+w3J/BdpqDHvcGtXlnYY+weerILRyrDiAoqjilH2IcpJnHMd0wXQNkh
-         0VIYl1P8Z8ZYawJCWVf5ZBNBuDaXi6wTxyD9TEfkCBLhuwimQtluWYSKhxfQozP/NVUt
-         FLGCs9bT1VJxK6E5ftqIguwOCimc+yZ6lnwVI9L9mJ0L6ggh8IqMp80W1scRIUHx2RP8
-         wWOQ==
-X-Forwarded-Encrypted: i=1; AKwUvBwmwfmofW7WvxF2b/YPLDBK2WiwcPJcBPEzZNkK9jgbrtAX/wgYrWt0aiU9N97gVXtF0MkJ6nNcfGaA@vger.kernel.org
-X-Gm-Message-State: AFq9FYLADc6AoHOskbvYFDZw1W1kfyWG5fuPAwE/kE7EqFG0e9UNIrKB
-	s/MDvIMNGt5/cCIctzX+L4iLkWJWP81mT5z9k0P29YTvmNpmh44VILfGBY+eZGiwJqU=
-X-Gm-Gg: AYBFou1DdfHKOkeAK2SCYOKwarIF6lf3TWWudhkgJBRXpwE+tsBZxnGlHXvpXwpgnL0
-	ZiFxdF3BuEzHn1C48GINZx7hS7mOg8zdA23ItqZZGUVuKXQ7om/SFtYwSyyUqR7U/AszjRW1Vrz
-	RQxiGNx5TAXdsSIQ1KMerSXoJKGuFQv4OdR9q/wPRPEJnlsWTUBPRd8QBrJmkdKi1fwE2CiwTE7
-	KKgApbLirXoMULEGPqcKy0KzGb/nr0Y4HM1Z6Jw/sUYEighvyZaNUZeJSOBLaYChd/3rXmG90TL
-	HWCMidDG4L+w6MBjLlLcedBFBIA1OZrTH5PG064d6fZmQXrzPGroWvm6H/uG7uMDkHxf322HPWW
-	TOeojjA/B/nwhid9yOfvFlV69EXycX73tDphqJOjEwwqvP/QuaWpWA+4NJ5Qcws6/MDKc4g6gG2
-	RpJPiV3flXyyR15BgOdtEVrKrQZno6wvDThUFaZkMe0zjgScjnw9aUYV7dWCMT0UzfJXJhCjV5O
-	YoL2gNU1h7bF0LMUBign68aKAYBnviBEhRZZN8TjOQaG9lQ0sxq3zYJodvZec8AWhfbk2BO/UYG
-	keQAdEzrPnrA98setd18w6cYoyVTsZSFKv4CjcAPElGfEvFUwgewbjvuDNShgteSyB4pMjvR++H
-	bBO2tJ3/+vQup4xztcMq+5R2W4Cd1kGHiQAbahtLGDcnUKZXGjPChcaPleYrXiodrsVXc1Hq4cO
-	2h5rlwp14Gl67zC9g7cQIarF1P0Q==
-X-Received: by 2002:a05:6000:29d7:b0:48d:f6d2:9c88 with SMTP id ffacd0b85a97d-48e5d5cb889mr2331992f8f.47.1793173484835;
-        Wed, 28 Oct 2026 00:44:44 -0700 (PDT)
-Received: from dario-ThinkPad-P14s-Gen-5.homenet.telecomitalia.it (host-79-14-29-58.business.telecomitalia.it. [79.14.29.58])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48e412cc164sm25324882f8f.7.2026.10.28.00.44.43
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 28 Oct 2026 00:44:44 -0700 (PDT)
-From: Dario Binacchi <dario.binacchi@amarulasolutions.com>
-To: linux-kernel@vger.kernel.org
-Cc: linux-amarula@amarulasolutions.com,
-	michael@amarulasolutions.com,
-	Dario Binacchi <dario.binacchi@amarulasolutions.com>,
-	Brian Masney <bmasney+clk@redhat.com>,
-	Jerome Brunet <jbrunet+clk@baylibre.com>,
-	Stephen Boyd <sboyd@kernel.org>,
-	Tero Kristo <kristo@kernel.org>,
-	linux-clk@vger.kernel.org,
-	linux-omap@vger.kernel.org
-Subject: [PATCH v3 3/3] clk: ti: dpll: apply the spread spectrum configuration right away
-Date: Wed, 28 Oct 2026 08:44:09 +0100
-Message-ID: <20261028074436.1958132-4-dario.binacchi@amarulasolutions.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20261028074436.1958132-1-dario.binacchi@amarulasolutions.com>
-References: <20261028074436.1958132-1-dario.binacchi@amarulasolutions.com>
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=gWzv57eo
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82A121F031E3;
+	Wed, 28 Oct 2026 09:37:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793180231;
+	bh=hkt3J7o6BQgO40vmJfQcUjJjdHsbv2iE23eksw80Rug=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=gWzv57eoVREIE6uyRZgZdIiciEl7WLnQhOONFi+w9KDK3Uw2DwGDKIqmwozZ5u164
+	 G2OU1cFTYutESW96OZgJMn/OT8s1QMfi015khHuFvNahrjuFJVsgyX7HcUtZBUXkVa
+	 SJQPChGv6ukztUUTlkXWIm6FiS7k2Hez40MBg7Ml7wFjlWw6vtgUdjXfWG6DFr40Iw
+	 O3xCIvQevAQOTO6mVEmTBaSNyNltMjtPzq4bQZtTsR6g7NcupBtxzAm0AsCcxDOTDh
+	 9kyF6FOzzK4pXsZF3pjixNiFjUS0gXRzfl0mUwtxnUGx9ukcHRtM/XHGFL4/hhU/Pq
+	 hp3koq66nDdhw==
+Date: Wed, 28 Oct 2026 09:37:05 +0000
+From: Lee Jones <lee@kernel.org>
+To: Guangshuo Li <lgs201920130244@gmail.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Peter Ujfalusi <peter.ujfalusi@ti.com>, linux-omap@vger.kernel.org,
+	mfd@lists.linux.dev, linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: Re: [PATCH] mfd: twl6040: fix IRQ action memory leaks during teardown
+Message-ID: <20261028093705.GK2195460@google.com>
+References: <20261027032609.119226-1-lgs201920130244@gmail.com>
+ <179310015976.2808517.13064510476219400398@kernel.org>
+ <CANUHTR8Ypwpm+Qqmk-fob1=e040rRH5QGTs7gN6MWRKQYyOdCw@mail.gmail.com>
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -103,107 +65,111 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CANUHTR8Ypwpm+Qqmk-fob1=e040rRH5QGTs7gN6MWRKQYyOdCw@mail.gmail.com>
 
-The spread spectrum clocking (SSC) registers are only programmed by
-set_rate(), which the clock core skips when the requested rate is
-already the current one, e.g. when the bootloader has set it up.
-As a result, the SSC configuration is not applied, as it was with the
-vendor specific properties.
+On Wed, 28 Oct 2026, Guangshuo Li wrote:
 
-Apply it from set_spread_spectrum() instead, reprogramming the DPLL
-at its current rate.
+> Hi Lee,
+> 
+> On Wed, 28 Oct 2026 at 00:26, Lee Jones <lee@kernel.org> wrote:
+> >
+> > On Tue, 27 Oct 2026, Guangshuo Li wrote:
+> >
+> > > twl6040_remove() currently removes the regmap IRQ chip before
+> > > removing the MFD child devices. This destroys the IRQ mappings
+> > > before the child drivers can release their interrupt handlers.
+> > >
+> > > The parent driver also registers READY and thermal interrupt
+> > > handlers using devm_request_threaded_irq(). These handlers are
+> > > normally released by device-managed cleanup after remove returns,
+> > > when the corresponding IRQ descriptors have already been removed.
+> > >
+> > > Consequently, free_irq() cannot find the IRQ descriptors and the
+> > > allocated struct irqaction objects are not freed. The associated
+> > > IRQ threads also cannot be stopped through the normal cleanup path.
+> > >
+> > > The probe error paths have a similar issue, as they destroy the IRQ
+> > > chip before the device-managed IRQ handlers are released.
+> > >
+> > > Remove the MFD child devices first, then explicitly free the
+> > > parent's READY and thermal IRQ handlers using devm_free_irq()
+> > > before removing the regmap IRQ chip.
+> > >
+> > > Also update the probe error paths to release successfully requested
+> > > IRQs before destroying their mappings.
+> > >
+> > > This issue was found by our static analysis tool under development.
+> > >
+> > > Fixes: ab7edb149c75 ("mfd: twl6040: Convert to use regmap_irq")
+> > > Cc: stable@vger.kernel.org
+> > > Signed-off-by: Guangshuo Li <lgs201920130244@gmail.com>
+> > > ---
+> > >  drivers/mfd/twl6040.c | 13 +++++++++----
+> > >  1 file changed, 9 insertions(+), 4 deletions(-)
+> > >
+> > > diff --git a/drivers/mfd/twl6040.c b/drivers/mfd/twl6040.c
+> > > index 562a0f939f6e..7b05d21cd17d 100644
+> > > --- a/drivers/mfd/twl6040.c
+> > > +++ b/drivers/mfd/twl6040.c
+> > > @@ -745,7 +745,7 @@ static int twl6040_probe(struct i2c_client *client)
+> > >                                       "twl6040_irq_th", twl6040);
+> > >       if (ret) {
+> > >               dev_err(twl6040->dev, "Thermal IRQ request failed: %d\n", ret);
+> > > -             goto readyirq_err;
+> > > +             goto thirq_err;
+> > >       }
+> > >
+> > >       /*
+> > > @@ -791,10 +791,14 @@ static int twl6040_probe(struct i2c_client *client)
+> > >       ret = mfd_add_devices(&client->dev, -1, twl6040->cells, children,
+> > >                             NULL, 0, NULL);
+> > >       if (ret)
+> > > -             goto readyirq_err;
+> > > +             goto mfd_err;
+> > >
+> > >       return 0;
+> > >
+> > > +mfd_err:
+> > > +     devm_free_irq(twl6040->dev, twl6040->irq_th, twl6040);
+> > > +thirq_err:
+> > > +     devm_free_irq(twl6040->dev, twl6040->irq_ready, twl6040);
+> > >  readyirq_err:
+> > >       regmap_del_irq_chip(twl6040->irq, twl6040->irq_data);
+> > >  gpio_err:
+> > > @@ -809,9 +813,10 @@ static void twl6040_remove(struct i2c_client *client)
+> > >       if (twl6040->power_count)
+> > >               twl6040_power(twl6040, 0);
+> > >
+> > > -     regmap_del_irq_chip(twl6040->irq, twl6040->irq_data);
+> > > -
+> > >       mfd_remove_devices(&client->dev);
+> > > +     devm_free_irq(twl6040->dev, twl6040->irq_th, twl6040);
+> > > +     devm_free_irq(twl6040->dev, twl6040->irq_ready, twl6040);
+> > > +     regmap_del_irq_chip(twl6040->irq, twl6040->irq_data);
+> >
+> > Why not use more devm_*() handlers?
+> >
+> > devm_regmap_add_irq_chip()
+> >
+> > devm_free* eeks me out.  The point of devm_*() is that it's managed.
+> >
+> > >       regulator_bulk_disable(TWL6040_NUM_SUPPLIES, twl6040->supplies);
+> > >  }
+> > > --
+> > > 2.43.0
+> > >
+> >
+> > --
+> > Lee Jones
+> 
+> Thanks for your suggestion. I'll look into using devm_*() APIs in v2.
+> 
+> Would you prefer that I submit the twl6040 and hi655x-pmic fixes as a
+> single patch series in v2, or separately?
 
-Signed-off-by: Dario Binacchi <dario.binacchi@amarulasolutions.com>
+I'm not overly concerned.
 
----
-
-Changes in v3:
-- Skip reprogramming only if the configuration is already applied
-  to the hardware
-
-Changes in v2:
-- Check the DPLL lock state instead of its parent, as the reference
-  and bypass clocks can be the same clock
-
- drivers/clk/ti/dpll3xxx.c | 49 ++++++++++++++++++++++++++++++++++-----
- 1 file changed, 43 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/clk/ti/dpll3xxx.c b/drivers/clk/ti/dpll3xxx.c
-index 634fe0a1f9fd..d32d81a27bfe 100644
---- a/drivers/clk/ti/dpll3xxx.c
-+++ b/drivers/clk/ti/dpll3xxx.c
-@@ -690,17 +690,22 @@ int omap3_noncore_dpll_set_rate(struct clk_hw *hw, unsigned long rate,
-  * @hw: pointer to the clock to set the spread spectrum configuration for
-  * @ss_conf: spread spectrum configuration
-  *
-- * Stores the spread spectrum clocking (SSC) configuration of the DPLL. The
-- * configuration is programmed along with the DPLL multiplier and divider
-- * at the next rate change. The hardware supports center-spread and
-- * down-spread only. Returns 0 on success, or a negative error value on
-- * failure.
-+ * Stores the spread spectrum clocking (SSC) configuration of the DPLL and,
-+ * if the DPLL is locked, reprograms it at its current rate to apply it.
-+ * Otherwise the configuration is applied at the next rate change. The
-+ * hardware supports center-spread and down-spread only. Returns 0 on
-+ * success, negative error value otherwise.
-  */
- int omap3_noncore_dpll_set_spread_spectrum(struct clk_hw *hw,
- 					   const struct clk_spread_spectrum *ss_conf)
- {
- 	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
- 	struct dpll_data *dd = clk->dpll_data;
-+	struct clk_spread_spectrum old_conf;
-+	struct clk_rate_request req;
-+	unsigned long rate;
-+	int ret;
-+	u32 ctrl;
- 
- 	if (!dd || !dd->ssc_enable_mask)
- 		return -EOPNOTSUPP;
-@@ -718,9 +723,41 @@ int omap3_noncore_dpll_set_spread_spectrum(struct clk_hw *hw,
- 		return -EINVAL;
- 	}
- 
-+	ctrl = ti_clk_ll_ops->clk_readl(&dd->control_reg);
-+
-+	/* Already applied */
-+	if (!memcmp(ss_conf, &dd->ssc_conf, sizeof(*ss_conf)) &&
-+	    !!(ctrl & dd->ssc_enable_mask) == (ss_conf->method != CLK_SPREAD_NO))
-+		return 0;
-+
-+	old_conf = dd->ssc_conf;
- 	dd->ssc_conf = *ss_conf;
- 
--	return 0;
-+	/* Disabling SSC does not need to reprogram the DPLL */
-+	if (ss_conf->method == CLK_SPREAD_NO) {
-+		omap3_noncore_dpll_ssc_program(clk);
-+		return 0;
-+	}
-+
-+	/* Not locked: SSC is programmed along with the next rate change */
-+	if (((ctrl & dd->enable_mask) >> __ffs(dd->enable_mask)) != DPLL_LOCKED)
-+		return 0;
-+
-+	rate = clk_hw_get_rate(hw);
-+	clk_hw_init_rate_request(hw, &req, rate);
-+	ret = omap2_dpll_determine_rate(hw, &req);
-+	if (!ret && req.rate != rate)
-+		ret = -EINVAL;
-+	if (!ret)
-+		ret = omap3_noncore_dpll_set_rate(hw, rate,
-+						  clk_hw_get_rate(dd->clk_ref));
-+	if (ret) {
-+		pr_warn("clock: %s: rate %lu can't be kept with SSC enabled\n",
-+			clk_hw_get_name(hw), rate);
-+		dd->ssc_conf = old_conf;
-+	}
-+
-+	return ret;
- }
- 
- /**
 -- 
-2.43.0
-
+Lee Jones
