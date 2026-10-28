@@ -1,50 +1,61 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=178.238.236.174
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793215013;
-	b=cyDEe8BanhInj/ZPgdoH7Ex1kq5YZ3CrbOrDhz7RCX1a4I1H5H1RncXsasR/4SyXwtZU
-	 wpgwm1YwO/FVSvvlWb4aSdMi0v/tGvhUFiklXEG/ZrIAJllGe0nYSoJu6XxT+aT7T2XBD
-	 DQgicD2lVKsCybb1EcnzsHyTnqk1LB9Uqr/RindYiejiQIHwW7D8WmzkHzvG/yIAS4k9y
-	 MNO5TS4UkD40OnUJzwmus/3BuJVwFou5R/Tmwjs4YFbFbmFpSrMs80C7T21UtrG6hKrzX
-	 /TWrJjHigtWMHUP43zj64hHwO06oZfNyQMkI8C90kRE20VFLKh74yflSgD5i52Zjw9A==
+	t=1793215509;
+	b=f4JL9fmCnGiZp/8FByhV375Q9uaYc5YrqwN+UFbtQiOWxx6sxu/MdQNP5z2frAaSBwwZ
+	 VzncSx/58ajFuhIuSNB5iKzAAsJZhEHbJamzzBjjAtjFNe3vVE0A3lUIMN4qS6TGNTDa3
+	 Il+qbYBqigk9aXk+mLSceYkz/0g4/Q6h7Muyo9U/+qJRk7ZOBJpVLoGShVf6Bexnx43LX
+	 yqFh4Kl8MWHJJ9EA8BQLkTMvYvLYFoodLqFMeFg+qUvUzaBS46omHZaWsjQl5Kf/1r0yk
+	 41yDYwrlTdnAblgZPeuHHrF9QNGh9bfntZHHYm17l1DSaVaxk/uWcNV7qYujCPVUYtg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793215013;
-	h=DMARC-Filter:DKIM-Signature:From:Date:Subject:MIME-Version:
-	 Content-Type:Content-Transfer-Encoding:Message-Id:References:
-	 In-Reply-To:To:Cc:X-Mailer:X-Developer-Signature:X-Developer-Key;
-	bh=Qhg6qVfP+OrKVzTFTCDbEiFCVzMgrQLLwSIrUvrN/sw=;
-	b=zY5Big0Sm11tMX/KDph71m+mHuxP/vDlm2rKRRWZfoBWpVkv+t60gREDEdPrH69ZddMb
-	 nHzTTwc1bXtttQGs4fN5C+AldWcKadzSJHGnGe5WMvzbhJTpkHNkYtwVFOjP+E5oZ7bxD
-	 nSQQ4t1PJ44rOaOXhZFH6JrBJgwpEBh/eWbgV9UPp6LG9NvgB5RVNa0k26FYIZdPxo4PR
-	 hP2rsmPHneFTRdfer2dx9Nj/B83hpDInWHz9EsSpmV1tZfd9+/xpXcI6wKYwODdMKLDli
-	 UpI+skV04IC4a+2ibTvJGmRDKytwunH12wSpMlb8H8ie7qyXVnqMSQMJ94qUPmp1r7Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793215509;
+	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
+	 In-Reply-To:References:X-sashiko-severity:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version;
+	bh=VWovsz25VQacJNQe16TtvfA1PaAlLh1xywDVn8vnffg=;
+	b=CYNjNiz701hWAEnlnqOucLTrpOtSCEeGvEIls3nF12/0DE1vWxsDz8ilV7I4yXkIWKLj
+	 ikYxaShNXT1Udn1kWpigEn2WtUdAkg7h6xM2P7qgVf+jEsgvRiwW5BEC09wl5PBDuNH4f
+	 McNy5z/ds6Pk2/eNmoT7BVdRmriqb2n5mdw654FmnhLi3pbq07QJjsvDjFquOw3iezbEQ
+	 ZvPTV5xlFlrQy5CIsdACxvyq+DH34c7Md9Wp6T3gBDrSu3D9tP1Ibc/nEWiknt6moh66k
+	 UnnEJSkMkEzWdWePTUtSvxmueMFxHO/JDYCWrID9swRtDZ0usUO9FJ9hlVaMMI3L/NQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=kemnade.info;
-	spf=pass smtp.mailfrom=kemnade.info;
-	dkim=pass header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=3inq33Fl;
-	arc=none smtp.remote-ip=178.238.236.174
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=V9hlITfa;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D76C6606A31A;
-	Wed, 28 Oct 2026 19:16:52 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D76C6606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B603606A31C;
+	Wed, 28 Oct 2026 19:25:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=3inq33Fl
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=kemnade.info; s=20220719; h=Cc:To:In-Reply-To:References:Subject:From:
-	Reply-To:Content-ID:Content-Description;
-	bh=Qhg6qVfP+OrKVzTFTCDbEiFCVzMgrQLLwSIrUvrN/sw=; t=1793215012; x=1794424612; 
-	b=3inq33FlrTaMbEqzfQacDgp5PxTVIo6dsnhpbLWCHS+VH8mHJ9HnU8mw1rVWWhj2W7Z9Elnqqvw
-	XSdPNXs89Y9I+QHHCZqMgdXqTvClW58f8ZB6XMR4N2iw+OzXU5EET44l3WcpgZ19ezEowcuky+MeS
-	5jULASLhs56LTLws28Et1Sfa/Yq+uRHSskwcI1JPhSvIM2vRkMKhY+nyaR9rWQh1CZKUjq/IEnMUg
-	PDBFvsJV//tpLQ00l3H+JWX25cHxqsHJ93fiVovuEMAwaVKzFO652828to7NsluyXNGfWAPkMm5mW
-	GGn0bOMo0ik1p/qoC6qnw88MRuz/pNCBW0TA==;
-From: Andreas Kemnade <andreas@kemnade.info>
-Date: Wed, 28 Oct 2026 20:15:11 +0100
-Subject: [PATCH 1/2] ARM: omap: cpuidle34xx: balance cpu_pm_enter/exit()
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=V9hlITfa
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9392D1F031E0;
+	Wed, 28 Oct 2026 19:25:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793215509;
+	bh=VWovsz25VQacJNQe16TtvfA1PaAlLh1xywDVn8vnffg=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=V9hlITfawAG8Bwa7m5mAF7v0k8OX8N/+O8Og3osnROdQ6j8I97EIwuS48nFZSx25c
+	 yhjhpU5rh0C0Z/DmJyYnWUO0OiO+mlZs9UEiAiUufMDwbykBy3yNmAL/4iGtdDvF/W
+	 12UiTWCN8GhYbsHUF0OGDev7Rk/28MjyQAyCSwi/2W9Q4jV9Nd/Ggu3RFEKAAK267f
+	 0ZPiKxER/1KpQIE2ftg09ys652VqX/Qkv1CemWQz9LhiJH6k8wO+RcD6vf6AKkltlh
+	 J6yf92mCFlduzbG9qX5z/yysqABc09dLkUUwSmZkufyv9bcgtiMj8SV+p+MiV5WR6N
+	 W6r9p5MOwLZ0g==
+Subject: Re: [PATCH net] net: ethernet: ti: cpts: drop stale events before the
+ misc IRQ can fire
+From: netdev-bot+sashiko@kernel.org
+To: alan.tseng.cs@gmail.com
+Cc: andrew+netdev@lunn.ch, davem@davemloft.net, edumazet@kernel.org,
+ kuba@kernel.org, pabeni@redhat.com, s-vadapalli@ti.com, rogerq@kernel.org,
+ richardcochran@gmail.com, grygorii.strashko@ti.com,
+ linux-omap@vger.kernel.org, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Date: Wed, 28 Oct 2026 19:25:08 +0000
+Message-ID: <179321550813.3134.2116221670679603156@kernel.org>
+In-Reply-To: <20261026072314.663980-1-alan.tseng.cs@gmail.com>
+References: <20261026072314.663980-1-alan.tseng.cs@gmail.com>
+X-sashiko-severity: High
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -54,58 +65,118 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20261028-susp2-v1-1-174b52857d89@kemnade.info>
-References: <20261028-susp2-v1-0-174b52857d89@kemnade.info>
-In-Reply-To: <20261028-susp2-v1-0-174b52857d89@kemnade.info>
-To: Aaro Koskinen <aaro.koskinen@iki.fi>, 
- Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, 
- Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
- linux-kernel@vger.kernel.org, Andreas Kemnade <andreas@kemnade.info>
-X-Mailer: b4 0.17-dev-e5168
-X-Developer-Signature: v=1; a=openpgp-sha256; l=909; i=andreas@kemnade.info;
- h=from:subject:message-id; bh=R7GRL/JPbnVUdDmvZmTFKL9hbrDXzgpie3WTHAN4OxU=;
- b=owEBbQKS/ZANAwAKAYRhRfpAKNzxAcsmYgBq4knLJKv6u8SOZFcFmtL3ea0T8w4PY3i9hkD4/
- M6FFuznZcKJAjMEAAEKAB0WIQTY6xCZL0TEE1XHfFiEYUX6QCjc8QUCauJJywAKCRCEYUX6QCjc
- 8UptD/9WC/pwZ/n78cSwkwE8nfv6kQpN82JYWM6RRYa0LPzz8IC3Q+c+CfINnwr93Z5WImLYQ6h
- oRDDvnhNPsBgP0jdmdgF07pYxEMxRJPvdsNGW59YxgOE+EBH3928/Df6dyZOzta9woYkpb5JX9q
- nCPfgU+atq5qHMUCJFJTcHX4A8XJzYFSN+/OCE41imd4uCZpg+/PtFPhGLLqbJk8MMo+HL7JIu0
- IEpXYSDKRv2dzdcvkTDebljab3dbjJcZu9wdrRyCrIy5inGIRjsh8eRc5S4kPVBg40kRjHAblak
- R6YsSR+qXbGPb7d2sxSVhD6G8zpA7Yl/ZQnjfZjqVLXPP8aevbdyQKW7O/W8MmL3DP1iznmw85E
- XND8lEChVWms8XUrIBaNKlB6r352WO6RXdG6bDPXkdu43uIVSy7nGZfCmg35eJpPZYkv9PNS/Yg
- f6NGQhC6CaWoI9uvPWf9palweyQEfMtcGQfkJ9jfGhRj7cETyrKEfUGWnbSniCyPK2eCxKBUQtp
- Yei65FYg/iuCp8tgYCJfgYRTk5LuhePUAusNNEcZSDqtWAWvY28taxn8eZy4RmCkmWRd2zfviXm
- 46SOCOVy0YwT1khLk2zgRnwTBYrBjHk6N/LJiRRruO+LIsmrqDF2d15m0I0uu4uEwxTdk9EbXXx
- N1IX+IHhp1vCBfw==
-X-Developer-Key: i=andreas@kemnade.info; a=openpgp;
- fpr=EEC0DB858E66C0DA70620AC07DBD6AC74DE29324
 
-These calls are usually done in a balanced way, so allow notifiers to
-assume that these calls are balanced under all circumstances.
-Seen some spurios vfp issues probably connected to this.
+Thank you for your contribution! Sashiko AI review found 1 potential
+issue(s) to consider.
 
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
----
- arch/arm/mach-omap2/cpuidle34xx.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+Critical: 0 · High: 1 · Medium: 0 · Low: 0
 
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 2ab5dcbfb7f6..e42dcf8c03a3 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -139,8 +139,7 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
- 	 * Call idle CPU PM enter notifier chain to restore
- 	 * VFP context.
- 	 */
--	if (cx->mpu_state == PWRDM_POWER_OFF &&
--	    pwrdm_read_prev_pwrst(mpu_pd) == PWRDM_POWER_OFF)
-+	if (cx->mpu_state == PWRDM_POWER_OFF)
- 		cpu_pm_exit();
- 
- out_clkdm_set:
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
+
+- [High] The fix narrows the window but leaves the NULL-pointer write in
+  cpts_fifo_read() reachable.
+
+--
+
+net: ethernet: ti: cpts: drop stale events before the misc IRQ can fire
+
+After a kexec, the previous kernel can leave a misc IRQ pending. That IRQ
+can run cpts_fifo_read() before cpts_register() has set up the event
+pool. This patch masks the CPTS interrupt and drains the CPTS event FIFO
+in cpts_create() to avoid that. CPTS_EN is deliberately left set.
+
+> diff --git a/drivers/net/ethernet/ti/cpts.c b/drivers/net/ethernet/ti/cpts.c
+> index 2ba4c8795d605..3cc908ac90e2b 100644
+> --- a/drivers/net/ethernet/ti/cpts.c
+> +++ b/drivers/net/ethernet/ti/cpts.c
+
+[ ... ]
+
+> @@ -779,6 +780,17 @@ struct cpts *cpts_create(struct device *dev, void __iomem *regs,
+>  	if (ret)
+>  		return ERR_PTR(ret);
+>  
+> +	/* After a kexec the CPTS may still be running from the previous
+> +	 * kernel, with its interrupt enabled and events in the FIFO. The misc
+> +	 * IRQ is requested before cpts_register() sets up the event pool, so
+> +	 * mask the interrupt and drop the stale events now.
+> +	 */
+> +	cpts_write32(cpts, 0, int_enable);
+> +	for (i = 0; i < CPTS_FIFO_DEPTH; i++) {
+> +		if (cpts_fifo_pop(cpts, &high, &low))
+> +			break;
+> +	}
+
+[Severity: High]
+Does this close the window completely, or only make it smaller?
+
+CPTS_EN stays set, so the CPTS can keep queueing events after this loop
+finishes. cpts->pool and cpts->events are still zeroed from devm_kzalloc().
+Only cpts_register() initializes them, and it runs later from ndo_open.
+
+A fair amount of work happens between cpts_create() and the misc IRQ
+request. In cpsw_new.c:cpsw_probe():
+
+    cpsw_init_common()        <- calls cpts_create()
+    ...
+    cpsw_create_ports()
+    ...
+    devm_request_irq(dev, cpsw->misc_irq, cpsw_misc_interrupt, ...)
+
+In cpsw.c:cpsw_probe() the same window also covers register_netdev() and
+cpsw_probe_dual_emac().
+
+Several things could add new events to the FIFO in that window:
+
+ - half-rollover and rollover events from the free-running counter
+   (CPTS_EV_HALF / CPTS_EV_ROLL)
+ - HW_TS_PUSH events, if the previous kernel left HWx_TS_PUSH_EN set
+ - RX/TX timestamp events, if the previous kernel left port timestamping
+   enabled
+
+Port timestamping is only cleared by cpsw_soft_reset() in ndo_open, and
+cpsw has no .shutdown handler. So after a kexec, a peer that sends PTP
+event frames would keep generating RX events.
+
+The commit message notes that the interrupt may already be latched. If
+it is delivered when devm_request_irq() runs, the handler does:
+
+cpsw_misc_interrupt()
+  cpts_misc_interrupt()
+    cpts_fifo_read()
+      cpts_fifo_pop()
+
+cpts_fifo_pop() tests intstat_raw & TS_PEND_RAW, so writing 0 to
+int_enable does not stop the pop. Then in cpts_fifo_read():
+
+		if (list_empty(&cpts->pool) && cpts_purge_events(cpts)) {
+			dev_warn(cpts->dev, "cpts: event pool empty\n");
+			break;
+		}
+
+		event = list_first_entry(&cpts->pool, struct cpts_event, list);
+		event->high = hi;
+
+On a zeroed list_head, list_empty() returns false, because NULL is not
+equal to &cpts->pool. list_first_entry() then gives
+container_of(NULL, struct cpts_event, list), so the write to event->high
+lands near address 0 in hardirq context.
+
+Isn't that the same oops the commit message describes?
+
+Would it be more robust to make the handler safe to run before
+cpts_register()? One option is to move INIT_LIST_HEAD(&cpts->events) and
+INIT_LIST_HEAD(&cpts->pool) into cpts_create(). Another is to have
+cpts_misc_interrupt() return early until registration has happened.
+Either would replace the drain approach rather than extend it.
+
+>  	cpts->cc.read = cpts_systim_read;
+>  	cpts->cc.mask = CLOCKSOURCE_MASK(32);
+>  	cpts->info = cpts_info;
 
 -- 
-2.47.3
-
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261026072314.663980-1-alan.tseng.cs%40gmail.com
