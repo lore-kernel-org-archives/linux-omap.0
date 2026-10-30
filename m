@@ -1,63 +1,66 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=178.238.236.174
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793359722;
-	b=shVdD8Fc6j21oelnUXtizGvQqyBNbyVAOv+y0HrsfmLmSrh4XTXyeR19EcPa5oh6xJqu
-	 etcZS3Yyqz//Whv7mSydNs4ERbsXaFtWG01/rbzBxcwL1APCLaeEABQixKU2r6X5Dxqej
-	 1IxU9Rawqu+/GYOx5MZGikKKc+GrgFiumnIFILbgAQfWhqT0ja7AC/qy1WiU138fDOYdQ
-	 bRwIjnyCjh7s8v8ixr2ncAJsPf+ALR8DXwHVBOIHjOUVE+zgajV582Jondm4CO++/PHFp
-	 xJIGUSi5GlPc8dhw7bMrTxzcFihcI4BRcu0K1lZarx7r36LAt8qeR6IVnbEtoTIg+Mg==
+	t=1793362044;
+	b=atUkhKDe33hI2YsdWfhZWfqfVXzl7F7BcIyEulkzywlz2W28r+JrF2kjWCMetStzkb/K
+	 0bsmy/jHStL5M72ajKgu9CpSyaj2dB1QiJHIe/0rujei2AHJsG5YAjnWd8QjqKI+wOwVB
+	 lqEH2D5OvO78nf8gUkGvcqpPYV+py5Nrzs6U7WAH47CMVKehNPofjgY8ABn2xGbFX3lIM
+	 wmislCy18ZW/MORyp99OgL2yKXNFddVfXahVuVtGQosfnb9zDgft2XwMHjOinZ8IacbZI
+	 IZWk2xRdp2E3L0ALrBzSktqaTTWrz5zZ46Vl9kdPb15LP/B84D7SK1KAqU+65N9dyJw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793359722;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=o5pSov9qQ3R3Gs/VaKDTpPd98IRHfcO+aIpkIWdXwI0=;
-	b=5fYZmaU2WoEjryEiVORV7gk1P2S4P10UtKxJE7XFQQp/yXH3FGOrZc7GWNZAwC6W5OX5
-	 5OwU1ip7/ngwk2v0tkLW4zB0RQY9zzHpGNnOuQnaFlVLSTXLMCsD8p7TPDKoJy31oGAMI
-	 j90x54twbzsJhmnJt1/sm1hdlptUfXrvcb9KJO3qUoDKUZMdCg+l/+q0Xf4pC1Zfhp1ZY
-	 Kdny5UWOfJ+z7uiNX0l3LOM+4FxYFmNmR0FCAQGHfQu7wiOR/Njv2tdiAhiMpW6Xtr7Yk
-	 nD5vhveGS7C6wkXiWlLWrZx3UsPjUkEgqp8smBH+7D2xT3xKAQIt4si/97BODDTWQDw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793362044;
+	h=DMARC-Filter:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 In-Reply-To:References:X-Mailer:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=3oAdiQL1BBq/8Wx7+7+nnqKAavDIGqolwKSp3zNe53I=;
+	b=Wr1K77Fnccpm4aXYM0HukQtGi8fVoNZYeQoHn8wyINxHPARxtOzg5OvJ7SN7doErPIom
+	 U134TFsGNnhMHE2o9ICaKNYVF6S64D9oUtcILaQBd18Z6Abp4/jiw1wUqxXQ1ImHm9wHb
+	 UkcsZ8HNvxisryZwWk0607jHQ+hca6LewpbijQ8jYtyrQKh+sjeb6cJAUG/DYJ+Hot0Ll
+	 qIqzfbbp5EC/TENf7yu199Jlq2qgEWk0Q/C5S4b7MF2/RNVcvBBCVIymYYDH5SYBrC5ur
+	 8D6FL6P91QjOifcVelx3prSL7j9GsqJY6BzE3K1icVPdrrMKf/4tN52h2mzzwqWw9JA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Oe5X6j1n;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=kemnade.info;
+	spf=pass smtp.mailfrom=kemnade.info;
+	dkim=pass header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=GGswo4Q7;
+	arc=none smtp.remote-ip=178.238.236.174
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 878CC606A31D;
-	Fri, 30 Oct 2026 11:28:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0EEA606A31E;
+	Fri, 30 Oct 2026 12:07:23 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B0EEA606A31E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Oe5X6j1n
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1EAC1F000C1;
-	Fri, 30 Oct 2026 11:28:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793359722;
-	bh=o5pSov9qQ3R3Gs/VaKDTpPd98IRHfcO+aIpkIWdXwI0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=Oe5X6j1nAcrOU8FRyKpWbru0RPEb4C8PJDeuCM77Z5bO90WqSbeeQmNFpkLR6dBdA
-	 KBK/LHXCWZskB0i7kNTwCXgE7QwGxlxTkjWcmLCTbjagkiDgjqswNE1jOnjG/zeflU
-	 /xDco2ppIYbs8nZLkSHOlFYJHsG7cNnH90HpmWw/A/rW3hGsNwIKCH78GSUvmT999A
-	 PSWuD6bsDxkbNlWz8OmIS9/FV9H5MUEN7tYKWAHRvDdHoVx5NqqBtmFQMPSihljPC3
-	 U4Yo4a+BLH03Op2VGW0sWsaw45dUQ+29hty98zdR0X296ebAaAUSQ4t5xFV5smn5k1
-	 9cczqiO+R7V5w==
-Date: Fri, 30 Oct 2026 11:28:35 +0000
-From: Lee Jones <lee@kernel.org>
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
-	Kai Svahn <kai.svahn@nokia.com>, syed khasim <x0khasim@ti.com>,
-	Peter Ujfalusi <peter.ujfalusi@ti.com>,
-	Samuel Ortiz <sameo@linux.intel.com>, linux-omap@vger.kernel.org,
-	mfd@lists.linux.dev, linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: Re: [PATCH v2 13/27] mfd: twl-core: Clear twl_priv pointer on
- teardown and probe failure
-Message-ID: <20261030112835.GD3774906@google.com>
-References: <20261027093306.2812695-1-lee@kernel.org>
- <20261027093306.2812695-14-lee@kernel.org>
- <20261028165003.60d0c033@kemnade.info>
- <20261030104806.GC3774906@google.com>
- <20261030115241.642c5971@kemnade.info>
+	dkim=pass (2048-bit key, unprotected) header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=GGswo4Q7
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=kemnade.info; s=20220719; h=References:In-Reply-To:Subject:Cc:To:From:
+	Reply-To:Content-ID:Content-Description;
+	bh=3oAdiQL1BBq/8Wx7+7+nnqKAavDIGqolwKSp3zNe53I=; t=1793362043; x=1794571643; 
+	b=GGswo4Q7HNBjO4TfOrDi533WVeLpu59cRClXWYh0gpDWgaqTjoYJnO8+pvf6UcH2rLHZKbThxQq
+	viNF6E6i5bqdgDSES5G929idm8vQjuxXFaqnVQhyT2TTBQJf6sBc7dVQ7vRtt408Jn6Nl9JEa3riK
+	U5YbTj4tUKJSv2xNTJd5ea/AGHKN53vsxRBdRfGfJW31LtKHmk5ZqQMUdEW8vUN6zuN+48ZSmbwa9
+	0We4Q4+JbchU/sTlIA6kNimHCLaIYpLaSZi7+nZNv7bDc8u73tomUSG+FEZPhpc1sU/AYoTR8CX/j
+	bQjBbtCZli+pQXsLyE70BKEN36sIlIKxEQEg==;
+Date: Fri, 30 Oct 2026 13:07:13 +0100
+From: Andreas Kemnade <andreas@kemnade.info>
+To: Ettore Chimenti <ettore.chimenti@linaro.org>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman
+ <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, Tony Lindgren
+ <tony@atomide.com>, Rob Herring <robh@kernel.org>, Krzysztof Kozlowski
+ <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, Christopher
+ Obbard <chris.obbard@oss.qualcomm.com>, Andrew Goodbody
+ <andrew.goodbody@linaro.org>, Paul Walmsley <paul@pwsan.com>, Russell King
+ <linux@armlinux.org.uk>, Rouven Czerwinski <rouven.czerwinski@linaro.org>,
+ linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v2 7/9] ARM: dts: omap: dm816x: Remove hwmod code for
+ USB
+Message-ID: <20261030130713.3a404d50@kemnade.info>
+In-Reply-To: <20261028-patch-ektor5-dm8168-dts-v2-7-4544429251e2@linaro.org>
+References: <20261028-patch-ektor5-dm8168-dts-v2-0-4544429251e2@linaro.org>
+	<20261028-patch-ektor5-dm8168-dts-v2-7-4544429251e2@linaro.org>
+X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -67,61 +70,92 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261030115241.642c5971@kemnade.info>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Fri, 30 Oct 2026, Andreas Kemnade wrote:
+On Wed, 28 Oct 2026 17:06:08 +0100
+Ettore Chimenti <ettore.chimenti@linaro.org> wrote:
 
-> On Fri, 30 Oct 2026 10:48:06 +0000
-> Lee Jones <lee@kernel.org> wrote:
+> From: Andrew Goodbody <andrew.goodbody@linaro.org>
 > 
-> > On Wed, 28 Oct 2026, Andreas Kemnade wrote:
-> > 
-> > > On Tue, 27 Oct 2026 09:30:42 +0000
-> > > Lee Jones <lee@kernel.org> wrote:
-> > >   
-> > > > twl_probe() allocates the file-scope twl_priv state with devm_kzalloc()
-> > > > and checks for a non-NULL twl_priv at entry to reject multiple device
-> > > > instances.  However, twl_remove() and the early error paths in
-> > > > twl_probe() never reset twl_priv to NULL, a failure when adding MFD
-> > > > child devices bypasses twl_remove() by jumping to free instead of fail,
-> > > > and twl_remove() tears down the IRQ domain and dummy I2C clients before
-> > > > child devices are unregistered.  After devres frees the underlying
-> > > > memory on probe failure or unbind, twl_priv remains a dangling pointer,
-> > > > causing subsequent exported API calls to dereference freed memory and
-> > > > blocking future probe attempts with -EBUSY.
-> > > > 
-> > > > Unregister DT-populated and MFD child devices at the start of
-> > > > twl_remove(), ensure mfd_add_devices() failures unwind via fail, and
-> > > > reset twl_priv to NULL in twl_remove() and on probe error exit.
-> > > > 
-> > > > Fixes: 80a97ccd33be ("mfd: twl-core: Collect global variables behind one private structure (global)")
-> > > > Closes: https://sashiko.dev/#/bug/linux-73e82f84-94de-4d08-82a4-f22d42a1dedf
-> > > > Cc: stable@vger.kernel.org
-> > > > Signed-off-by: Lee Jones <lee@kernel.org>  
-> > > 
-> > > Hmm, couldn't we use devm_add_action_or_reset() for resetting the
-> > > twl_priv pointer? Feels more clean for me.  
-> > 
-> > Nice!  Thanks for the suggestion.
-> > 
-> > To keep this fix minimal for Stable backporting (and avoid resending a
-> > 27-patch series), I'll take this one as-is and send a follow-up patch
-> > converting twl_priv to use devm_add_action_or_reset().
-> > 
+> Remove the hwmod property from the USB controller node and the matching
+> code from the hwmod data file as this is now deprecated.
 > 
-> I think the whole patch can be simplified a lot then, 
+> Signed-off-by: Andrew Goodbody <andrew.goodbody@linaro.org>
+> Signed-off-by: Ettore Chimenti <ettore.chimenti@linaro.org>
+> ---
+>  arch/arm/boot/dts/ti/omap/dm816x.dtsi      |  1 -
+>  arch/arm/mach-omap2/omap_hwmod_81xx_data.c | 21 ---------------------
+>  2 files changed, 22 deletions(-)
 > 
-> devm_mfd_add_devices can stay.
+> diff --git a/arch/arm/boot/dts/ti/omap/dm816x.dtsi b/arch/arm/boot/dts/ti/omap/dm816x.dtsi
+> index b839ee29e9eb..55f4b91fa1fc 100644
+> --- a/arch/arm/boot/dts/ti/omap/dm816x.dtsi
+> +++ b/arch/arm/boot/dts/ti/omap/dm816x.dtsi
+> @@ -576,7 +576,6 @@ uart3: serial@48024000 {
+>  		/* NOTE: USB needs a transceiver driver for phys to work */
+>  		usb: target-module@47400000 {
+>  			compatible = "ti,sysc-omap4", "ti,sysc";
+> -			ti,hwmods = "usb_otg_hs";
+>  			reg = <0x47400000 0x4>,
+>  			      <0x47400010 0x4>;
+>  			reg-names = "rev", "sysc";
 
-twl_remove() runs before devres teardown and destroys the IRQ domain,
-unregisters the dummy I2C clients and clears twl_priv->ready.
+As I have also some hwmod -> ti-sysc conversions cooking, I think I have
+an idea why you put these two in one file. Doing this in lockstep should
+be justified in the commit message.
 
-So the MFD child devices still need to be unregistered at the start of
-twl_remove() (alongside of_platform_depopulate()) before the parent
-transport is torn down beneath them, at least until the rest of
-twl_remove() is also converted to devm_*().
+I guess you have removed this and seem a fat WARN().
+Analyzing omap_hwmod.c I found that every module action is guarded by
+if (oh->_state != _HWMOD_STATE_INITIALIZED)
+So I think it is time to just denoise that WARN(), since the
+originial authors probably did not have ti-sysc conversion in mind.
+I will prepare a patch for that. But then you can add that snippet to patch 6.
 
--- 
-Lee Jones
+While merging this patches we just have to ensure that the hwmod removal
+comes after adding ti,sysc stuff.
+
+Regards,
+Andreas
+
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
+> index 9b5c728fb7da..b9735b507d6b 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_81xx_data.c
+> @@ -646,26 +646,6 @@ static struct omap_hwmod_ocp_if dm814x_default_l3_slow__usbss = {
+>  	.user		= OCP_USER_MPU,
+>  };
+>  
+> -static struct omap_hwmod dm816x_usbss_hwmod = {
+> -	.name		= "usb_otg_hs",
+> -	.clkdm_name	= "default_l3_slow_clkdm",
+> -	.main_clk	= "sysclk6_ck",
+> -	.prcm		= {
+> -		.omap4 = {
+> -			.clkctrl_offs = DM81XX_CM_DEFAULT_USB_CLKCTRL,
+> -			.modulemode = MODULEMODE_SWCTRL,
+> -		},
+> -	},
+> -	.class		= &dm81xx_usbotg_class,
+> -};
+> -
+> -static struct omap_hwmod_ocp_if dm816x_default_l3_slow__usbss = {
+> -	.master		= &dm81xx_default_l3_slow_hwmod,
+> -	.slave		= &dm816x_usbss_hwmod,
+> -	.clk		= "sysclk6_ck",
+> -	.user		= OCP_USER_MPU,
+> -};
+> -
+>  static struct omap_hwmod_class_sysconfig dm816x_timer_sysc = {
+>  	.rev_offs	= 0x0000,
+>  	.sysc_offs	= 0x0010,
+> @@ -1250,7 +1230,6 @@ static struct omap_hwmod_ocp_if *dm816x_hwmod_ocp_ifs[] __initdata = {
+>  	&dm816x_l4_hs__emac1,
+>  	&dm81xx_l4_hs__sata,
+>  	&dm81xx_alwon_l3_slow__gpmc,
+> -	&dm816x_default_l3_slow__usbss,
+>  	NULL,
+>  };
+>  
+> 
+
