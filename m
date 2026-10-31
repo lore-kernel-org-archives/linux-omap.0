@@ -1,61 +1,60 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=178.238.236.174
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793448355;
-	b=O6RtxAyqki5IBng9KtSfcV1hiKT9mUqlIBsIA/fiZHtCUt7Zj1QWDPAdsaK3XpEJUGxc
-	 1XwgYL9XBGOGN9mRxPDVPZxMo7nxSRSKvbA34MBYYbaaEcurf1aNnYpp9Q7G6uo1NPrDd
-	 xDlFN2tXxT1Bk8oDXjJAl9YBm8lXqpFjmzPJBVSuEZ2FmvLqOTEt8Ii8q9ZbC2CqHIPXs
-	 TvarXDL1i/6rywIweNtbSIIpddbpx2ZrWk6UUk18yVBXFgkbaKVw5nDlpoXbcGcPWsC4T
-	 vLA1ZNOyc0h8mNYesKROWrwEUqjHzC+2LUdIzIyHvpWh95VrqEv7hGDMv53EVmchBiw==
+	t=1793466982;
+	b=DLu+pqxivKFVNwY2F8Pub7VFeZhY7A38kdcbeo6DX/pgEzLTivRMHzEFLiDoxBhlyMW8
+	 1jKWE65IHDulE14Q3nmLsdHiYHN79ro+SA433p5h0JykFUEC9RqB0zhGsi7VV4iF+VyVa
+	 AWRkgs322i5DCoAqeZFlakfEuWqGCg+Q+lVKEg9/vcHRlC+6gDQTRySVoMv7o1P0faU+a
+	 lgtVIo5Tcwm+qZD8cn73c3G0USTYFVjgYlw3kiGBZ6vgBq57tVNEbMSaR+uVlTxDuMwUz
+	 n8w3GoDQ+2qG0HxHhqur+jlZlWf2IfOBV4mBYcOx0isDuDXGVeClDJ7vqT03rCyq0sA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793448355;
-	h=DMARC-Filter:DKIM-Signature:From:To:Subject:Date:Message-ID:X-Mailer:
-	 MIME-Version:Content-Transfer-Encoding;
-	bh=FnY35YNWnpPA4T/VaWdk7Fmbza5uMATO+i3TxNWIYUA=;
-	b=m+nkThM/QHJG2dQW4YrQQGdFJyi3NJe5zrP0LUEU5GVroAWnXL6Uhtt6aogKS2++3oUt
-	 H5Q9SvkI6fYrCuknVaNTPt0wKWNQflhddvd0FG6QYeKvvrASQNn2qBfCz+rHFs634aRC7
-	 eg7Q4JSY2NSGUg2+LQc7zpd4SMFAa8dzO9xGKWojIFO2gHkK0SIlsDeObBhKTYnUhCBuX
-	 JIdaDVcgcyG5XqDtGZiCFx3cn3smrpUEpolGlUucer5w2Ih/05VeFJWG5PInTL1OiDhgM
-	 +OvbVuF3IAqKDs6yk90KrBrkqdVMnHLBcwAxRgE9czStWvONBnIdosHf/gYeBNWGT6Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793466982;
+	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
+	 In-Reply-To:References:MIME-Version:Content-Type:
+	 X-Developer-Signature:X-Developer-Key:Content-Transfer-Encoding;
+	bh=/mBZi5W3sDWHIrgVG5ai7HwJIE30ho6SI0RH0HYnw5g=;
+	b=hatdBiIZpfuJBDWIixsElrKmyJk6zyX8tRVnD8ynpc6FJMeIe3+GGeYkWx8qgiegVUy8
+	 neCyAPYY2J06Np1QliKMHm1bA9xfaH4H/GQGOLXF1kAcxjT6J0Al4SRB364FFxZMVEjCw
+	 FfaGBc98lmFE52gwTPOkI/beKtFagsuqqFnCe412cOnGOU6WdnVUOPlchFj5C9Kb44ymO
+	 X09DzJzlsHT9HPuSDZyBUqHsXFrErT3HWxtP7mo+IZonXLbf8Jgn9AMVaSZl25Rl39Py6
+	 EvgJ1Vg/ApjEaOnb3GReREKHuw1lqW/iBxe0HuUDt7qgIm3bLNdzFWbQODGtsTCB/DQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=kemnade.info;
-	spf=pass smtp.mailfrom=kemnade.info;
-	dkim=pass header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=n+1YAE8p;
-	arc=none smtp.remote-ip=178.238.236.174
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=HXkkPmEc;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D610606A31A;
-	Sat, 31 Oct 2026 12:05:54 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2D610606A31A
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8B71606A31A;
+	Sat, 31 Oct 2026 17:16:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=n+1YAE8p
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=kemnade.info; s=20220719; h=Subject:To:From:Reply-To:Cc:Content-ID:
-	Content-Description:In-Reply-To:References;
-	bh=FnY35YNWnpPA4T/VaWdk7Fmbza5uMATO+i3TxNWIYUA=; t=1793448354; x=1794657954; 
-	b=n+1YAE8p7e27O8fip+F9HPoTBplnuz+rUbBwK8xTC9Opa05450qrN8WP58klyZAh5mZW+2XS9Iy
-	19FB9ovaNfaEjsUGFiHqm/0G7OjJIgtkswKULxb9/9FMfCcCcRR5AV928vGnu5III4DHN09XvLCiD
-	7R1d9Z+o3cU+ZsWuvZZoRVDQGq8RnQjZ37n9icYl98+hI3/Vf5EcnD8i73tfVo5QOv35ZN/x2/dEw
-	MDVfNCzf4Df8EVe/WQQWnwsJ653OVAxGUd2f1K5BAHIeA8pIVunLo0nNxqx/EI1IPFNHT/XCDrC/b
-	ma7hpr7aDbdfqK7HTf79C2SmrcxIfLJedkhQ==;
-From: Andreas Kemnade <andreas@kemnade.info>
-To: paul@pwsan.com,
-	aaro.koskinen@iki.fi,
-	andreas@kemnade.info,
-	khilman@baylibre.com,
-	rogerq@kernel.org,
-	tony@atomide.com,
-	linux@armlinux.org.uk,
-	linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] ARM: omap: omap_hwmod: do not WARN() on missing nodes for hwmods
-Date: Sat, 31 Oct 2026 13:05:19 +0100
-Message-ID: <20261031120519.655248-1-andreas@kemnade.info>
-X-Mailer: git-send-email 2.47.3
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=HXkkPmEc
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50B5A1F000C1;
+	Sat, 31 Oct 2026 17:16:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793466981;
+	bh=/mBZi5W3sDWHIrgVG5ai7HwJIE30ho6SI0RH0HYnw5g=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=HXkkPmEcBzmhUuLw3mxD5Qu20BXyKdtzE2d4WOom2Nzy1s2rcyn4rSNB9kOGrk6El
+	 sKJlTtr4cGyfXDFmDgG6X3JRAmxUvAw7UBm4s7As/QDk1ch470V8tWz3SFTZh5vxLl
+	 ZBYk7QWc0aIIfGsPp4xwJLaaoJuWnfsYOTERGyBKqSBcus3IiKKpSP2tkYur9X7NQR
+	 64vYdKrpbilEaUbmmWBBEu0Lg9IcA4kUAOGOeGt7de55GCqAtjqcqQqIp4qVzwVHh7
+	 YGHPFT6VAuHF2h+1oeI3eCUyFred5oVs9wbfCQjg9SU66wwdR3vrmB9z+dDJzz0/se
+	 NykGJ583PCqRg==
+From: William Breathitt Gray <wbg@kernel.org>
+To: Vignesh Raghavendra <vigneshr@ti.com>,
+	Julien Panis <jpanis@baylibre.com>,
+	"Peng Fan (OSS)" <peng.fan@oss.nxp.com>
+Cc: William Breathitt Gray <wbg@kernel.org>,
+	linux-kernel@vger.kernel.org,
+	Peng Fan <peng.fan@nxp.com>,
+	linux-iio@vger.kernel.org,
+	linux-omap@vger.kernel.org
+Subject: Re: [PATCH] counter: ti-ecap-capture: use regmap_assign_bits() for conditional set/clear
+Date: Sat, 31 Oct 2026 13:16:09 -0400
+Message-ID: <179346694223.3640101.18401240670826689615.b4-ty@kernel.org>
+X-Mailer: git-send-email 2.56.0
+In-Reply-To: <20260924083448.461792-1-peng.fan@oss.nxp.com>
+References: <20260924083448.461792-1-peng.fan@oss.nxp.com>
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -65,39 +64,23 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+X-Developer-Signature: v=1; a=openpgp-sha256; l=408; i=wbg@kernel.org; h=from:subject:message-id; bh=J4NaL/W2yZsqaCGWyer5oIJrl7TEhysTub4ajAq0dV4=; b=owGbwMvMwCW21SPs1D4hZW3G02pJDFnPlDwO12YLKeY9dF6RtOzZjfyIpz4uszauNxFUl3gj+ FXZmpGlo5SFQYyLQVZMkaXX/OzdB5dUNX68mL8NZg4rE8gQBi5OAZhIjwTD//IneSI/hTNeLf30 8K9e1LY/35Mvz5sUM1vw9QXddMuLD44x/JXn/h1xxuWStd9eg5BXez5f4Pa84RM4J/+Qg5XcLKf Qz7wA
+X-Developer-Key: i=wbg@kernel.org; a=openpgp; fpr=8D37CDDDE0D22528F8E89FB6B54856CABE12232B
 Content-Transfer-Encoding: 8bit
 
-If devices are converted from hwmod to ti-sysc, there might be an interim
-state with the hwmod data still present but the devicetree not referencing
-the hwmod. In such cases, the hwmod device data is still there,
-the hwmod infrastructure does ignore that device but prints out a big
-alarming WARN().
-Be more silent in that case to avoid needing putting devicetree and
-code changes into one patch but into one series, only require the
-hwmod cleanup to come after the devicetree conversion.
 
-Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
----
- arch/arm/mach-omap2/omap_hwmod.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+On Thu, 24 Sep 2026 16:34:47 +0800, Peng Fan (OSS) wrote:
+> Replace if/else block using regmap_set_bits()/regmap_clear_bits() with
+> the simpler regmap_assign_bits() call.
+> 
+> 
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 03cd523dff87..a67442a6a2c6 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2329,8 +2329,10 @@ static int __init _init(struct omap_hwmod *oh, void *data)
- 
- 	r = _init_mpu_rt_base(oh, NULL, index, np);
- 	if (r < 0) {
--		WARN(1, "omap_hwmod: %s: doesn't have mpu register target base\n",
--		     oh->name);
-+		/* there might be a transition ongoing from hwmod to ti-sys */
-+		if (np)
-+			WARN(1, "omap_hwmod: %s: doesn't have mpu register target base\n",
-+			     oh->name);
- 		r = 0;
- 		goto out_put_node;
- 	}
+Applied, thanks!
+
+[1/1] counter: ti-ecap-capture: use regmap_assign_bits() for conditional set/clear
+      commit: 6954e1a8996bc35a6e1b65f6028c850490b1d20a
+
+Best regards,
 -- 
-2.47.3
-
+William Breathitt Gray <wbg@kernel.org>
