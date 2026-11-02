@@ -1,95 +1,85 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.130.62
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793642590;
-	b=HQzjeb4KLERrmI69dL+5haWL72Ft8X1+0/g7cChMR9oqFzfiQsPAw8l3L6937Z1U2hoE
-	 Bo8zr2mG6/Poel0pxPdFYClUStZ1ykeIF2IeyBbOLEYNk7EqUW8Q2+BBbSYkSRDDoyF24
-	 t9UCk+7RQlxbfG++GKug1cw+7gF7GbIFi5swyCvkGskEP4Vv+ATiV3doYLIjaTO1HwMoR
-	 Q1xajLZ8xt3GgwkG/YuQxnD41i8diVBKsidNfJ7DK9AFignF0bkeRsY3xYOrUAk74nQ8N
-	 EebIyUeJJ/qMSkclPX43VhizVIsV2BYpHbAEvYXjyK8rBAoi0XOdUN3p2NBe7LQ0Hzg==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793642590;
-	h=DMARC-Filter:DKIM-Signature:Received:Received:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:Content-Transfer-Encoding:Content-Type:
-	 X-ClientProxiedBy:MIME-Version:X-MS-PublicTrafficType:
-	 X-MS-TrafficTypeDiagnostic:X-MS-Office365-Filtering-Correlation-Id:
-	 X-MS-Exchange-SenderADCheck:X-MS-Exchange-AntiSpam-Relay:
-	 X-Microsoft-Antispam:X-Microsoft-Antispam-Message-Info:
-	 X-Forefront-Antispam-Report:
-	 X-MS-Exchange-AntiSpam-MessageData-ChunkCount:
-	 X-MS-Exchange-AntiSpam-MessageData-0:X-OriginatorOrg:
-	 X-MS-Exchange-CrossTenant-Network-Message-Id:
-	 X-MS-Exchange-CrossTenant-AuthSource:X-MS-Exchange-CrossTenant-AuthAs:
-	 X-MS-Exchange-CrossTenant-OriginalArrivalTime:
-	 X-MS-Exchange-CrossTenant-FromEntityHeader:
-	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
-	 X-MS-Exchange-CrossTenant-UserPrincipalName:
-	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=CzUj5aF2f2D7cjbJ54zhjl5b2vPMfNVNDc2tEIYLkEI=;
-	b=MRfI2lPuqufYzfSgNEFNyv5yyJNYMRqjiDlz/hOT3+UICka9XjMvJFLY/grdyuJJowPy
-	 8XCFj9TsQm/E83mspykUmVkDdDPtLe/QnRdTMk/8ChRodt21Dj1CTzolWlsCgdLPTetPY
-	 XK3KveKwbA7IxJzZuUyIIIGve6Gkz9R7ZZ5cXTuHA0Gpwf37HaAYkvWbyW5JEDrlbxHhu
-	 cOykjHLsb9n9n0eBwNcLWivf68ljK7dQ2NFJJPj+IRyWCR4zPz6hvNyVFKLvPXm1hwT5j
-	 8vEK3kmjkOQR+h+/KCZD/7yHtHWl6sdMY4fbRCRJgkHq9RF343SVL2bSTkTONaJ7hbg==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=oss.nxp.com;
-	spf=pass smtp.mailfrom=oss.nxp.com;
-	dkim=pass header.d=NXP1.onmicrosoft.com header.i=@NXP1.onmicrosoft.com header.a=rsa-sha256 header.s=selector1-NXP1-onmicrosoft-com header.b="jt1yP/Ih";
-	arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.130.62
-Received: from MRWPR03CU001.outbound.protection.outlook.com (mail-francesouthazon11011062.outbound.protection.outlook.com [40.107.130.62])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.51
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1793648681;
+	b=MNHxnFnfpuBms/cKlmO6rZ4gviBeV5Z7dnvc2yMAF1OMRbnocrYYgvY5x5k03SYxrQ77
+	 6rD3jbkYj5qk1jFhce439POTaatlrqRmveW5ILjmVskNffxu8NfWAZTryN7uwNEVrRcNf
+	 8bBnuczZosy0LsZ4pDUlYBJa2M5ENTGeJdGtW6CdS2EVBCnpjfrp3J7qbGePSZTdwg9aX
+	 8TI524cMDjLFwzUqKoAxPkewCzkaAjVAeQfZ4NMlAATocXFzIhyMWfi0/JhJCDP2yKJy1
+	 di43v2MIFm3bINav6n8S8JqllXkPCbxuw6T19+X7lfQrmrourXQ+fYEhKmgee53dxNg==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793648681;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Mime-Version:Content-Transfer-Encoding:Content-Type:Date:Message-Id:
+	 Cc:Subject:From:To:X-Mailer:References:In-Reply-To;
+	bh=Weu5Zca/hPX7MdlI7TVErZ4xT18FxVN+YlEWkEZPcA8=;
+	b=qi0jcf6rGzrFGE9JXdpdVnDkpCvju/E6XOY+PfrVNHnSVDvfOEYyYsThrXaS6g17u9CP
+	 XAtwTJaf127nhmYNlgRJdRNN5vawHiS+zaEro2U5LaJvmIJo/JvToJcTeXnwBtr5IzTx3
+	 r+4EmkLaRHN6xBWvke90k90zHidNpl4WnWx5E6IFyvvdbM8a2EJQhpOIeBhjtQPiQSZg9
+	 rlZrYJViOGXr6s9hZU6p+6QVC20ftsZjhDi4c8s+JYUkHsq+R2o3CG13/+f9gBLdkUpO6
+	 uzm2Dn434TadU4zL670tbLRiJsAJEloyIt3aqK85z1PJ5TYBQA71DU77xRLN3JU+CVA==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=linaro.org;
+	spf=pass smtp.mailfrom=linaro.org;
+	dkim=pass header.d=linaro.org header.i=@linaro.org header.a=rsa-sha256 header.s=google header.b=v2zabGsB;
+	arc=none smtp.remote-ip=209.85.221.51
+Received: from mail-wr1-f51.google.com (mail-wr1-f51.google.com [209.85.221.51])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3374E606A589;
-	Mon,  2 Nov 2026 18:03:10 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3374E606A589
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.nxp.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.nxp.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 660BE606A327
+	for <linux-omap@vger.kernel.org>; Mon,  2 Nov 2026 19:44:41 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 660BE606A327
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=NXP1.onmicrosoft.com header.i=@NXP1.onmicrosoft.com header.a=rsa-sha256 header.s=selector1-NXP1-onmicrosoft-com header.b=jt1yP/Ih
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=nH7Be30bxMA/RXfcxV9Y/2sYvOH0tZPpDEZ2fTyT6nhJuT9Lnlp9dowdm9fAk7pMHZjEMlhVrREcBWQfWMy5zP+Z30nptDXTXWflersFSLxtrMS3wZDu4kBGzO/FTsoQZlArsy3ihLMFct0yRUQgPPWQvTR6ALY5+JZhvaCZrE1yY29u69qNIQoU0Vmp1TmU51PZomq/plF4WfTTB6lmpbUcJWxEDMYiOkq0QCL5Vey6clNN2SN3qrh0ukt37NZH1sdnNUgv2p7OLbpFh/BMaJ6lSRgd0fORPVCKPWDNX58VMQaX1Du4Wjl56UMXwlfhBA5fEyxPd1Po5DiiAvk1jQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=CzUj5aF2f2D7cjbJ54zhjl5b2vPMfNVNDc2tEIYLkEI=;
- b=M/V1qGrT1/IJt1FYuRVsQcspp+PumA2ya1Rvjc2Bfx/90LbpBKTkp+FIcNxR5Il5qMRiBcVR5y0Dfhnssobf0TZTZeAX5DUvXJba3TBeatw+vE3AYZHFdPpbd943F/oCH2MGT0bkN/RUcnTGl+2eeME2djPLXnxkHDu53wfT1L9UjqGWYrnQpQ6rA3q092WOicxvsI8UlUFiLhwNExDttCCyvFZPVaYlT1VRy+DTOJANyFb1BOsFFhpfnuUO4AoyNS1injjV3XUXAkDJ/pf1lkrc2hVAZ9bNRu+PWw8+y9yVrE+k/9qp4axak4mVN0TxX69K2XBSTOIB1U6EGpLXoA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oss.nxp.com; dmarc=pass action=none header.from=oss.nxp.com;
- dkim=pass header.d=oss.nxp.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=NXP1.onmicrosoft.com;
- s=selector1-NXP1-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=CzUj5aF2f2D7cjbJ54zhjl5b2vPMfNVNDc2tEIYLkEI=;
- b=jt1yP/IhyCu9xgZ57ge0qqpZx+K3nvbf7qhzRH6rulKCUg5bt+izrVvmLwjfHCEisiq3Y/jBprinqdcNXxJwZOWRXGhOkL28+N1g6WjOTKomj2JG5aGo/8f6yhAzcLLAbrzfOinsof1XlDkn1WUq+VSZh5U1JevVowQCkMlfSZjYDhNuk5zctlbnCAJbUPJ9QblDWwiBhXWTcZ3VDgPqKoIKiPPxyx69lW/BbYl57F0gnlhawmXL/8bVlMy/tp2XdooS31jDjT7hahc0Gq7RQ02GcfHbGulLKqM0DFz2AS/Zcq3Dz2VkFdDeX6LsJsPqf7HxyDb6Mj9onp/w0cS0og==
-Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=oss.nxp.com;
-Received: from MI3PR04MB12438.eurprd04.prod.outlook.com (2603:10a6:290:76::14)
- by AM0PR04MB12073.eurprd04.prod.outlook.com (2603:10a6:20b:73f::6) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.569.12; Mon, 2 Nov
- 2026 18:03:07 +0000
-Received: from MI3PR04MB12438.eurprd04.prod.outlook.com
- ([fe80::c715:c32:8bb1:b70b]) by MI3PR04MB12438.eurprd04.prod.outlook.com
- ([fe80::c715:c32:8bb1:b70b%6]) with mapi id 15.21.0569.011; Mon, 2 Nov 2026
- 18:03:07 +0000
-From: Frank.Li@oss.nxp.com
-To: Bin Liu <b-liu@ti.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Frank Li <Frank.Li@nxp.com>,
-	linux-usb@vger.kernel.org (open list:MUSB MULTIPOINT HIGH SPEED DUAL-ROLE CONTROLLER),
-	linux-kernel@vger.kernel.org (open list),
-	linux-omap@vger.kernel.org (open list:OMAP USB SUPPORT)
-Cc: imx@lists.linux.dev,
-	vkoul@kernel.org
-Subject: [PATCH 1/1] usb: musb: use dmaengine_desc_set_callback()
-Date: Mon,  2 Nov 2026 13:02:56 -0500
-Message-ID: <20261102180300.3966399-1-Frank.Li@oss.nxp.com>
-X-Mailer: git-send-email 2.43.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: PH0P220CA0019.NAMP220.PROD.OUTLOOK.COM
- (2603:10b6:510:d3::32) To MI3PR04MB12438.eurprd04.prod.outlook.com
- (2603:10a6:290:76::14)
+	dkim=pass (2048-bit key, unprotected) header.d=linaro.org header.i=@linaro.org header.a=rsa-sha256 header.s=google header.b=v2zabGsB
+Received: by mail-wr1-f51.google.com with SMTP id ffacd0b85a97d-48e20ed3b9dso3047133f8f.2
+        for <linux-omap@vger.kernel.org>; Mon, 02 Nov 2026 11:44:41 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1793648680; x=1794253480; darn=vger.kernel.org;
+        h=in-reply-to:references:to:from:subject:cc:message-id:date
+         :content-type:content-transfer-encoding:mime-version:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=Weu5Zca/hPX7MdlI7TVErZ4xT18FxVN+YlEWkEZPcA8=;
+        b=v2zabGsBMccgcYnOKyyoJfrpcS6FC2kf1CeYjOep7ud5b84amOVeXc4O9Bn7QHljxM
+         kleSVMzmTjk8J7500JVzYCCNljyqjHHUgpYpYmKtuYqxR+860A49+oGL6efFuH9uJKH1
+         o9WuQnPigNB98hrxPxhmFhmrpcNTrCxsVh1HPM0+aBBM7CmTzECx01VZlas2N3sB+xpw
+         zevN2gyXBQ+fCAZi91gsLVJTORdB0l3CzBB2NdQQ+kiJy6PW+JWVNwpb7SMh0QACuPNL
+         7Wc16yRYdIpVtUDoiOkiPrknjvJYA8VEUTpxyooGhTNXENUS3pjVefS32oOjaz8C0bfv
+         g86A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793648680; x=1794253480;
+        h=in-reply-to:references:to:from:subject:cc:message-id:date
+         :content-type:content-transfer-encoding:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=Weu5Zca/hPX7MdlI7TVErZ4xT18FxVN+YlEWkEZPcA8=;
+        b=vQZ8+zEpq0RmgpxoQ0jKLk06CDGDushx9hTLdXSDpH0D0tPJjc2wpmxz29jbD+RYZ5
+         uG7zV/TvW87/RHGVP6DVj7nteSIV9An70/YbejJ2E2toUf+zugJhykElppJqD4dnliPK
+         RlkA1Zo0bpJkHIxHyEZ5Gtn5NOWcF9fY0Ma5n0RR3VEoJzH71dqaRhOhhD6zXvXphgln
+         oW1iss9j+cN2ZLo9PA45Ghptl7DZtZM3DJLmwfaaS4t1flaQ5U6fAiaj2f2vjC4M8eqY
+         l0BhlgClM9+mLljzOi+6hLDgD3hVP+Q85X0sg6yymKIpFqA+H2hCprlQjc8Z08avvRMS
+         /Ajg==
+X-Forwarded-Encrypted: i=1; AKwUvBzCHXAH2VDSmLO12gsvkDE5PwLJTTOp3OtnxQ0pvgLiHX9CwNaAEN1RGmTyUVCz61YGCdFDEI6Rwny9@vger.kernel.org
+X-Gm-Message-State: APuU4Z/ZW+FEc8dQzJqaS4PBgXRzq/CWdPIsQHXk6ik/2suG/8FhPrz9
+	B36Gx5osvibgIvjro/daxvLYWVp14OKGwMQe9+dRvyKFNMtE5k5ganKAA/WYinuY6Bc=
+X-Gm-Gg: AYBFou1wTL7NjUp9uqDklEieiTRWXPlt/qBptJD0Lg835GoDA9PWBr0SgvXc7nNztlM
+	5SQBK8+EQRTv7lkqasOEezZgEfhttl06BoozW3gfrUbIhHRY81nRm0bYw9cp/lV+BxEFaCBu4rH
+	CuKILJ4stj6Lnbnf+HRysauj8ysxlaUDlTw95j38lnZsAqLvLqtd7yRdjc0LlonUnqm1Y4g0AQd
+	GXLZBC83ERGt9b/+psK7i93npGFC+sw1hXqNx3Lj7Xmid0wkgFUYGdPxGuXJD66TbYpS5HuTtqb
+	j1hGa0zAGIlD1MDaJB3I3YP+uhM5InZhUs/F1QpFTMlmqgKwKk8vL90cSOzT+EoSSEXVUHemEku
+	yJCbzJHHhzJrt9zQFX6HTWATM9BKpXEbKsN5nvqY84jNgOGHnx2awZ4rPsq195717xQWm2urpmQ
+	v6NBxKsDK2VaUw8618EGk54nPwrfaJAncHa1LTUgr3aJDnXAaBGpC54ay2Yt5tScOxroP6GWeMg
+	2ks1B2DiyPix7+qUB+5aQ1moZFHpT9rnVgUK4+URtlTJTySZSqvcgc7on5hENttX+jVi6BaCXDa
+	f9Taz1VYUt7UAwHVgsGw54wTGbGB6gkAYDQA0wdSbJxacl337P+ZoxmLiKkLJeUtwgOO5mXqrtR
+	ijDahrE5auzHKmRggRiAr+aXMdYZLV8L6WamJ/O5Zdg==
+X-Received: by 2002:a05:6000:2611:b0:48e:4e00:b72f with SMTP id ffacd0b85a97d-48e6e50c8ecmr23807080f8f.32.1793648679554;
+        Mon, 02 Nov 2026 11:44:39 -0800 (PST)
+Received: from localhost ([151.40.161.170])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48e71b80333sm23147608f8f.32.2026.11.02.11.44.38
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 02 Nov 2026 11:44:39 -0800 (PST)
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -98,146 +88,85 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MI3PR04MB12438:EE_|AM0PR04MB12073:EE_
-X-MS-Office365-Filtering-Correlation-Id: dc3dc099-be05-4d09-fb9a-08df390b8c62
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|366016|1800799024|23010399003|376014|19092799006|261102123227099003|261021121427099003|11063799006|56012099006|261009223027099003|261021123027099003|261026121527099003|10067099003|18002099003;
-X-Microsoft-Antispam-Message-Info:
-	oOyuuMTJLxUV1lbfBSM2IL4+tIiZ04+z4Y8awfNlbDzMeYiz3Krhv4fiePJ3VFfkh4uswTze86Be3DT064SsR3osH8cMYgRpuMmmwVs7r7J9ejY8Ry2r/umn/10VU00UkcVltnTZdeVVM1s2doFlWFnI2Tiju39FikcWlZPF5LQuIc5z3i8m0WXJ1KEBWq13KoTzp5fepxUaNCtiNA/l9JjHOg7/HuW9vHLlaBlHpPZzUAj+Zpd8bgmvxG1q2QCm+zQAbpoHXaakhPGRthLXQYa7e1MXRseAdajKPHKnXScc8dL8cJvVYRMj5grt7XFkZFXSS/oN9jkyUS5bIPWUgGr+G/EZeH4CFxM2XVxmt7TZGtOAdFgJONNt9RV3zf9Mq3Bh6KpMsvkjnqwSK2B0ksp/JclLDQRKDUH3s3VxdytdXi1ubxJ1JVMRTYqnT6j5fNatbHAAlYL9pkMDgmvHBZ8TPeEW9ejBiqBJ9DW4dzgedLbO+5pwMwMf3lep9N2AXbJor6QXINRq7QVEub2rOTRkznSpe9kwNNW6oTKf7fryBqWdaC0X27Dtv85q4SF/XOrsMmh9JQUsgvaq2Eh3sWu9Ro0QOSV1Uh7gODB8gtR7yYIVZWHc5YteN7YIDA02jrMkE2MaFoxDa/MAWNN93QVY2cmEppFX0wTDLYf0AvI=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MI3PR04MB12438.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(23010399003)(376014)(19092799006)(261102123227099003)(261021121427099003)(11063799006)(56012099006)(261009223027099003)(261021123027099003)(261026121527099003)(10067099003)(18002099003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?pLN78iXfG3IzAdNu6I3kNtqCGsLqea+9Z1plcpFmu3tneYk+EhxNEQCPh9B1?=
- =?us-ascii?Q?rKnA8OTV3Z/fLg6ftFMLw01W45dNSKsmyZcMM4LC13fOlwaljXFKWgZhgkEY?=
- =?us-ascii?Q?YOMme0vwZZhA6wvfO+qdorUxb2OqjY+c6nUYUwuOLpklIHyMolGYaU3Ua1Oq?=
- =?us-ascii?Q?UU7aRqZ/p3FUzzfPR/VmQS6UN2/mfAsVAhjgX0lop6Yt99HPjnlAbkLInHVC?=
- =?us-ascii?Q?ZfDd6ZGDkgR65Eqzzyh1NJlqkIj9HFCYkOud85Dt9qayaW8Rrnl9pY56/IHc?=
- =?us-ascii?Q?A6Aor/aJLTPhqrZw6ONOATvXOtd203gLoKmYbavZLzlWeugeiPFPXV24uFl0?=
- =?us-ascii?Q?TxJZEniQYo168hH17KtC+DY1/aPj3pGfClrXlAP+gJlDfE6je/z6aMaJ2SkQ?=
- =?us-ascii?Q?sXEw/9fs+/CxyMor172OAx3XkpMn/IdR09x1mvIWYiY65qX+ufZGb+eC0hBO?=
- =?us-ascii?Q?OI5WnuPho4h9hNoE+4872WhXDjRO6107wXSUCgDKs61FyXKdaX2RJtl6M2tz?=
- =?us-ascii?Q?QNueI0A5uIZwR8LN9IYD53f3GzgMCuHoMRqCRvGZMUyJBxFdWfJxFzNygYJm?=
- =?us-ascii?Q?ycQoforW03kPj9nuhYPAMkHwL35BeLMQdqnw5z+HREV1jEpo8EY/IeHo8AJn?=
- =?us-ascii?Q?X5yXb8HewXAy1IHla1WedUHu3Rg+nhBHFI858vDSKUr9aR8HT/ZsNr2zUgIw?=
- =?us-ascii?Q?RT4udbWg/qTluI9wa8WaY9ZP37C/nBbGlAd/T/+1oQ6nJdx6HCsj2nBm+noo?=
- =?us-ascii?Q?sAjES8ry+a4jSLjgdX1DFZwLm+vG9LIfwWuJzCL39j4pmH8kdDvJ8WkoM4P1?=
- =?us-ascii?Q?ZbpGAjnt9Hi51f2mTZIo0jMLTGoBXS2VIHI/DrgBUZnlDrz3xw3hZCbwYGMK?=
- =?us-ascii?Q?PzFCMPQuOuAAgDlFL7DO0E1ZZNc1TYRvLFfMG5TvP6xIAjkCUZ8dLGaQxaus?=
- =?us-ascii?Q?rGeLdc9lQ+IXlpDqSsUAdi7FkF3/Dommvkx7IxebApBsshScL0XCWiOUpB28?=
- =?us-ascii?Q?kEj3RRJERVqHF/MtypcWhrfOxWxVt5quxPyQiCs27wiw3hBVz/l2GK4VX3QH?=
- =?us-ascii?Q?VJruDbQx99F/cIqJJtxuQVppPo64Y5TK+KqdnKvDzOcQjkgTHmM+TQq2lrgq?=
- =?us-ascii?Q?Immb9ReW0PsgUyiGyC585DP/xOJ7O0f1Ak+Kw65Y0MvjQJmHM4hP2PBiATEx?=
- =?us-ascii?Q?r61zl0AypQbUnKybATDkYTCWo2L9bs5+nCwaxjjvVphED0UBEhfFnele1aJk?=
- =?us-ascii?Q?uwbxAzGUfeSlRz81AXMfh6HpNDa1kqwEPZIUY9yFW9OcRWgYy9pnto308Kfj?=
- =?us-ascii?Q?9u6Q3T8zJRZGEJ39oqLjDd4OtCb8m85GeJRYxnVt2GIivZl6fowYiNF2LB1C?=
- =?us-ascii?Q?9zsgcfKlzRd6eQMFyZ4wTSajhcWW1YQ+CRWBiZIz11KfN2MX71fha/b7h/t6?=
- =?us-ascii?Q?fwvXX5VP3LXSsiLxapPQBSNDLpe5QKnAxR9dU0b+EU2d7kJtZz9WIDc4X+/f?=
- =?us-ascii?Q?8obTAmZXk7fIumAfe17mgFmp4wx+LQ6Xmrv54iBAaRP2TdqC3VMx8N/4NawJ?=
- =?us-ascii?Q?jXhAZY9/GJeNpzjWJNdGVVsy7r9yTbFvX+L81Ph3svqUoCjJLXFWRh5GUEM3?=
- =?us-ascii?Q?tWT0Jn3ublxZxSoEDHkR3MQU5OZxof2Qx2HfOVy0hIFFTeTE3wUXJOhh0UAl?=
- =?us-ascii?Q?wjZ2h9+ckL7jizYG0lPKhPBgkYddL8Vg+64rfWYmC5N1g6bxBETvFd3z1r3l?=
- =?us-ascii?Q?+aME9r4qj9hMqc3p4C58uPXj+jr3IZQHzfw+2shmlRbmQwpGZMvG?=
-X-OriginatorOrg: oss.nxp.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: dc3dc099-be05-4d09-fb9a-08df390b8c62
-X-MS-Exchange-CrossTenant-AuthSource: MI3PR04MB12438.eurprd04.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Nov 2026 18:03:07.4144
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: z8Be/7CtGRYVyRB8sNjRyGG61yhH58iHcevKX+Z3EgFALKLD5ZNio/OkXZOynqMadWtU8oN5Y/8QegpnF+TbEWVjC9V4S7XPL8CL/lXfIxgvoQA5BQKkYOy6jLOhPOUA
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR04MB12073
+Mime-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Date: Mon, 02 Nov 2026 20:44:38 +0100
+Message-Id: <DMKZE3GQVDLB.18QYA9ULAH75I@linaro.org>
+Cc: "Aaro Koskinen" <aaro.koskinen@iki.fi>, "Kevin Hilman"
+ <khilman@baylibre.com>, "Roger Quadros" <rogerq@kernel.org>, "Tony
+ Lindgren" <tony@atomide.com>, "Rob Herring" <robh@kernel.org>, "Krzysztof
+ Kozlowski" <krzk+dt@kernel.org>, "Conor Dooley" <conor+dt@kernel.org>,
+ "Christopher Obbard" <chris.obbard@oss.qualcomm.com>, "Andrew Goodbody"
+ <andrew.goodbody@linaro.org>, "Paul Walmsley" <paul@pwsan.com>, "Russell
+ King" <linux@armlinux.org.uk>, "Rouven Czerwinski"
+ <rouven.czerwinski@linaro.org>, <linux-omap@vger.kernel.org>,
+ <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+ <linux-arm-kernel@lists.infradead.org>
+Subject: Re: [PATCH v2 5/9] ARM: dts: omap: dm816x: Correct speed for
+ sysclk5
+From: "Ettore Chimenti" <ettore.chimenti@linaro.org>
+To: "Andreas Kemnade" <andreas@kemnade.info>, "Ettore Chimenti"
+ <ettore.chimenti@linaro.org>
+X-Mailer: aerc 0.22.0-0-gc2f86b7abde3
+References: <20261028-patch-ektor5-dm8168-dts-v2-0-4544429251e2@linaro.org>
+ <20261028-patch-ektor5-dm8168-dts-v2-5-4544429251e2@linaro.org>
+ <20261101222942.1a78c6fb@kemnade.info>
+In-Reply-To: <20261101222942.1a78c6fb@kemnade.info>
 
-From: Frank Li <Frank.Li@nxp.com>
+Hi Andreas,
 
-Replace open-coded assignments to callback, callback_result, and
-callback_param fields of struct dma_async_tx_descriptor with calls
-to the dmaengine_desc_set_callback() helper.
+On Sun Nov 1, 2026 at 10:29 PM CET, Andreas Kemnade wrote:
+> On Wed, 28 Oct 2026 17:06:06 +0100
+> Ettore Chimenti <ettore.chimenti@linaro.org> wrote:
+>
+>> From: Andrew Goodbody <andrew.goodbody@linaro.org>
+>>=20
+>> The default code for setting up the clocks results in sysclk5 running at
+>> 1.6GHz whereas it is expected to run at half that ie 813MHz. Force the
+>> divider to be /2 to achieve the 813MHz speed.
+>>=20
+>> Signed-off-by: Andrew Goodbody <andrew.goodbody@linaro.org>
+>> Signed-off-by: Ettore Chimenti <ettore.chimenti@linaro.org>
+>> ---
+>>  arch/arm/boot/dts/ti/omap/dm816x-clocks.dtsi | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>=20
+>> diff --git a/arch/arm/boot/dts/ti/omap/dm816x-clocks.dtsi b/arch/arm/boo=
+t/dts/ti/omap/dm816x-clocks.dtsi
+>> index 76ebc6c3c3e5..cb990773b098 100644
+>> --- a/arch/arm/boot/dts/ti/omap/dm816x-clocks.dtsi
+>> +++ b/arch/arm/boot/dts/ti/omap/dm816x-clocks.dtsi
+>> @@ -144,7 +144,7 @@ sysclk5_ck: sysclk5_ck@310 {
+>>  		#clock-cells =3D <0>;
+>>  		compatible =3D "ti,divider-clock";
+>>  		clocks =3D <&sysclk4_ck>;
+>> -		ti,max-div =3D <1>;
+>> +		ti,dividers =3D <2>;
+>
+> so this changes register value  0 is intepreted as divider 1
+> to divider 2. Sounds strange. It just changes the interpretation of the
+> register values, not the setting. Maybe checkout the register value from
+> user space with tools like devmem. The original interpretation was right.
+> So this change does not make any sense. I think sysclk5 still runs at
+> 1.6Ghz, but it is displayed as 813Mhz.
+>
+> I would expect some assigned-clocks / assigned-clock-rates pair somewhere
+> in this patch instead.
+>
 
-No functional change intended. Prepare to make struct
-dma_async_tx_descriptor private to the DMA engine.
+We tested on EVM with devmem and this patch correctly sets bit 0 to 1
+(which is /2 in the manual).
 
-Signed-off-by: Frank Li <Frank.Li@nxp.com>
----
- drivers/usb/musb/musb_cppi41.c   | 7 +++----
- drivers/usb/musb/tusb6010_omap.c | 3 +--
- drivers/usb/musb/ux500_dma.c     | 3 +--
- drivers/usb/renesas_usbhs/fifo.c | 3 +--
- 4 files changed, 6 insertions(+), 10 deletions(-)
+However, should ti,max-div in this case be <2> (and all the other clocks
+that supports two dividers)?=20
 
-diff --git a/drivers/usb/musb/musb_cppi41.c b/drivers/usb/musb/musb_cppi41.c
-index 28e958fcc862c..dd77e7aba77ed 100644
---- a/drivers/usb/musb/musb_cppi41.c
-+++ b/drivers/usb/musb/musb_cppi41.c
-@@ -167,8 +167,8 @@ static void cppi41_trans_done(struct cppi41_dma_channel *cppi41_channel)
- 		if (WARN_ON(!dma_desc))
- 			return;
- 
--		dma_desc->callback_result = cppi41_dma_callback;
--		dma_desc->callback_param = &cppi41_channel->channel;
-+		dmaengine_desc_set_callback(dma_desc, NULL, cppi41_dma_callback,
-+					    &cppi41_channel->channel);
- 		cppi41_channel->cookie = dma_desc->tx_submit(dma_desc);
- 		trace_musb_cppi41_cont(cppi41_channel);
- 		dma_async_issue_pending(dc);
-@@ -467,8 +467,7 @@ static bool cppi41_configure_channel(struct dma_channel *channel,
- 	if (!dma_desc)
- 		return false;
- 
--	dma_desc->callback_result = cppi41_dma_callback;
--	dma_desc->callback_param = channel;
-+	dmaengine_desc_set_callback(dma_desc, NULL, cppi41_dma_callback, channel);
- 	cppi41_channel->cookie = dma_desc->tx_submit(dma_desc);
- 	cppi41_channel->channel.rx_packet_done = false;
- 
-diff --git a/drivers/usb/musb/tusb6010_omap.c b/drivers/usb/musb/tusb6010_omap.c
-index 36ee61a52e7e6..eba54d1a5931b 100644
---- a/drivers/usb/musb/tusb6010_omap.c
-+++ b/drivers/usb/musb/tusb6010_omap.c
-@@ -308,8 +308,7 @@ static int tusb_omap_dma_program(struct dma_channel *channel, u16 packet_sz,
- 		return false;
- 	}
- 
--	dma_desc->callback = tusb_omap_dma_cb;
--	dma_desc->callback_param = channel;
-+	dmaengine_desc_set_callback(dma_desc, tusb_omap_dma_cb, NULL, channel);
- 	dmaengine_submit(dma_desc);
- 
- 	dev_dbg(musb->controller,
-diff --git a/drivers/usb/musb/ux500_dma.c b/drivers/usb/musb/ux500_dma.c
-index bbb4978c0cd5f..378fb57358b58 100644
---- a/drivers/usb/musb/ux500_dma.c
-+++ b/drivers/usb/musb/ux500_dma.c
-@@ -116,8 +116,7 @@ static bool ux500_configure_channel(struct dma_channel *channel,
- 	if (!dma_desc)
- 		return false;
- 
--	dma_desc->callback = ux500_dma_callback;
--	dma_desc->callback_param = channel;
-+	dmaengine_desc_set_callback(dma_desc, ux500_dma_callback, NULL, channel);
- 	ux500_channel->cookie = dma_desc->tx_submit(dma_desc);
- 
- 	dma_async_issue_pending(dma_chan);
-diff --git a/drivers/usb/renesas_usbhs/fifo.c b/drivers/usb/renesas_usbhs/fifo.c
-index bac6f8fd0055e..8111d9b02c7ba 100644
---- a/drivers/usb/renesas_usbhs/fifo.c
-+++ b/drivers/usb/renesas_usbhs/fifo.c
-@@ -839,8 +839,7 @@ static void usbhsf_dma_xfer_preparing(struct usbhs_pkt *pkt)
- 	if (!desc)
- 		return;
- 
--	desc->callback_result	= usbhsf_dma_complete;
--	desc->callback_param	= pkt;
-+	dmaengine_desc_set_callback(desc, NULL, usbhsf_dma_complete, pkt);
- 
- 	cookie = dmaengine_submit(desc);
- 	if (cookie < 0) {
--- 
-2.43.0
+I tested to set `ti,max-div =3D <2>;` and it seems to correctly set the /2
+divider as well, but without specifying any assigned-clock{s,-rates}, so
+I'm missing the rationale of how the divider is selected.
 
+I'll drop this patch from the series for now, I think it needs more
+investigation to figure out why it behaves like this.
+
+Thanks,
+Ettore
