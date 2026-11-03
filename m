@@ -1,45 +1,75 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.200
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793736264;
-	b=SkOJdXIUxANLqqjDLp/RP534PpsA0enUKxD+NIvFLGaHY2KaoowhsM309IFW0AlameNp
-	 rLexFTZnCeMgrd0ud2HJ1444YTNWtV39C3N+wE2b1Eplpjkd7zwaSMGKlPmObFf3td0vB
-	 5xVQdo1/MA1AKX2xfvWOZ1skrAicXF4I9EmHnuBYL1+Iv0q0eiZLP6Sg0aqso5CXgSiNb
-	 FaFqAJai1a0zJsbun69ZMUWyaz5L+od28QwsfVi6WyOzdw5RJlopoZeKtav7pt6rCBZFO
-	 vF8JMl/mb5M6bT6kZq8Zs57L2XH1wiS/jqPHMR/ZxCtawD9l2R2csBCXOroE6cMGCcA==
+	t=1793740468;
+	b=l37yRaYnLOqmB3BTJe51lOo8wqpc/tEeJdTEApmRGXziGScNaZEuHDwyfX5bKKICXMoa
+	 aC0rwJCyTvYTUHWqq4KFwi1AJDTj6M5KZMTbwP2j4+YPhqnMd7FpbMyG04Z6DN0vAxQHe
+	 SFnpwXWh1mi+qg3HgAJupJ9tq0QAGRCqu07V6fwXXOXQPSjJWkTrYXJ9QQGBQ4V2ICPMe
+	 wVbdrjMxFoJgnKDGZhW+xwoSB41nSK7YVrv5qOU5GvG7yqBW6Cujwk1kF5fIUazIHWBOg
+	 mTaAn+cdUI8/QlnckCiMx/SB7bZ7f0NTP8/GZCnPzfWtapIPRvvlTO+FWQSldkoQlYw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793736264;
-	h=Received:DKIM-Signature:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding:Subject:From:To:Cc:In-Reply-To:References:
-	 Date:Message-Id:X-Mailer:X-Developer-Signature:X-Developer-Key;
-	bh=ca0hHsmpG3HQsvFcbsyFyNCCoxGaBnFVGg/6zIoTkvE=;
-	b=FdIicgG2KlFcLhLHvI/A2eIWgc0Y9KLkFKrO38Tlsk8cvPQPcsbNPBnFHmweb/Cp0acK
-	 mv3vTUnYlkoS+GF/6UyMqmBxHl9xXsSdUGdcuc67JO2PlFtrCURwuuyKt/7HvOzu6nyC/
-	 m76uM8Y1BLhjbcahEUD+SkQMlOPOQ7B+qg/EY16ZYFi/Dx5dUmwTz4LEKSiXnya0ePhRG
-	 yDs7DTU3FKNyaqdF4LDAd3Jw/gs9a1S0XnIBPSrPhcJUXfQouVUIJ7K39Hcac7WVSARR/
-	 veULIDGufuLf4QTCNVz/+kob26r7QLt70KR1KfNwwLx9TVB2pSTfF5mdl97l7ksaXgA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793740468;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Received:Date:In-Reply-To:
+	 Mime-Version:References:X-Mailer:Message-ID:Subject:From:To:Cc:
+	 Content-Type;
+	bh=nPKrnedIiXISgzxsOwTXqr4LP+3anTVqjEfGvppRktM=;
+	b=fAC5pvrwuUPSHtYnrMO6buyk215BTeuEKKi23t4isTMRYU/4GB+9R0hBr0FiMdLUVuts
+	 ZYDCo+NdvURSZT3V2Het7GkfYbnbMb3lYROFvx88SGZK1VzsPoLVTwnd2P/YTRaWjcs+W
+	 Zyfmk8+pmYwzrX5gOFGvQzpJhgsQtb17zGpOGnIBNcMdzmNuLrGmDkSE3FOWn8O8aOAkp
+	 K7+q423xfiNg0YpBYKd1+D3lkjSRMtIEDy61IabWrvt3/2gzV9BPxrZRdDk+U/H4KbIZG
+	 bWPzV0pmXynvqcluq47Wqh3GzH1xmiocfiAWFMYBWBcHE5YLnXFmBwPDCtD7BT1wmAA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=g5tU5JkE;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=google.com;
+	spf=pass smtp.mailfrom=flex--almasrymina.bounces.google.com;
+	dkim=pass header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=B5e1ru4B;
+	arc=none smtp.remote-ip=74.125.82.200
+Received: from mail-dy1-f200.google.com (mail-dy1-f200.google.com [74.125.82.200])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03B45606A330;
-	Tue,  3 Nov 2026 20:04:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EB3E606D80D
+	for <linux-omap@vger.kernel.org>; Tue,  3 Nov 2026 21:14:28 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8EB3E606D80D
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--almasrymina.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=g5tU5JkE
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B45061F0093A;
-	Tue,  3 Nov 2026 20:04:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793736263;
-	bh=ca0hHsmpG3HQsvFcbsyFyNCCoxGaBnFVGg/6zIoTkvE=;
-	h=Subject:From:To:Cc:In-Reply-To:References:Date;
-	b=g5tU5JkEwn4tu1d8S5HnYL+8vdGgzXem4oU05Ivtpp159At1KIxVA4QVqH9Z7tR1g
-	 x6DX0LiJbmP6icDXAz89InBZEoka7gRC/Q8Hnbluy8bqEoDKhkws0eRj0aiuQLkCBB
-	 HtwrcWANcgQ5Kk3sYUWepJzr363Uw4J74pa4OfPMQmrZIqC383w/D/VFOHZoTogQNp
-	 8M6wd08AdJWZ2Y2Z2koLg4LbvquOZ1oC7QwOacEKlBa5T+nLSBdVpwTsymBcHz6ago
-	 bbBdg7PM1hSa38IJY4dIKBUni/0OW+aRTBYYQsfpUX53IMuHxfJT4bkrjgbgvgnG/e
-	 Bu2SU3Mt6HVkQ==
+	dkim=pass (2048-bit key, unprotected) header.d=google.com header.i=@google.com header.a=rsa-sha256 header.s=20260707 header.b=B5e1ru4B
+Received: by mail-dy1-f200.google.com with SMTP id 5a478bee46e88-33c35f5ca6cso9644444eec.1
+        for <linux-omap@vger.kernel.org>; Tue, 03 Nov 2026 13:14:28 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20260707; t=1793740468; x=1794345268; darn=vger.kernel.org;
+        h=content-type:cc:to:from:subject:message-id:references:mime-version
+         :in-reply-to:date:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=nPKrnedIiXISgzxsOwTXqr4LP+3anTVqjEfGvppRktM=;
+        b=B5e1ru4BBlEgA9P06iBt9pW6ULXF22qVDV1kZzrpGnEek5hLiGoeJC/s3mkLVGsEjt
+         K6iSAJuNjPGc+dYhhidvpiWx7AD2+KtV9m5GKqxd7+uf3UxzYbK83bZU10c/ypPRpJo9
+         dXMjZgTNLpLAoahuRfkJ6HHADPBzbfJ91mZF6j9ZTsMZ2UhSBcTDsf+sHARKb9s5HIX+
+         KraxeQsqarEJI+jNHN7ABu+czMAJ5z2Cv8qgF86yAs6bt0QcXwFk/UH3PYVMr5QDXB9a
+         1be7je6BdzS1ffBM8lyaC6xLmeGERYY+drIyxtyu30uaOBkb1BYkvUBDEhphAo9cp+cz
+         3GJw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793740468; x=1794345268;
+        h=content-type:cc:to:from:subject:message-id:references:mime-version
+         :in-reply-to:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=nPKrnedIiXISgzxsOwTXqr4LP+3anTVqjEfGvppRktM=;
+        b=aUk4ZNbP+JdO5LA5vdSX1uQVvM9eFcbiuyBHfHFbWF5ivAsTe/ZomRgQHMKrN07wqI
+         H8KURzYnLKbpfSSSCji7U4XkezzwRE274t2A+zn5+afFQ6TmKXmYWuodVdR1qKGnQcrI
+         xWho1um+xAtnXl1KDQzbhobSGyKMYnsu+bnvuDM3wvvY/vjV4iwdfFyYRnYGLOl/h3eU
+         vj/sQs3RW7zRiJ/s8tVLt+3FI25i2ogJKceVnc8EmlLifEh1mDHrlZVpLKIqlpJ5CxOj
+         7KDePvqXkfWxPWiEI3+A2PiPAzUp9Qj3BsvxHCE39EVyxb1xQp53Cj5tgGrnwX7xsIEz
+         hUJg==
+X-Forwarded-Encrypted: i=1; AKwUvBwhAUhFpjvqzDhRgy/r5pW9DQG5XYg0CQzZNurItEgH+DFCtWorBL3Hi9c7yjOENIfbO1UX2cvi3SYu@vger.kernel.org
+X-Gm-Message-State: APuU4Z/5yYsAMw+EaXF66yNjE3ixjJC3XSlJaZTilWT/vgRvaIkhbUtp
+	ttLGYubXOK3R7GbChh1nRaaPZ72mcoJYs5dHz+gu51qo0UUOV3LApBkvBTnRn9vqIhaps6/TbWs
+	8mPGBavQtRuJAiX50ITQ+qg4W0Q==
+X-Received: from dlar7.prod.google.com ([2002:a05:701b:21c7:b0:195:8b4e:20b7])
+ (user=almasrymina job=prod-delivery.src-stubby-dispatcher) by
+ 2002:a05:701b:4517:10b0:185:fd0c:4585 with SMTP id a92af1059eb24-1ac5fb18de9mr20662974c88.33.1793740467189;
+ Tue, 03 Nov 2026 13:14:27 -0800 (PST)
+Date: Tue,  3 Nov 2026 21:14:20 +0000
+In-Reply-To: <20261103211424.127627-1-almasrymina@google.com>
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -48,104 +78,157 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH v3 3/3] clk: ti: dpll: apply the spread spectrum
- configuration right away
-From: Brian Masney <masneyb@kernel.org>
-To: Dario Binacchi <dario.binacchi@amarulasolutions.com>
-Cc: linux-kernel@vger.kernel.org, linux-amarula@amarulasolutions.com, 
- michael@amarulasolutions.com, Brian Masney <bmasney+clk@redhat.com>, 
- Jerome Brunet <jbrunet+clk@baylibre.com>, Stephen Boyd <sboyd@kernel.org>, 
- Tero Kristo <kristo@kernel.org>, linux-clk@vger.kernel.org, 
- linux-omap@vger.kernel.org, Brian Masney <masneyb@kernel.org>
-In-Reply-To: <20261028074436.1958132-4-dario.binacchi@amarulasolutions.com>
-References: <20261028074436.1958132-1-dario.binacchi@amarulasolutions.com>
- <20261028074436.1958132-4-dario.binacchi@amarulasolutions.com>
-Date: Tue, 03 Nov 2026 15:04:08 -0500
-Message-Id: <179373624826.588706.3689544002135897133.b4-review@b4>
-X-Mailer: b4 0.17-dev-7ca47
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2898; i=masneyb@kernel.org;
- s=20250903; h=from:subject:message-id;
- bh=jln7AT7QOPgP6kL9K0P39uOf2tdCbb81WRPJdPJZLVg=;
- b=owGbwMvMwCW2/dJd9di6A+2Mp9WSGLJe2TnValn07XX5sLVj5/1uZe5IwTnLVOL4WPgFHR3Sd
- q84tTato5SFQYyLQVZMkWVJrlFBROoq23t3NFlg5rAygQxh4OIUgImY8TIyLJT+Jzv1vfPj26sn
- PJ11fOtGY/+n678v447V2DkjTqJ5+yJGhmnT/+QrtTbtaDJOOXnpxFlVpy2fGjaIh3zjO/Qvm3n
- pYR4A
-X-Developer-Key: i=masneyb@kernel.org; a=openpgp;
- fpr=A46D32705865AA3DDEDC2904B7D2DD275D7EC087
+Mime-Version: 1.0
+References: <20261103211424.127627-1-almasrymina@google.com>
+X-Mailer: git-send-email 2.56.0.385.gac671c819a-goog
+Message-ID: <20261103211424.127627-2-almasrymina@google.com>
+Subject: [PATCH net-next v1 1/5] net: skbuff: skip managed zerocopy frags in skb_frag_ref()
+From: Mina Almasry <almasrymina@google.com>
+To: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	virtualization@lists.linux.dev, linux-mm@kvack.org, bpf@vger.kernel.org, 
+	linux-wireless@vger.kernel.org, linux-doc@vger.kernel.org, 
+	bcm-kernel-feedback-list@broadcom.com, imx@lists.linux.dev, 
+	linux-rdma@vger.kernel.org, linux-hyperv@vger.kernel.org, 
+	linux-renesas-soc@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Mina Almasry <almasrymina@google.com>, "David S. Miller" <davem@davemloft.net>, 
+	Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+	Simon Horman <horms@kernel.org>, Steffen Klassert <steffen.klassert@secunet.com>, 
+	Herbert Xu <herbert@gondor.apana.org.au>, Willem de Bruijn <willemb@google.com>, 
+	Stanislav Fomichev <sdf@fomichev.me>, Pavel Begunkov <asml.silence@gmail.com>, 
+	Bobby Eshleman <bobbyeshleman@meta.com>, Andrew Lunn <andrew+netdev@lunn.ch>, 
+	"Michael S. Tsirkin" <mst@redhat.com>, Jason Wang <jasowangio@gmail.com>, 
+	"=?UTF-8?q?Eugenio=20P=C3=A9rez?=" <eperezma@redhat.com>, Xuan Zhuo <xuanzhuo@linux.alibaba.com>, 
+	Andrew Morton <akpm@linux-foundation.org>, David Hildenbrand <david@kernel.org>, 
+	Lorenzo Stoakes <ljs@kernel.org>, "Liam R. Howlett" <liam@infradead.org>, Vlastimil Babka <vbabka@kernel.org>, 
+	Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>, Michal Hocko <mhocko@suse.com>, 
+	Jesper Dangaard Brouer <hawk@kernel.org>, Ilias Apalodimas <ilias.apalodimas@linaro.org>, 
+	Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, 
+	John Fastabend <john.fastabend@gmail.com>, Sabrina Dubroca <sd@queasysnail.net>, 
+	Johannes Berg <johannes@sipsolutions.net>, Byungchul Park <byungchul@sk.com>, 
+	Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>, 
+	Randy Dunlap <rdunlap@infradead.org>, Lorenzo Bianconi <lorenzo@kernel.org>, 
+	Wen Gu <guwen@linux.alibaba.com>, Philo Lu <lulie@linux.alibaba.com>, 
+	Justin Chen <justin.chen@broadcom.com>, Florian Fainelli <florian.fainelli@broadcom.com>, 
+	Vikas Gupta <vikas.gupta@broadcom.com>, Michael Chan <michael.chan@broadcom.com>, 
+	Pavan Chebbi <pavan.chebbi@broadcom.com>, Doug Berger <opendmb@gmail.com>, 
+	Nicolai Buchwitz <nb@tipi-net.de>, Satish Kharat <satishkh@cisco.com>, Wei Fang <wei.fang@nxp.com>, 
+	Frank Li <frank.li@nxp.com>, Shenwei Wang <shenwei.wang@nxp.com>, 
+	Joshua Washington <joshwash@google.com>, Harshitha Ramamurthy <hramamurthy@google.com>, 
+	Jijie Shao <shaojijie@huawei.com>, Jian Shen <shenjian15@huawei.com>, 
+	Fan Gong <gongfan1@huawei.com>, Tony Nguyen <anthony.l.nguyen@intel.com>, 
+	Przemek Kitszel <przemyslaw.kitszel@intel.com>, Marcin Wojtas <marcin.s.wojtas@gmail.com>, 
+	Russell King <linux@armlinux.org.uk>, Sunil Goutham <sgoutham@marvell.com>, 
+	Geetha sowjanya <gakula@marvell.com>, Ratheesh Kannoth <rkannoth@marvell.com>, 
+	Subbaraya Sundeep <sbhatta@marvell.com>, Bharat Bhushan <bbhushan2@marvell.com>, 
+	Felix Fietkau <nbd@nbd.name>, Matthias Brugger <matthias.bgg@gmail.com>, 
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, Tariq Toukan <tariqt@nvidia.com>, 
+	Saeed Mahameed <saeedm@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, Leon Romanovsky <leon@kernel.org>, 
+	Ido Schimmel <idosch@nvidia.com>, Petr Machata <petrm@nvidia.com>, 
+	Horatiu Vultur <horatiu.vultur@microchip.com>, UNGLinuxDriver@microchip.com, 
+	Daniel Machon <daniel.machon@microchip.com>, Steen Hegelund <Steen.Hegelund@microchip.com>, 
+	Haiyang Zhang <haiyangz@microsoft.com>, Wei Liu <wei.liu@kernel.org>, 
+	Dexuan Cui <decui@microsoft.com>, Yibo Dong <dong100@mucse.com>, 
+	Brett Creeley <brett.creeley@amd.com>, Justin Lai <justinlai0215@realtek.com>, 
+	Larry Chiu <larry.chiu@realtek.com>, 
+	"=?UTF-8?q?Niklas=20S=C3=B6derlund?=" <niklas.soderlund@ragnatech.se>, Paul Barker <paul@pbarker.dev>, 
+	Masahisa Kojima <kojima.masahisa@socionext.com>, 
+	Maxime Chevallier <maxime.chevallier@bootlin.com>, Maxime Coquelin <mcoquelin.stm32@gmail.com>, 
+	Alexandre Torgue <alexandre.torgue@foss.st.com>, FUJITA Tomonori <fujita.tomonori@gmail.com>, 
+	Siddharth Vadapalli <s-vadapalli@ti.com>, Roger Quadros <rogerq@kernel.org>, 
+	MD Danish Anwar <danishanwar@ti.com>, Jiawen Wu <jiawenwu@trustnetic.com>, 
+	Mengyuan Lou <mengyuanlou@net-swift.com>, Ronak Doshi <ronak.doshi@broadcom.com>, 
+	Ryder Lee <ryder.lee@mediatek.com>, Shayne Chen <shayne.chen@mediatek.com>, 
+	Sean Wang <sean.wang@mediatek.com>, Juergen Gross <jgross@suse.com>, 
+	Stefano Stabellini <sstabellini@kernel.org>, 
+	Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>, Jordan Rhee <jordanrhee@google.com>, 
+	Ankit Garg <nktgrg@google.com>, Tim Hostetler <thostet@google.com>, 
+	Erni Sri Satya Vennela <ernis@linux.microsoft.com>, Eric Joyner <eric.joyner@amd.com>, 
+	Mohammad Heib <mheib@redhat.com>, Prabu Thayalan <prabu.ponrajthayalan@amd.com>, 
+	Chintan Vankar <c-vankar@ti.com>, Nora Schiffer <nora.schiffer@ew.tq-group.com>, 
+	Alexander Sverdlin <alex@sverdlin.org>, Kevin Hao <haokexin@gmail.com>, 
+	Karl Mehltretter <kmehltretter@gmail.com>, 
+	Aleksandr Loktionov <aleksandr.loktionov@intel.com>, Meghana Malladi <m-malladi@ti.com>, 
+	Jacob Keller <jacob.e.keller@intel.com>, StanleyYP Wang <StanleyYP.Wang@mediatek.com>
+Content-Type: text/plain; charset="UTF-8"
 
-Hi Dario,
+skb_frag_unref() and skb_release_data() skip releasing references on
+managed zerocopy fragments (SKBFL_MANAGED_FRAG_REFS), whereas
+skb_frag_ref() acquires a reference unconditionally. If skb_frag_ref()
+is called on a managed zerocopy SKB, the acquired reference is never
+released by skb_frag_unref() or skb_release_data().
 
-> The spread spectrum clocking (SSC) registers are only programmed by
-> set_rate(), which the clock core skips when the requested rate is
-> already the current one, e.g. when the bootloader has set it up.
-> As a result, the SSC configuration is not applied, as it was with the
-> vendor specific properties.
-> 
-> Apply it from set_spread_spectrum() instead, reprogramming the DPLL
-> at its current rate.
-> 
-> Signed-off-by: Dario Binacchi <dario.binacchi@amarulasolutions.com>
-> ---
-> Changes in v3:
-> - Skip reprogramming only if the configuration is already applied
->   to the hardware
-> 
-> Changes in v2:
-> - Check the DPLL lock state instead of its parent, as the reference
->   and bypass clocks can be the same clock
-> 
->  drivers/clk/ti/dpll3xxx.c | 49 ++++++++++++++++++++++++++++++++++-----
->  1 file changed, 43 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/clk/ti/dpll3xxx.c b/drivers/clk/ti/dpll3xxx.c
-> index 634fe0a1f9fd..d32d81a27bfe 100644
-> --- a/drivers/clk/ti/dpll3xxx.c
-> +++ b/drivers/clk/ti/dpll3xxx.c
-> @@ -690,17 +690,22 @@ int omap3_noncore_dpll_set_rate(struct clk_hw *hw, unsigned long rate,
->   * @hw: pointer to the clock to set the spread spectrum configuration for
->   * @ss_conf: spread spectrum configuration
->   *
-> - * Stores the spread spectrum clocking (SSC) configuration of the DPLL. The
-> - * configuration is programmed along with the DPLL multiplier and divider
-> - * at the next rate change. The hardware supports center-spread and
-> - * down-spread only. Returns 0 on success, or a negative error value on
-> - * failure.
-> + * Stores the spread spectrum clocking (SSC) configuration of the DPLL and,
-> + * if the DPLL is locked, reprograms it at its current rate to apply it.
-> + * Otherwise the configuration is applied at the next rate change. The
-> + * hardware supports center-spread and down-spread only. Returns 0 on
-> + * success, negative error value otherwise.
->   */
->  int omap3_noncore_dpll_set_spread_spectrum(struct clk_hw *hw,
->  					   const struct clk_spread_spectrum *ss_conf)
->  {
->  	struct clk_hw_omap *clk = to_clk_hw_omap(hw);
->  	struct dpll_data *dd = clk->dpll_data;
-> +	struct clk_spread_spectrum old_conf;
-> +	struct clk_rate_request req;
-> +	unsigned long rate;
-> +	int ret;
-> +	u32 ctrl;
->  
->  	if (!dd || !dd->ssc_enable_mask)
->  		return -EOPNOTSUPP;
-> @@ -718,9 +723,41 @@ int omap3_noncore_dpll_set_spread_spectrum(struct clk_hw *hw,
->  		return -EINVAL;
->  	}
->  
-> +	ctrl = ti_clk_ll_ops->clk_readl(&dd->control_reg);
-> +
-> +	/* Already applied */
-> +	if (!memcmp(ss_conf, &dd->ssc_conf, sizeof(*ss_conf)) &&
-> +	    !!(ctrl & dd->ssc_enable_mask) == (ss_conf->method != CLK_SPREAD_NO))
+Skip acquiring a reference in skb_frag_ref() when skb_zcopy_managed(skb)
+is true so skb_frag_ref() matches skb_frag_unref() and
+skb_release_data(), and disable share_ok in iptfs_output_queued() when
+skb_zcopy_managed(skb) is true so iptfs_consume_frags() does not append
+unreferenced fragments into a managed zerocopy outer SKB.
 
-The == on this last line has me a little confused right now. Should this
-be an && instead?
+Signed-off-by: Mina Almasry <almasrymina@google.com>
+---
+ include/linux/skbuff_ref.h | 10 +++++++---
+ net/core/net_test.c        | 10 ++++++++++
+ net/xfrm/xfrm_iptfs.c      |  3 ++-
+ 3 files changed, 19 insertions(+), 4 deletions(-)
 
-Brian
-
+diff --git a/include/linux/skbuff_ref.h b/include/linux/skbuff_ref.h
+index b6f6da556ee90..e94c599ce83d2 100644
+--- a/include/linux/skbuff_ref.h
++++ b/include/linux/skbuff_ref.h
+@@ -36,12 +36,16 @@ static __always_inline void skb_netmem_ref(netmem_ref netmem, bool recycle)
+  *
+  * Acquires a reference on the @f'th fragment of @skb via skb_netmem_ref()
+  * (pp_ref_count if skb->pp_recycle and page_pool-backed, else non-pp
+- * backing refcount). Counterpart to skb_frag_unref().
++ * backing refcount), skipping managed zerocopy fragments. Counterpart to
++ * skb_frag_unref().
+  */
+ static __always_inline void skb_frag_ref(struct sk_buff *skb, int f)
+ {
+-	skb_netmem_ref(skb_frag_netmem(&skb_shinfo(skb)->frags[f]),
+-		       skb->pp_recycle);
++	struct skb_shared_info *shinfo = skb_shinfo(skb);
++
++	if (!skb_zcopy_managed(skb))
++		skb_netmem_ref(skb_frag_netmem(&shinfo->frags[f]),
++			       skb->pp_recycle);
+ }
+ 
+ bool napi_pp_put_page(netmem_ref netmem);
+diff --git a/net/core/net_test.c b/net/core/net_test.c
+index 2b5080c226636..e20059a00003c 100644
+--- a/net/core/net_test.c
++++ b/net/core/net_test.c
+@@ -571,6 +571,16 @@ static void netmem_ref_test_page(struct kunit *test)
+ 	skb_frag_unref(skb, 0);
+ 	KUNIT_EXPECT_EQ(test, page_ref_count(page), base_ref);
+ 
++	/* SKBFL_MANAGED_FRAG_REFS skips both skb_frag_ref and skb_frag_unref */
++	skb_shinfo(skb)->flags |= SKBFL_ZEROCOPY_ENABLE |
++				  SKBFL_MANAGED_FRAG_REFS;
++	skb_frag_ref(skb, 0);
++	KUNIT_EXPECT_EQ(test, page_ref_count(page), base_ref);
++	skb_frag_unref(skb, 0);
++	KUNIT_EXPECT_EQ(test, page_ref_count(page), base_ref);
++	skb_shinfo(skb)->flags &= ~(SKBFL_ZEROCOPY_ENABLE |
++				    SKBFL_MANAGED_FRAG_REFS);
++
+ 	skb_shinfo(skb)->nr_frags = 0;
+ 	consume_skb(skb);
+ 	__free_page(page);
+diff --git a/net/xfrm/xfrm_iptfs.c b/net/xfrm/xfrm_iptfs.c
+index 103cf7c5dbfb9..04ef833074fc8 100644
+--- a/net/xfrm/xfrm_iptfs.c
++++ b/net/xfrm/xfrm_iptfs.c
+@@ -2258,7 +2258,8 @@ static void iptfs_output_queued(struct xfrm_state *x, struct sk_buff_head *list)
+ 				nextp = &(*nextp)->next;
+ 		}
+ 
+-		if (shi->frag_list || skb_cloned(skb) || skb_shared(skb))
++		if (shi->frag_list || skb_cloned(skb) || skb_shared(skb) ||
++		    skb_zcopy_managed(skb))
+ 			share_ok = false;
+ 
+ 		/* See if we have enough space to simply append.
 -- 
-Brian Masney <masneyb@kernel.org>
+2.56.0.385.gac671c819a-goog
+
