@@ -1,13 +1,13 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.130.55
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1793792239;
-	b=cwBepiy6qxdMK7FTvQ+GKG1Bz8zTG+Pz2Ssp4lX+L6C/X298yRBkwM98bkocThKWTKFx
-	 PSB/ejJDG2xM7fJCGuirEVUJ0OsVwS4bXk4hnPM9PtiW4i0NcpqdN7UCDnOnst45TbVat
-	 sr7gJCMn0VuNKal4e3Q90mTq7iSfL7t6DMMdP3aC7ZFgXxHpIl0iFU2G9krogss3Q08He
-	 blt0t6Vcqc0+XFZXsP3402xPRvgl96NMMDURYCPKT6Xp/o9nMBR9VDkRIvN2BpmcpJUML
-	 WDATcsAeRpoYSxObdz/EvE5N61G/0GTmVrb9+Pp9s0lpiawIVHz5LVUlpdmadP2hnvQ==
+	t=1793792238;
+	b=aOdN48xcUyD8YAhFuXsvVKSC51WeR+C8hcJRj+sXb0frY4rALFLxW97ClxKNRQWsAYy5
+	 1U1RAaSlLXSlUtuhJu3tvfzgHY1V1rDbXRB6M7fjLJ45affjBWzijTptdVq7lNSOVSJDL
+	 e8ItrefA7DGZttmkXeTkto5+W0Ogn+1b0bjADZ0AFDcRWIp4sD4DTKYFMhspILuxvSZzF
+	 2CSIgYHBJWH7kHE9M87gDZtYLI8FLToXz1BZeY0GEHlQfsxgjIQ6A32AcHg4hZi6/Z0S/
+	 vBUaPURaDd1/O7UU5nohifztWprG5HvxNOCASt+jWIEHssrJEtr2lyiLllSJR8zuzPA==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793792239;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793792238;
 	h=DMARC-Filter:DKIM-Signature:Received:Received:From:To:Cc:Subject:
 	 Date:Message-ID:X-Mailer:Content-Transfer-Encoding:Content-Type:
 	 X-ClientProxiedBy:MIME-Version:X-MS-PublicTrafficType:
@@ -24,76 +24,97 @@ ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
 	 X-MS-Exchange-CrossTenant-Id:X-MS-Exchange-CrossTenant-MailboxType:
 	 X-MS-Exchange-CrossTenant-UserPrincipalName:
 	 X-MS-Exchange-Transport-CrossTenantHeadersStamped;
-	bh=sx6IFfQ95Vbqyb2CJl+oO9A50rlnJR1W46+8bQ0kTbQ=;
-	b=jOhae9UOA1aSJoTOEBkyO5YK8V0kwFBp+9N0QBNpZMdzsYXaYr7Al5nnI+QXrvXP2uHZ
-	 NShsUjIfOFDETeLZprSP/6JKHEF44PGuXPScj4AXXfQUchBVzYB9On9IuzO8Gob/scuc7
-	 xd3PYfyTaulslFI+hXLq7zrXqz1W4Gaak6aNGoOnJNH6WI50j+JD+po+E3HkibX+ivNGC
-	 0Fw4M8cA5cpM49wu/uOP3adu+bLZnkQgYnR0mvUl6VQki1PXDKxtK8n2nrkR9PI9nxuik
-	 sb7XJAod8j1ahhoEevMWYTIoUBQw5WgBMMEYA0JMlPSwDDshmF/4dNnG2O2RuLH2s6A==
+	bh=LFH7gsM6hB49EpgMrwzu6ChfzNsOO+s+lYp+Wy8rFEQ=;
+	b=yt+C0V+LwDmndL2tayVU3LhWIBjuWxDqRnzRXLLhbgmVf8C5cE/IhzdXT4E1Cwpf13FA
+	 9fIM+pPvqGDAZ/leFVJqDk+GUWV98e/LowqaYzIX/aUKiGS4usRFDhGUa+EzDpAdLnAp7
+	 pCX4C5fx9if5ZDVIbQ9zWUMxfgWrviBLF0N/l0ez73jdCJN1E4SwGPhRgueMH/PoYPD9x
+	 T7MTqmm4gXANI0c9KERIs4cQ5675HetLnjg8QOvpmQ0n3ezJQNkfrIIfhjq2e434iGvMv
+	 Xanr/Mj88L5aAXbSiX4zUrrFdSbXrmJnhbhzZ2XmEyeWjJrxOE7iGOgIoboOryk3cQw==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=oss.nxp.com;
 	spf=pass smtp.mailfrom=oss.nxp.com;
-	dkim=pass header.d=NXP1.onmicrosoft.com header.i=@NXP1.onmicrosoft.com header.a=rsa-sha256 header.s=selector1-NXP1-onmicrosoft-com header.b=vwvAe3DT;
+	dkim=pass header.d=NXP1.onmicrosoft.com header.i=@NXP1.onmicrosoft.com header.a=rsa-sha256 header.s=selector1-NXP1-onmicrosoft-com header.b=SZHJFGhP;
 	arc=pass header.oldest-pass=0 smtp.remote-ip=40.107.130.55
 Received: from MRWPR03CU001.outbound.protection.outlook.com (mail-francesouthazon11011055.outbound.protection.outlook.com [40.107.130.55])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (secp384r1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9310606D808;
-	Wed,  4 Nov 2026 11:37:18 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C9310606D808
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEFC7606D818;
+	Wed,  4 Nov 2026 11:37:17 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EEFC7606D818
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.nxp.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.nxp.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=NXP1.onmicrosoft.com header.i=@NXP1.onmicrosoft.com header.a=rsa-sha256 header.s=selector1-NXP1-onmicrosoft-com header.b=vwvAe3DT
+	dkim=pass (2048-bit key, unprotected) header.d=NXP1.onmicrosoft.com header.i=@NXP1.onmicrosoft.com header.a=rsa-sha256 header.s=selector1-NXP1-onmicrosoft-com header.b=SZHJFGhP
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=rGjwwflgqTW2gbGUg5t3NrE98Zzjaz7kmmlKaxgyzd8mqsM0SaHPAu9bvJGX2uiNIKbRF2c8BaVAdavn0MdYahgrMLLT58+oPWuTk0qYle7vGPJTyR9Ekmjv27jR2qb3xs9PxJUvCfueWuZZpkR6845ML/fsJwu+Aa8mZkPgO+r3nn7/4Mujb2z9OQdjiOQOtiHDF9J9+2L5m5oIQ74AeFxaFmnC0gSJ/jqlAfuf4LIFJQHpDGHr4/2MdVfOC9uqralmTDDNcKUqEYL6uSv6I62qGBxtKGtYTpQuLJjvvIn9CgUJ/H3tSbAAT4J4923irlX/WVeXSzMQ0fkyoBTQkg==
+ b=tVgQlB7HrMsQVoocw7vax7Hnm9y8JvWRT4nTl5K5C37CDuPkssBbIg55ukktvw+J6R4kbcAuN5j78PkUm6rSrUT9a1yubAVtkAldi6zvT2Ka7oW5WHQEQBL3gLDC+z/CGjPpkZzhKaA2zXpr7rr09j4w+EFJECKwSKl/hd07j8ewkRY79PEbB+09z0WC+TF4dSJoCZ09+oDcwhb1tVe1ZIBfBDyRMJBs4xbm7Pu2ECMovoWsxSG0rW/0IK+3XEjmvAR1Q52MXll205b4yLMTWY1KUfzDhmrYe/ZMMvQGGiNC9JYHkJqshhoHR4W8Bc08abXxCjv9rfgWd1GK2i8/IA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector10001;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=sx6IFfQ95Vbqyb2CJl+oO9A50rlnJR1W46+8bQ0kTbQ=;
- b=VBBrm8D017rQtKO0nj4noC2yO1elN/FZZj9f71j/h/l7hRPWdQiEZdYT6lQwSR1sOGkjcqWcI0Q5Qc13OFWeWU0vTJHd5GEegc7fMwx71e/Eg5N2WMK174PKXbVTHhT1oIT5LJ1StA4Re+L9Iq7k7sPOPF0Wbt/gnqKXXOiqatYfkEZ1taUMmOHl3hFswSdrd/fNbB7sLAijggKxMDgkQhUDsVw+UoH/4Y/JV0oNIa1vWpeHZsCMCMEmUS62hbQXkNmBeu9KgDnrFQ/V2xKTquaFUVr+enRWHVE3KzEKxx8TcEg8MUFD3neyC7GVzC8aYoRf6+Kw3HpDpuGtPl98Fg==
+ bh=LFH7gsM6hB49EpgMrwzu6ChfzNsOO+s+lYp+Wy8rFEQ=;
+ b=wakb6kT52//pLlXiStmOTNtkXiFQCJjuax8E9fpX8OCtShxVvc3tJrRSgadcU9fUTWpMQnitxfWC77H+xMkbmLJxhk24mkcIzSl2/wZUKpzwWPaVIu39HsY/+qU41Ke1VW62VZVYpfZeVS0UMEd+GtkMAEdr4Es1UdySk8MLlXOOs9f7l+SUTKi9gFongyXENrj5ZfTpqHMkjH4QeIhcD95Ss2wLu+nL02+ygO3uH6OfREMly7xf9CHHTMQcT4p8/LtsVdI0rnxToOYj1fl+O/rZ+2sfKe1gvMz/vZKeSDJBMehxhDyBU/pls43Lt8GvWRNW3uriiKP/zBvP+V4/9A==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=oss.nxp.com; dmarc=pass action=none header.from=oss.nxp.com;
  dkim=pass header.d=oss.nxp.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=NXP1.onmicrosoft.com;
  s=selector1-NXP1-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=sx6IFfQ95Vbqyb2CJl+oO9A50rlnJR1W46+8bQ0kTbQ=;
- b=vwvAe3DThZaRIqFhqUHfKmXH/56KSLIuzNlWgEFQLSCnjrRQcBWth3wMa8O0fc4qbuDatm1tfzEmf1m0JKaVSJ8Zi0Z7FHhctM7qF+0jHebWufrxadygUtjBP9DOBNwW/E0dNKe+q7iq1ArnKVb860ayTFRE3hWf+7x3TJyVzRHWCVO+jWmC8YeLYkYIdAwAZ4AvRvQDf1S3dPBqgF/hB8psVDAo3rfBw+VqMQy47paKIVQB6APhK+SUl6AMvhBIP/v3Y7eRZ+F70uHkCEqfjVccQB/orYNul/CYAKW4l9bxOQRlxwpLtZwreVsG1WbmQFzx7vRlP/cNCPbezcyWfw==
+ bh=LFH7gsM6hB49EpgMrwzu6ChfzNsOO+s+lYp+Wy8rFEQ=;
+ b=SZHJFGhPpX3CE97i9+yPy1DkQAyBQFJjJRVstTvheMPaDQsAnAGxu8l1QCWmLjgyyO9AAncK7sAarpAONaWaAWfqplZuu3NED4kRh/rDg7b9GWW+lBgrcBMRhCZ+B6u/CYHQIFv+QKwVeU8N52J2nQogdAZPdruAAfmHSPrgaNu9qRByMgw6bMgF2SSAYY3IuXwordNQtTpi6A7nb/uTqSOQq6t2Yr4EYc1kU8bv4d3wV1JrcUbD60codgBM7X+0Eq98pwlK6NSrShwbrBm/SD1YSZdGJYxTyhV1GWKgggUWwisl3+PN0D9TJF/qBFjlZdzNTH7Pm2cU3E3CtxuRBA==
 Authentication-Results: mx.microsoft.com 1; dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=oss.nxp.com;
 Received: from AM8PR04MB7874.eurprd04.prod.outlook.com (2603:10a6:20b:24d::9)
  by AS1PR04MB9264.eurprd04.prod.outlook.com (2603:10a6:20b:4c4::14) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.21.592.8; Wed, 4 Nov 2026
- 11:37:10 +0000
+ 11:36:54 +0000
 Received: from AM8PR04MB7874.eurprd04.prod.outlook.com
  ([fe80::ac38:1699:6f18:c5d9]) by AM8PR04MB7874.eurprd04.prod.outlook.com
  ([fe80::ac38:1699:6f18:c5d9%6]) with mapi id 15.21.0592.007; Wed, 4 Nov 2026
- 11:37:09 +0000
+ 11:36:54 +0000
 From: "Peng Fan (OSS)" <peng.fan@oss.nxp.com>
-To: Liam Girdwood <lgirdwood@gmail.com>,
-	Mark Brown <broonie@kernel.org>,
-	Support Opensource <support.opensource@diasemi.com>,
-	Chanwoo Choi <cw00.choi@samsung.com>,
-	Krzysztof Kozlowski <krzk@kernel.org>,
+To: Codrin Ciubotariu <codrin.ciubotariu@microchip.com>,
+	Andi Shyti <andi.shyti@kernel.org>,
+	Nicolas Ferre <nicolas.ferre@microchip.com>,
+	Alexandre Belloni <alexandre.belloni@bootlin.com>,
+	Claudiu Beznea <claudiu.beznea@tuxon.dev>,
+	Bartosz Golaszewski <brgl@kernel.org>,
+	Mika Westerberg <mika.westerberg@linux.intel.com>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Oleksij Rempel <o.rempel@pengutronix.de>,
+	Pengutronix Kernel Team <kernel@pengutronix.de>,
+	Frank Li <Frank.Li@nxp.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Fabio Estevam <festevam@gmail.com>,
+	Vignesh R <vigneshr@ti.com>,
 	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Janusz Krzysztofik <jmkrzyszt@gmail.com>,
+	Tony Lindgren <tony@atomide.com>,
 	Andreas Kemnade <andreas@kemnade.info>,
 	Kevin Hilman <khilman@baylibre.com>,
 	Roger Quadros <rogerq@kernel.org>,
-	Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org,
+	Vladimir Zapolskiy <vz@mleia.com>,
+	Piotr Wojtaszczyk <piotr.wojtaszczyk@timesys.com>,
+	Krzysztof Kozlowski <krzk@kernel.org>,
+	Peter Griffin <peter.griffin@linaro.org>,
+	Alim Akhtar <alim.akhtar@samsung.com>,
+	Wolfram Sang <wsa+renesas@sang-engineering.com>,
+	Linus Walleij <linusw@kernel.org>
+Cc: linux-i2c@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org,
+	imx@lists.linux.dev,
 	linux-omap@vger.kernel.org,
-	patches@opensource.cirrus.com
-Subject: [PATCH] regulator: Convert to subsys_platform_driver()
-Date: Wed,  4 Nov 2026 19:33:52 +0800
-Message-ID: <20261104113352.1634237-1-peng.fan@oss.nxp.com>
+	linux-samsung-soc@vger.kernel.org,
+	linux-renesas-soc@vger.kernel.org
+Subject: [PATCH] i2c: Convert to subsys_platform_driver()
+Date: Wed,  4 Nov 2026 19:33:16 +0800
+Message-ID: <20261104113316.1634141-1-peng.fan@oss.nxp.com>
 X-Mailer: git-send-email 2.51.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-ClientProxiedBy: SI1PR02CA0050.apcprd02.prod.outlook.com
- (2603:1096:4:1f5::12) To AM8PR04MB7874.eurprd04.prod.outlook.com
+X-ClientProxiedBy: SI1PR02CA0036.apcprd02.prod.outlook.com
+ (2603:1096:4:1f6::20) To AM8PR04MB7874.eurprd04.prod.outlook.com
  (2603:10a6:20b:24d::9)
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -106,57 +127,57 @@ Precedence: list
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
 X-MS-TrafficTypeDiagnostic: AM8PR04MB7874:EE_|AS1PR04MB9264:EE_
-X-MS-Office365-Filtering-Correlation-Id: 48205b1f-3d02-482d-588e-08df3a67f603
+X-MS-Office365-Filtering-Correlation-Id: 194a3014-1696-4f15-cbf0-08df3a67e1af
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam:
-	BCL:0;ARA:13230040|366016|19092799006|7416014|1800799024|23010399003|376014|10067099003|18002099003|3023799007|921020|56012099006|11063799006|261009223027099003|261102130727099003|261022075727099003|261026121527099003|261021123027099003|261021121427099003|260925022911599003|260925021311599003|260925021911599003|261102123227099003;
+	BCL:0;ARA:13230040|366016|19092799006|7416014|1800799024|23010399003|376014|10067099003|18002099003|3023799007|921020|56012099006|11063799006|261009223027099003|261022075727099003|261026121527099003|261021123027099003|261009221727099003|261009220027099003|261009221227099003|261009223327099003|261022115727099003|261021121427099003|261102123227099003;
 X-Microsoft-Antispam-Message-Info:
-	0uPlnPoe0yIrSYhqSIHA+JDYLzmwTNPhfzjo08RpjVTDUNZviFtXROjYkJnWxGRtg2ZxeDnj24EFgTHfb71IZ7gqa21KiA8JkYLKWUPMB1yO7U7UXK830eIYgmg8wlMCHQN6qRX1qFOvisUEJ7VXSH/ahLQCBd+KbUs7li519DgJ23a/1ychXO+LfsjHA+x2XX0m/jtHEghC2fMdSZhwYGCvM2BbJEzfaHMz2JPd6mUjH0sDdDmr3BIWeAxwva78M7Dsm6175vOeQM+RzXWskmkhOvNRZaCdjtzGvJCa9LkLgqT/kgvRiaoMXT8pVqit6Ry8RCnT7TrZxPo7RdYMu4AWpyER7c4gSCfPBO0XGcKvKqYjKxcmsUbDJmzx0TJrgZhODMm041CJFAxgfr4we5JQ0f4gvUZDUgwGibLBs8eRTgmtmFqFC+f6OVmbkW9vjHUxq9/nxJSOFhfqxnfj97MTRuC+rkc1Z4ZazKm9Z4lcKb4xqxMYyUTsfy+UeSyRgsfati2sCEBaRcwjf1ayjMElNkoKJrz29fx3N0qAsqS8Mk5zoULqxfYz1/4HnJU8ouH0yB6BoBPoKnJ0coHvy+MedP1V5wgVTIYLt5c/UNmljERNF+7jgIOOPtdDp/Qt/oSZBY9nR1rG7j0ORUED+q+4W48o4pD8Kq9HTJHbf9vb7iJk3h6As8fqDx7xEG40HtCFbV8UfhzB5EuvKQClaA==
+	CLspK8VdkUqX5sqrTkjQm5v3VZBEvmzn554GNHp10p+EmWKWjVr6bQGsIP/lCLAuYGEtaR06iVY+XHS7q2cIl7S8O0IveRQFyzNqKzk2zLhPixLQAv81UTnHvTSphyqL9UUTrxm7HgjgC+RMnDDyH8MtdZxuoTIyuVcp5DGmMIVX4luj1A+gHKGzXwJzskoBzCmyarA1NDQZzIwKGXzzkj3o3EJOKUjQvC4zX5Z0i9ijGF8IRVN/OsHMYaANK3dGKecx2wGRSdrQLsvTB1jNNJqkO5uardSMc/us5iQAP/9unNzCvIX8pJZcbEIkzOkxxLv54WbgZJZypmltc8F6C6Pd18IPV8zho2JjekqBJrW5zpTo/YASwWlYZROLCi9jplEnZqwfHm78Y5jRF+K400ozY4uuGKnfsy9JXtu4LQvYrWOiNeBg8XE0Q81tFncrQw8pcqOfdJLljAhTdDrtwYzqWO9q1o3+GMcSKTzhmAaADZD7zqffp2VLQ8IEHFbj4HsMMbe65mg16nF3pDYoYGcWSPKi59T+Gc55sSS0zI+4nBd8RiVUQJXbRoAG1pA77Jfsb+NIMxa0LHNrzy4dr8OwefBUhcuozyjtH4c27jfonVslnaeZBNsmJk8/zp5WQXU+TB9ou2FB1gSDsCBuc4aqueXFdJ5Uh5zaqzNqhkPwkE4iC65bTg8PylUWHPqnEc7XGs+QyBrzfLHn9dCmfA==
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM8PR04MB7874.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(19092799006)(7416014)(1800799024)(23010399003)(376014)(10067099003)(18002099003)(3023799007)(921020)(56012099006)(11063799006)(261009223027099003)(261102130727099003)(261022075727099003)(261026121527099003)(261021123027099003)(261021121427099003)(260925022911599003)(260925021311599003)(260925021911599003)(261102123227099003);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM8PR04MB7874.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(19092799006)(7416014)(1800799024)(23010399003)(376014)(10067099003)(18002099003)(3023799007)(921020)(56012099006)(11063799006)(261009223027099003)(261022075727099003)(261026121527099003)(261021123027099003)(261009221727099003)(261009220027099003)(261009221227099003)(261009223327099003)(261022115727099003)(261021121427099003)(261102123227099003);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?l4UDmK8ZnSIdP/EqY8Wc0HMWIdF6h0BknzW9Me7Pd08haDBUSR7yg2qaF4VC?=
- =?us-ascii?Q?hkms2StvysjzKfEFll4p8UsGL9SPPa6MWuKKB3gHP8LZgAwG1ypy20isifBg?=
- =?us-ascii?Q?ZuaCcKhVGYQ+tXcsiIbkRLAF2n+Bqif0N4qULM6IzXsaIE7hLc0QMwMFFLgV?=
- =?us-ascii?Q?LpahktOHIi+8cuiFWY6znOhgkzadRTbJEOpxRKTfD1CkYUzCDdR8Ug2y2cTe?=
- =?us-ascii?Q?S5j3AHDg73jRJEkk9ZWGjJJHpkEdX+RojyarDIRG/4ZJPtAGdIUmqqf9eYOe?=
- =?us-ascii?Q?n4brhTHUrzL+yNJCDxdTCNT5bQerjsx4q++1TSf+OM6fvgenl0utW0u3qIAE?=
- =?us-ascii?Q?DHF3cWZIBIs3W82+WiRgcI6rULFOTH5if2hkIVPqcVukJkypFnmRBwAGX9Ln?=
- =?us-ascii?Q?k1IPY+6k6BYGM4w/uOC12t6FZXZPgFZBFrPGJmpJ6aaybriaKvykn3fqocah?=
- =?us-ascii?Q?71jOMP5wO+70SEz9CAVJlHC3WjhbL0oj29kFKxGfvkLQRZVpS9WjYNq08FT+?=
- =?us-ascii?Q?nnJ2XAaKOhCNRtHU3qQXcnj9yg+smCT0wqBaVKEG2IOdp2ZuUYiB8aIh46kx?=
- =?us-ascii?Q?zE2/8pie0Bf440tS0owDwn1FS6nNvLJmB4kzo2ykPlAYVST5mRV+vdXSEAdH?=
- =?us-ascii?Q?4nOa+O8S+2hQCs/zCuQc9dDkUYizgTwn+o+u3IOCUDksjpMR7n9JZyRyxtie?=
- =?us-ascii?Q?pNu+Zy818NXB3fMXqV8bpOWwRzi+dy3FMKVZrFwS2FN2dfXFTk7r+bsNT/mw?=
- =?us-ascii?Q?Qd+PTIUy83NAt2q24ICDxskvuFJ/2xKSeRxpwaamg6uz5sE0V4lAhAxR55jS?=
- =?us-ascii?Q?YCOQqfR+wD+iALgwIFRb9m/OxiW3PvF/8j+WLtuhmvtOeLakXGZ8vR+V/IKV?=
- =?us-ascii?Q?ncZvifHy2GeIDJR6pICSJy19lsmE1s/CvXkZltDEr/Hr2VkQ9HtLeWEeCauV?=
- =?us-ascii?Q?T0HwW2ehZ/u90DDwBtDz9000v1fz6gDnDI9NlP2P6I0A0+0H9PERnxAx659u?=
- =?us-ascii?Q?4Kr7w+s3346q6yb60e8su/g98bWkB0hrlbb1Yg3Ps3uD4cUxpGyMPl1muMKH?=
- =?us-ascii?Q?3/Zl8KzytdkhH0A7ZB/kQuGNutj64o/dEt4ttQMjO2nL1d8rU0aGQgAL2DUd?=
- =?us-ascii?Q?WdRj7weVIEszjxJMN9RYCmoyun951+8A37aXKK07CHUzvB0mlPsz1kgt8E29?=
- =?us-ascii?Q?zj12zeN9YRxWOW+kWLcEHBTJxZGUFf2VSQmJnXNAtoOoIh8+7GKFy+YO255e?=
- =?us-ascii?Q?tnbwAE4WQDQQScGikql32T9fFW+f6CpnXoYxUts+oIrd0Dqi3NScHq7UcoAS?=
- =?us-ascii?Q?0vj5u9C8WuO71GzE+boitNJdEOFo997eeCoTWyQM2TelEoGkU7Ghe93gFjrv?=
- =?us-ascii?Q?fNJ+jw5VAJS6XT+7uLnjKreLQFgkUe8FRgEcUQRs2zEtlRTmcl9btP4tdTHF?=
- =?us-ascii?Q?nj6Dm8SaiAyxZ4CWjjMrQREx1LZG7ck7vnd1DUaaILyYIqtpwVAr2/euSrBW?=
- =?us-ascii?Q?5hBr4P2qJF9gnB+BXKdenJjnU8DTqXulh0fUQtSY4tG/G+ytLMdlyNubTHjg?=
- =?us-ascii?Q?5I/ZwWPWAYYVxg5D18DAbvAoIJRCW/lcDDLo/F2xvYCSEKNUU6Kzuj4GdvDx?=
- =?us-ascii?Q?JbRzEhdc3Q1yTC6HMo82kbsCILhJG9ylf18udWb4brLvA6T2ncVb1lggH0pE?=
- =?us-ascii?Q?KwKkbbLnImsmb54w7VV3q7kI0szF6kGLpGLaDqDHrGJAVWD3OsC5ylHO06GY?=
- =?us-ascii?Q?Oh7JpaiojJQHrd+y1YyxPMEiAROivHIRXwAOkgkgh1EQSUc/W7dS?=
+	=?us-ascii?Q?WxEbBunRf8DEdivPMlhQwic6OE0eWR+OB5TZx00aMsuL6adbgpqRBsTRASC3?=
+ =?us-ascii?Q?UiBqd6TygLmiTeyfm3vN5fShkqhBK/hr8QKXL3gj7ClE1aW194mU4LqVwvbL?=
+ =?us-ascii?Q?9SR//n7G6mvFuqG/oDwVjNNv3jTFYOE1fQKU4QKGYYU+0ZMuu3A6PQgxDtlG?=
+ =?us-ascii?Q?6qstF206JnZuwyW3Ggg/WxAvYGXTX7cWRlImM03oQWnaSiCWbUGrjF+qzfU5?=
+ =?us-ascii?Q?zgaQ45LIkADzcPYrrUVfQ9Y0cM/7dRK+tdHxrxZdJLiJWE62r8ii9zy4pzQA?=
+ =?us-ascii?Q?W/rfn/SloOTB56m1XOsng/mwgWOr50xcozkh0/tSoimwL1mjx/IDvmejKxWD?=
+ =?us-ascii?Q?BgXackvCLTy4cZvap5KBaROIKY2Jg3CCwkC/f3niH+6DvA87+p+miGSbbRs7?=
+ =?us-ascii?Q?G+pdlPQQfhzgKZb0u3ftsLjjaQ/VEAQtA5cEqLAkJuB9HerpdM2dFqy/ZSF3?=
+ =?us-ascii?Q?K65VYjc6aOWHTw9cbqjH7TrfU763U5Q9lXzlhuU8rywkBGSDCG6nKErH435i?=
+ =?us-ascii?Q?4d1tCiUcO0qanqThySyFCIcaAib579qQfMKKoSRV+dEaY0MXqlXpafR+yULg?=
+ =?us-ascii?Q?t4lSbA4Ui5UemhOMZhylePRlloDWtxTusv12LKyfDjym4Rw7wRPFPu6KJoE+?=
+ =?us-ascii?Q?GbqQxAhX4T8HDkRqCvTHllY8AUJ1gNK/nlpDVfnaA+AMtWMp6flXuHg3SOP9?=
+ =?us-ascii?Q?b/iNLZAFYKdlJmCfUasQAiqWc4fk4OGgtv0FsxvCrRO0e4hlNGhQ3zLSl1LT?=
+ =?us-ascii?Q?OcogKJXl02IxGFMibuVyntZsiI5N1UZNR48ljWH3DzFg8cZ42W5XcXuWESSZ?=
+ =?us-ascii?Q?GrCA0waq87ZuAxLa1kxaUjvSwSZeidMCZhH154kPc8SAc4MttbPilE7dB0Co?=
+ =?us-ascii?Q?D4mjMtdovKGjDG4zboDxFRFFVOIpxI6J/O5didMzkHBw77DpV+Br/WkBPASt?=
+ =?us-ascii?Q?um2KuEn5kNWi/D0rfLpMIYq+UHUjcZC60rIYHxVo5hRjLfmoRpXY5bxQo42c?=
+ =?us-ascii?Q?BBNY9JToDPDV88Y/Fnrfyb+zkRKjSl35/rYvcn0eYkUWFXH3erc6Ft7kM3yu?=
+ =?us-ascii?Q?Zs3dzZtZ/uQUnt+Cjk7/7O+lqd4IuXeJWVKkweqddE1jaiHwNEuhNUlCwZjS?=
+ =?us-ascii?Q?cCVHgpDwg1yf+rVwir8EccfyqPQw2KgieB2DOq4K/exp0tigBnefxlpTkybY?=
+ =?us-ascii?Q?FKWjb6YpsbzU02hmyUEigd7Zl/FZO0tq8wsV4KPUPTiVsIAGSU8NK0DRt4sE?=
+ =?us-ascii?Q?5VISOWY04LiAqYm0RBzRes8HpvPlZXxeaKyJxOy1UMrcGKlqMmHHPeO8dNve?=
+ =?us-ascii?Q?XUqTHJD6NVYduINRARkXDTgnjvchTk5gKBZFBqfgJBWYanSYbq9cIBNA7M0A?=
+ =?us-ascii?Q?SS4k8zPHD/cTEdikl0UMhAmpfafnTG2750HSSs5poURRfnsw93vTTCrTksKB?=
+ =?us-ascii?Q?MpPHM+Akp3Sx3w3/idRPaU3JgR5O50B2a2dsKsF9hVZV4Qq/CAV9DObxEV93?=
+ =?us-ascii?Q?Pm7hY38ZkCeLfCVi2LijsxXnSD5vI9pmtLbqMaC7eMOWbwIemSfj6T5+B8gF?=
+ =?us-ascii?Q?TuE/dJVMwQR5/vsFkrB0EVzPgjztDJtB3HEMBMRvr812qXmfDAJ+Al3B8T8h?=
+ =?us-ascii?Q?FJxxayL6X7wgb2pDmLY8evVnGLOUq2EhvDoITYR2llSo7MtF2rAkMX4KXgWb?=
+ =?us-ascii?Q?vOeA0RnIN83OShMj50D0KML6MzvVxy0kzbNOa+lVR8TrpUmTXEknRbPZrvLJ?=
+ =?us-ascii?Q?Aibw8tEUTyI1r9aHNrN+VUID3hTQlvPLU1BXbUzhCx/ksAtrbp2N?=
 X-OriginatorOrg: oss.nxp.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 48205b1f-3d02-482d-588e-08df3a67f603
+X-MS-Exchange-CrossTenant-Network-Message-Id: 194a3014-1696-4f15-cbf0-08df3a67e1af
 X-MS-Exchange-CrossTenant-AuthSource: AM8PR04MB7874.eurprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Nov 2026 11:37:09.6401
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Nov 2026 11:36:35.4034
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 686ea1d3-bc2b-4c6f-a92c-d99c5c301635
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 0ao+FZZRdVvBt7dQjfxDMpYgZwdu/VITmtXYSf29yIMFDM6Y5vjpkdKwaFuPwXw6DBRF3h3XKnx9A8o3fRLZYi2yWynyBQydLoyfDQwhNk2arpQSHxdx/4kDruWBoZ8Y
+X-MS-Exchange-CrossTenant-UserPrincipalName: FY2sKxUwOT1r9EUEH8XF+LEW6tYEUpCrqt5osbF/tsmS/l5TuZONNCThLvKIj1Knne7KQYhNN8s+k12QjJ2NZQ5ef4egfX9CLmZ4hZ+HR69Q+m6cEOzZsNH2rZvaiOQ5
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: AS1PR04MB9264
 
 From: Peng Fan <peng.fan@nxp.com>
@@ -168,733 +189,290 @@ No functional change.
 
 Signed-off-by: Peng Fan <peng.fan@nxp.com>
 ---
- drivers/regulator/88pm8607.c           | 13 +------------
- drivers/regulator/aat2870-regulator.c  | 13 +------------
- drivers/regulator/as3711-regulator.c   | 13 +------------
- drivers/regulator/da903x-regulator.c   | 13 +------------
- drivers/regulator/da9052-regulator.c   | 13 +------------
- drivers/regulator/da9055-regulator.c   | 13 +------------
- drivers/regulator/da9062-regulator.c   | 13 +------------
- drivers/regulator/da9063-regulator.c   | 13 +------------
- drivers/regulator/fixed.c              | 13 +------------
- drivers/regulator/gpio-regulator.c     | 13 +------------
- drivers/regulator/lp8788-buck.c        | 13 +------------
- drivers/regulator/max77693-regulator.c | 13 +------------
- drivers/regulator/max8907-regulator.c  | 14 +-------------
- drivers/regulator/max8925-regulator.c  | 13 +------------
- drivers/regulator/max8997-regulator.c  | 13 +------------
- drivers/regulator/max8998.c            | 13 +------------
- drivers/regulator/mc13783-regulator.c  | 13 +------------
- drivers/regulator/mc13892-regulator.c  | 13 +------------
- drivers/regulator/palmas-regulator.c   | 13 +------------
- drivers/regulator/rc5t583-regulator.c  | 13 +------------
- drivers/regulator/tps6105x-regulator.c | 13 +------------
- drivers/regulator/tps6507x-regulator.c | 13 +------------
- drivers/regulator/tps65090-regulator.c | 13 +------------
- drivers/regulator/tps65217-regulator.c | 13 +------------
- drivers/regulator/tps6586x-regulator.c | 13 +------------
- drivers/regulator/tps65910-regulator.c | 13 +------------
- drivers/regulator/tps68470-regulator.c | 12 +-----------
- drivers/regulator/wm8350-regulator.c   | 13 +------------
- drivers/regulator/wm8400-regulator.c   | 13 +------------
- 29 files changed, 29 insertions(+), 348 deletions(-)
+ drivers/i2c/busses/i2c-at91-core.c          | 13 +------------
+ drivers/i2c/busses/i2c-davinci.c            | 14 +-------------
+ drivers/i2c/busses/i2c-designware-platdrv.c | 13 +------------
+ drivers/i2c/busses/i2c-imx.c                | 13 +------------
+ drivers/i2c/busses/i2c-mxs.c                | 13 +------------
+ drivers/i2c/busses/i2c-omap.c               | 15 +--------------
+ drivers/i2c/busses/i2c-pnx.c                | 13 +------------
+ drivers/i2c/busses/i2c-pxa.c                | 13 +------------
+ drivers/i2c/busses/i2c-s3c2410.c            | 13 +------------
+ drivers/i2c/busses/i2c-sh_mobile.c          | 13 +------------
+ drivers/i2c/busses/i2c-versatile.c          | 13 +------------
+ 11 files changed, 11 insertions(+), 135 deletions(-)
 
-diff --git a/drivers/regulator/88pm8607.c b/drivers/regulator/88pm8607.c
-index 969554725a67..b740b4883812 100644
---- a/drivers/regulator/88pm8607.c
-+++ b/drivers/regulator/88pm8607.c
-@@ -386,18 +386,7 @@ static struct platform_driver pm8607_regulator_driver = {
- 	.probe		= pm8607_regulator_probe,
- 	.id_table	= pm8607_regulator_driver_ids,
+diff --git a/drivers/i2c/busses/i2c-at91-core.c b/drivers/i2c/busses/i2c-at91-core.c
+index 8ca4556d9664..67727e7287ae 100644
+--- a/drivers/i2c/busses/i2c-at91-core.c
++++ b/drivers/i2c/busses/i2c-at91-core.c
+@@ -341,18 +341,7 @@ static struct platform_driver at91_twi_driver = {
+ 	},
+ };
+ 
+-static int __init at91_twi_init(void)
+-{
+-	return platform_driver_register(&at91_twi_driver);
+-}
+-
+-static void __exit at91_twi_exit(void)
+-{
+-	platform_driver_unregister(&at91_twi_driver);
+-}
+-
+-subsys_initcall(at91_twi_init);
+-module_exit(at91_twi_exit);
++subsys_platform_driver(at91_twi_driver);
+ 
+ MODULE_AUTHOR("Nikolaus Voss <n.voss@weinmann.de>");
+ MODULE_DESCRIPTION("I2C (TWI) driver for Atmel AT91");
+diff --git a/drivers/i2c/busses/i2c-davinci.c b/drivers/i2c/busses/i2c-davinci.c
+index e15eef163a8f..b7afdf22fad5 100644
+--- a/drivers/i2c/busses/i2c-davinci.c
++++ b/drivers/i2c/busses/i2c-davinci.c
+@@ -896,19 +896,7 @@ static struct platform_driver davinci_i2c_driver = {
+ 		.of_match_table = davinci_i2c_of_match,
+ 	},
  };
 -
--static int __init pm8607_regulator_init(void)
+-/* I2C may be needed to bring up other drivers */
+-static int __init davinci_i2c_init_driver(void)
 -{
--	return platform_driver_register(&pm8607_regulator_driver);
+-	return platform_driver_register(&davinci_i2c_driver);
 -}
--subsys_initcall(pm8607_regulator_init);
+-subsys_initcall(davinci_i2c_init_driver);
 -
--static void __exit pm8607_regulator_exit(void)
+-static void __exit davinci_i2c_exit_driver(void)
 -{
--	platform_driver_unregister(&pm8607_regulator_driver);
+-	platform_driver_unregister(&davinci_i2c_driver);
 -}
--module_exit(pm8607_regulator_exit);
-+subsys_platform_driver(pm8607_regulator_driver);
+-module_exit(davinci_i2c_exit_driver);
++subsys_platform_driver(davinci_i2c_driver);
+ 
+ MODULE_AUTHOR("Texas Instruments India");
+ MODULE_DESCRIPTION("TI DaVinci I2C bus adapter");
+diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c b/drivers/i2c/busses/i2c-designware-platdrv.c
+index 1da6b0314b6a..0f7d564bd187 100644
+--- a/drivers/i2c/busses/i2c-designware-platdrv.c
++++ b/drivers/i2c/busses/i2c-designware-platdrv.c
+@@ -315,18 +315,7 @@ static struct platform_driver dw_i2c_driver = {
+ 	},
+ 	.id_table = dw_i2c_platform_ids,
+ };
+-
+-static int __init dw_i2c_init_driver(void)
+-{
+-	return platform_driver_register(&dw_i2c_driver);
+-}
+-subsys_initcall(dw_i2c_init_driver);
+-
+-static void __exit dw_i2c_exit_driver(void)
+-{
+-	platform_driver_unregister(&dw_i2c_driver);
+-}
+-module_exit(dw_i2c_exit_driver);
++subsys_platform_driver(dw_i2c_driver);
+ 
+ MODULE_AUTHOR("Baruch Siach <baruch@tkos.co.il>");
+ MODULE_DESCRIPTION("Synopsys DesignWare I2C bus adapter");
+diff --git a/drivers/i2c/busses/i2c-imx.c b/drivers/i2c/busses/i2c-imx.c
+index ccf08cd63151..fff31638cb8e 100644
+--- a/drivers/i2c/busses/i2c-imx.c
++++ b/drivers/i2c/busses/i2c-imx.c
+@@ -2126,18 +2126,7 @@ static struct platform_driver i2c_imx_driver = {
+ 	},
+ 	.id_table = imx_i2c_devtype,
+ };
+-
+-static int __init i2c_adap_imx_init(void)
+-{
+-	return platform_driver_register(&i2c_imx_driver);
+-}
+-subsys_initcall(i2c_adap_imx_init);
+-
+-static void __exit i2c_adap_imx_exit(void)
+-{
+-	platform_driver_unregister(&i2c_imx_driver);
+-}
+-module_exit(i2c_adap_imx_exit);
++subsys_platform_driver(i2c_imx_driver);
  
  MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Haojian Zhuang <haojian.zhuang@marvell.com>");
-diff --git a/drivers/regulator/aat2870-regulator.c b/drivers/regulator/aat2870-regulator.c
-index 970d86f2bbb8..52c08e6c4803 100644
---- a/drivers/regulator/aat2870-regulator.c
-+++ b/drivers/regulator/aat2870-regulator.c
-@@ -182,18 +182,7 @@ static struct platform_driver aat2870_regulator_driver = {
- 	},
- 	.probe	= aat2870_regulator_probe,
+ MODULE_AUTHOR("Darius Augulis");
+diff --git a/drivers/i2c/busses/i2c-mxs.c b/drivers/i2c/busses/i2c-mxs.c
+index eee4fdcd9df3..ad0b1e911dfe 100644
+--- a/drivers/i2c/busses/i2c-mxs.c
++++ b/drivers/i2c/busses/i2c-mxs.c
+@@ -888,18 +888,7 @@ static struct platform_driver mxs_i2c_driver = {
+ 	.probe = mxs_i2c_probe,
+ 	.remove = mxs_i2c_remove,
  };
 -
--static int __init aat2870_regulator_init(void)
+-static int __init mxs_i2c_init(void)
 -{
--	return platform_driver_register(&aat2870_regulator_driver);
+-	return platform_driver_register(&mxs_i2c_driver);
 -}
--subsys_initcall(aat2870_regulator_init);
+-subsys_initcall(mxs_i2c_init);
 -
--static void __exit aat2870_regulator_exit(void)
+-static void __exit mxs_i2c_exit(void)
 -{
--	platform_driver_unregister(&aat2870_regulator_driver);
+-	platform_driver_unregister(&mxs_i2c_driver);
 -}
--module_exit(aat2870_regulator_exit);
-+subsys_platform_driver(aat2870_regulator_driver);
+-module_exit(mxs_i2c_exit);
++subsys_platform_driver(mxs_i2c_driver);
  
- MODULE_DESCRIPTION("AnalogicTech AAT2870 Regulator");
+ MODULE_AUTHOR("Marek Vasut <marex@denx.de>");
+ MODULE_AUTHOR("Wolfram Sang <kernel@pengutronix.de>");
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index bd659dfa702f..cd4d6d6b32c6 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -1611,20 +1611,7 @@ static struct platform_driver omap_i2c_driver = {
+ 		.of_match_table = of_match_ptr(omap_i2c_of_match),
+ 	},
+ };
+-
+-/* I2C may be needed to bring up other drivers */
+-static int __init
+-omap_i2c_init_driver(void)
+-{
+-	return platform_driver_register(&omap_i2c_driver);
+-}
+-subsys_initcall(omap_i2c_init_driver);
+-
+-static void __exit omap_i2c_exit_driver(void)
+-{
+-	platform_driver_unregister(&omap_i2c_driver);
+-}
+-module_exit(omap_i2c_exit_driver);
++subsys_platform_driver(omap_i2c_driver);
+ 
+ MODULE_AUTHOR("MontaVista Software, Inc. (and others)");
+ MODULE_DESCRIPTION("TI OMAP I2C bus adapter");
+diff --git a/drivers/i2c/busses/i2c-pnx.c b/drivers/i2c/busses/i2c-pnx.c
+index e1cc2b2bd628..9a9a12b7e981 100644
+--- a/drivers/i2c/busses/i2c-pnx.c
++++ b/drivers/i2c/busses/i2c-pnx.c
+@@ -735,16 +735,6 @@ static struct platform_driver i2c_pnx_driver = {
+ 	.remove = i2c_pnx_remove,
+ };
+ 
+-static int __init i2c_adap_pnx_init(void)
+-{
+-	return platform_driver_register(&i2c_pnx_driver);
+-}
+-
+-static void __exit i2c_adap_pnx_exit(void)
+-{
+-	platform_driver_unregister(&i2c_pnx_driver);
+-}
+-
+ MODULE_AUTHOR("Vitaly Wool");
+ MODULE_AUTHOR("Dennis Kovalev <source@mvista.com>");
+ MODULE_DESCRIPTION("I2C driver for Philips IP3204-based I2C busses");
+@@ -752,5 +742,4 @@ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("platform:pnx-i2c");
+ 
+ /* We need to make sure I2C is initialized before USB */
+-subsys_initcall(i2c_adap_pnx_init);
+-module_exit(i2c_adap_pnx_exit);
++subsys_platform_driver(i2c_pnx_driver);
+diff --git a/drivers/i2c/busses/i2c-pxa.c b/drivers/i2c/busses/i2c-pxa.c
+index c9927a389aaf..f045d0c2c54b 100644
+--- a/drivers/i2c/busses/i2c-pxa.c
++++ b/drivers/i2c/busses/i2c-pxa.c
+@@ -1607,18 +1607,7 @@ static struct platform_driver i2c_pxa_driver = {
+ 	.id_table	= i2c_pxa_id_table,
+ };
+ 
+-static int __init i2c_adap_pxa_init(void)
+-{
+-	return platform_driver_register(&i2c_pxa_driver);
+-}
+-
+-static void __exit i2c_adap_pxa_exit(void)
+-{
+-	platform_driver_unregister(&i2c_pxa_driver);
+-}
+-
+ MODULE_DESCRIPTION("Intel PXA2XX I2C adapter");
  MODULE_LICENSE("GPL");
-diff --git a/drivers/regulator/as3711-regulator.c b/drivers/regulator/as3711-regulator.c
-index 0431a732cd78..22fa51ce22ee 100644
---- a/drivers/regulator/as3711-regulator.c
-+++ b/drivers/regulator/as3711-regulator.c
-@@ -247,18 +247,7 @@ static struct platform_driver as3711_regulator_driver = {
+ 
+-subsys_initcall(i2c_adap_pxa_init);
+-module_exit(i2c_adap_pxa_exit);
++subsys_platform_driver(i2c_pxa_driver);
+diff --git a/drivers/i2c/busses/i2c-s3c2410.c b/drivers/i2c/busses/i2c-s3c2410.c
+index 15e14a6fe6dc..dd1f6f854a32 100644
+--- a/drivers/i2c/busses/i2c-s3c2410.c
++++ b/drivers/i2c/busses/i2c-s3c2410.c
+@@ -1188,18 +1188,7 @@ static struct platform_driver s3c24xx_i2c_driver = {
+ 		.of_match_table = of_match_ptr(s3c24xx_i2c_match),
  	},
- 	.probe		= as3711_regulator_probe,
  };
 -
--static int __init as3711_regulator_init(void)
+-static int __init i2c_adap_s3c_init(void)
 -{
--	return platform_driver_register(&as3711_regulator_driver);
+-	return platform_driver_register(&s3c24xx_i2c_driver);
 -}
--subsys_initcall(as3711_regulator_init);
+-subsys_initcall(i2c_adap_s3c_init);
 -
--static void __exit as3711_regulator_exit(void)
+-static void __exit i2c_adap_s3c_exit(void)
 -{
--	platform_driver_unregister(&as3711_regulator_driver);
+-	platform_driver_unregister(&s3c24xx_i2c_driver);
 -}
--module_exit(as3711_regulator_exit);
-+subsys_platform_driver(as3711_regulator_driver);
+-module_exit(i2c_adap_s3c_exit);
++subsys_platform_driver(s3c24xx_i2c_driver);
  
- MODULE_AUTHOR("Guennadi Liakhovetski <g.liakhovetski@gmx.de>");
- MODULE_DESCRIPTION("AS3711 regulator driver");
-diff --git a/drivers/regulator/da903x-regulator.c b/drivers/regulator/da903x-regulator.c
-index 2f85897183b3..05629667dfc3 100644
---- a/drivers/regulator/da903x-regulator.c
-+++ b/drivers/regulator/da903x-regulator.c
-@@ -475,18 +475,7 @@ static struct platform_driver da903x_regulator_driver = {
- 	},
- 	.probe		= da903x_regulator_probe,
+ MODULE_DESCRIPTION("S3C24XX I2C Bus driver");
+ MODULE_AUTHOR("Ben Dooks <ben@simtec.co.uk>");
+diff --git a/drivers/i2c/busses/i2c-sh_mobile.c b/drivers/i2c/busses/i2c-sh_mobile.c
+index 3a55f803e4f1..1ecf14890209 100644
+--- a/drivers/i2c/busses/i2c-sh_mobile.c
++++ b/drivers/i2c/busses/i2c-sh_mobile.c
+@@ -986,18 +986,7 @@ static struct platform_driver sh_mobile_i2c_driver = {
+ 	.probe		= sh_mobile_i2c_probe,
+ 	.remove		= sh_mobile_i2c_remove,
  };
 -
--static int __init da903x_regulator_init(void)
+-static int __init sh_mobile_i2c_adap_init(void)
 -{
--	return platform_driver_register(&da903x_regulator_driver);
+-	return platform_driver_register(&sh_mobile_i2c_driver);
 -}
--subsys_initcall(da903x_regulator_init);
+-subsys_initcall(sh_mobile_i2c_adap_init);
 -
--static void __exit da903x_regulator_exit(void)
+-static void __exit sh_mobile_i2c_adap_exit(void)
 -{
--	platform_driver_unregister(&da903x_regulator_driver);
+-	platform_driver_unregister(&sh_mobile_i2c_driver);
 -}
--module_exit(da903x_regulator_exit);
-+subsys_platform_driver(da903x_regulator_driver);
+-module_exit(sh_mobile_i2c_adap_exit);
++subsys_platform_driver(sh_mobile_i2c_driver);
  
+ MODULE_DESCRIPTION("SuperH Mobile I2C Bus Controller driver");
+ MODULE_AUTHOR("Magnus Damm");
+diff --git a/drivers/i2c/busses/i2c-versatile.c b/drivers/i2c/busses/i2c-versatile.c
+index a1ab6ef6f071..152ab19f272a 100644
+--- a/drivers/i2c/busses/i2c-versatile.c
++++ b/drivers/i2c/busses/i2c-versatile.c
+@@ -116,18 +116,7 @@ static struct platform_driver i2c_versatile_driver = {
+ 	},
+ };
+ 
+-static int __init i2c_versatile_init(void)
+-{
+-	return platform_driver_register(&i2c_versatile_driver);
+-}
+-
+-static void __exit i2c_versatile_exit(void)
+-{
+-	platform_driver_unregister(&i2c_versatile_driver);
+-}
+-
+-subsys_initcall(i2c_versatile_init);
+-module_exit(i2c_versatile_exit);
++subsys_platform_driver(i2c_versatile_driver);
+ 
+ MODULE_DESCRIPTION("ARM Versatile I2C bus driver");
  MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Eric Miao <eric.miao@marvell.com>"
-diff --git a/drivers/regulator/da9052-regulator.c b/drivers/regulator/da9052-regulator.c
-index fbebe538a648..412eb27c1067 100644
---- a/drivers/regulator/da9052-regulator.c
-+++ b/drivers/regulator/da9052-regulator.c
-@@ -441,18 +441,7 @@ static struct platform_driver da9052_regulator_driver = {
- 		.probe_type = PROBE_PREFER_ASYNCHRONOUS,
- 	},
- };
--
--static int __init da9052_regulator_init(void)
--{
--	return platform_driver_register(&da9052_regulator_driver);
--}
--subsys_initcall(da9052_regulator_init);
--
--static void __exit da9052_regulator_exit(void)
--{
--	platform_driver_unregister(&da9052_regulator_driver);
--}
--module_exit(da9052_regulator_exit);
-+subsys_platform_driver(da9052_regulator_driver);
- 
- MODULE_AUTHOR("David Dajun Chen <dchen@diasemi.com>");
- MODULE_DESCRIPTION("Power Regulator driver for Dialog DA9052 PMIC");
-diff --git a/drivers/regulator/da9055-regulator.c b/drivers/regulator/da9055-regulator.c
-index a0d3414aa79e..29756eec6502 100644
---- a/drivers/regulator/da9055-regulator.c
-+++ b/drivers/regulator/da9055-regulator.c
-@@ -579,18 +579,7 @@ static struct platform_driver da9055_regulator_driver = {
- 		.probe_type = PROBE_PREFER_ASYNCHRONOUS,
- 	},
- };
--
--static int __init da9055_regulator_init(void)
--{
--	return platform_driver_register(&da9055_regulator_driver);
--}
--subsys_initcall(da9055_regulator_init);
--
--static void __exit da9055_regulator_exit(void)
--{
--	platform_driver_unregister(&da9055_regulator_driver);
--}
--module_exit(da9055_regulator_exit);
-+subsys_platform_driver(da9055_regulator_driver);
- 
- MODULE_AUTHOR("David Dajun Chen <dchen@diasemi.com>");
- MODULE_DESCRIPTION("Power Regulator driver for Dialog DA9055 PMIC");
-diff --git a/drivers/regulator/da9062-regulator.c b/drivers/regulator/da9062-regulator.c
-index e0c96f10e570..7f0604327358 100644
---- a/drivers/regulator/da9062-regulator.c
-+++ b/drivers/regulator/da9062-regulator.c
-@@ -1036,18 +1036,7 @@ static struct platform_driver da9062_regulator_driver = {
- 	},
- 	.probe = da9062_regulator_probe,
- };
--
--static int __init da9062_regulator_init(void)
--{
--	return platform_driver_register(&da9062_regulator_driver);
--}
--subsys_initcall(da9062_regulator_init);
--
--static void __exit da9062_regulator_cleanup(void)
--{
--	platform_driver_unregister(&da9062_regulator_driver);
--}
--module_exit(da9062_regulator_cleanup);
-+subsys_platform_driver(da9062_regulator_driver);
- 
- /* Module information */
- MODULE_AUTHOR("S Twiss <stwiss.opensource@diasemi.com>");
-diff --git a/drivers/regulator/da9063-regulator.c b/drivers/regulator/da9063-regulator.c
-index bf34ea440d77..b4680f335961 100644
---- a/drivers/regulator/da9063-regulator.c
-+++ b/drivers/regulator/da9063-regulator.c
-@@ -1064,18 +1064,7 @@ static struct platform_driver da9063_regulator_driver = {
- 	},
- 	.probe = da9063_regulator_probe,
- };
--
--static int __init da9063_regulator_init(void)
--{
--	return platform_driver_register(&da9063_regulator_driver);
--}
--subsys_initcall(da9063_regulator_init);
--
--static void __exit da9063_regulator_cleanup(void)
--{
--	platform_driver_unregister(&da9063_regulator_driver);
--}
--module_exit(da9063_regulator_cleanup);
-+subsys_platform_driver(da9063_regulator_driver);
- 
- 
- /* Module information */
-diff --git a/drivers/regulator/fixed.c b/drivers/regulator/fixed.c
-index f797cb504b9a..3f95ac2b0d29 100644
---- a/drivers/regulator/fixed.c
-+++ b/drivers/regulator/fixed.c
-@@ -388,18 +388,7 @@ static struct platform_driver regulator_fixed_voltage_driver = {
- 		.of_match_table = of_match_ptr(fixed_of_match),
- 	},
- };
--
--static int __init regulator_fixed_voltage_init(void)
--{
--	return platform_driver_register(&regulator_fixed_voltage_driver);
--}
--subsys_initcall(regulator_fixed_voltage_init);
--
--static void __exit regulator_fixed_voltage_exit(void)
--{
--	platform_driver_unregister(&regulator_fixed_voltage_driver);
--}
--module_exit(regulator_fixed_voltage_exit);
-+subsys_platform_driver(regulator_fixed_voltage_driver);
- 
- MODULE_AUTHOR("Mark Brown <broonie@opensource.wolfsonmicro.com>");
- MODULE_DESCRIPTION("Fixed voltage regulator");
-diff --git a/drivers/regulator/gpio-regulator.c b/drivers/regulator/gpio-regulator.c
-index 6351ceefdb3e..e16eedb27b1c 100644
---- a/drivers/regulator/gpio-regulator.c
-+++ b/drivers/regulator/gpio-regulator.c
-@@ -370,18 +370,7 @@ static struct platform_driver gpio_regulator_driver = {
- 		.of_match_table = of_match_ptr(regulator_gpio_of_match),
- 	},
- };
--
--static int __init gpio_regulator_init(void)
--{
--	return platform_driver_register(&gpio_regulator_driver);
--}
--subsys_initcall(gpio_regulator_init);
--
--static void __exit gpio_regulator_exit(void)
--{
--	platform_driver_unregister(&gpio_regulator_driver);
--}
--module_exit(gpio_regulator_exit);
-+subsys_platform_driver(gpio_regulator_driver);
- 
- MODULE_AUTHOR("Heiko Stuebner <heiko@sntech.de>");
- MODULE_DESCRIPTION("gpio voltage regulator");
-diff --git a/drivers/regulator/lp8788-buck.c b/drivers/regulator/lp8788-buck.c
-index 2ade249ab6df..6028c2ac11ec 100644
---- a/drivers/regulator/lp8788-buck.c
-+++ b/drivers/regulator/lp8788-buck.c
-@@ -522,18 +522,7 @@ static struct platform_driver lp8788_buck_driver = {
- 		.probe_type = PROBE_PREFER_ASYNCHRONOUS,
- 	},
- };
--
--static int __init lp8788_buck_init(void)
--{
--	return platform_driver_register(&lp8788_buck_driver);
--}
--subsys_initcall(lp8788_buck_init);
--
--static void __exit lp8788_buck_exit(void)
--{
--	platform_driver_unregister(&lp8788_buck_driver);
--}
--module_exit(lp8788_buck_exit);
-+subsys_platform_driver(lp8788_buck_driver);
- 
- MODULE_DESCRIPTION("TI LP8788 BUCK Driver");
- MODULE_AUTHOR("Milo Kim");
-diff --git a/drivers/regulator/max77693-regulator.c b/drivers/regulator/max77693-regulator.c
-index a8b3a2058d34..cfadf33574c3 100644
---- a/drivers/regulator/max77693-regulator.c
-+++ b/drivers/regulator/max77693-regulator.c
-@@ -286,18 +286,7 @@ static struct platform_driver max77693_pmic_driver = {
- 	.probe = max77693_pmic_probe,
- 	.id_table = max77693_pmic_id,
- };
--
--static int __init max77693_pmic_init(void)
--{
--	return platform_driver_register(&max77693_pmic_driver);
--}
--subsys_initcall(max77693_pmic_init);
--
--static void __exit max77693_pmic_cleanup(void)
--{
--	platform_driver_unregister(&max77693_pmic_driver);
--}
--module_exit(max77693_pmic_cleanup);
-+subsys_platform_driver(max77693_pmic_driver);
- 
- MODULE_DESCRIPTION("MAXIM 77693/77843 regulator driver");
- MODULE_AUTHOR("Jonghwa Lee <jonghwa3.lee@samsung.com>");
-diff --git a/drivers/regulator/max8907-regulator.c b/drivers/regulator/max8907-regulator.c
-index e59aa7a3ee54..f8f0a50161c6 100644
---- a/drivers/regulator/max8907-regulator.c
-+++ b/drivers/regulator/max8907-regulator.c
-@@ -377,19 +377,7 @@ static struct platform_driver max8907_regulator_driver = {
- 	.probe = max8907_regulator_probe,
- };
- 
--static int __init max8907_regulator_init(void)
--{
--	return platform_driver_register(&max8907_regulator_driver);
--}
--
--subsys_initcall(max8907_regulator_init);
--
--static void __exit max8907_reg_exit(void)
--{
--	platform_driver_unregister(&max8907_regulator_driver);
--}
--
--module_exit(max8907_reg_exit);
-+subsys_platform_driver(max8907_regulator_driver);
- 
- MODULE_DESCRIPTION("MAX8907 regulator driver");
- MODULE_AUTHOR("Gyungoh Yoo <jack.yoo@maxim-ic.com>");
-diff --git a/drivers/regulator/max8925-regulator.c b/drivers/regulator/max8925-regulator.c
-index c1532db0a4ee..bdcbc457766c 100644
---- a/drivers/regulator/max8925-regulator.c
-+++ b/drivers/regulator/max8925-regulator.c
-@@ -267,18 +267,7 @@ static struct platform_driver max8925_regulator_driver = {
- 	},
- 	.probe		= max8925_regulator_probe,
- };
--
--static int __init max8925_regulator_init(void)
--{
--	return platform_driver_register(&max8925_regulator_driver);
--}
--subsys_initcall(max8925_regulator_init);
--
--static void __exit max8925_regulator_exit(void)
--{
--	platform_driver_unregister(&max8925_regulator_driver);
--}
--module_exit(max8925_regulator_exit);
-+subsys_platform_driver(max8925_regulator_driver);
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Haojian Zhuang <haojian.zhuang@marvell.com>");
-diff --git a/drivers/regulator/max8997-regulator.c b/drivers/regulator/max8997-regulator.c
-index e48ba694a906..25aac72b79e7 100644
---- a/drivers/regulator/max8997-regulator.c
-+++ b/drivers/regulator/max8997-regulator.c
-@@ -1165,18 +1165,7 @@ static struct platform_driver max8997_pmic_driver = {
- 	.probe = max8997_pmic_probe,
- 	.id_table = max8997_pmic_id,
- };
--
--static int __init max8997_pmic_init(void)
--{
--	return platform_driver_register(&max8997_pmic_driver);
--}
--subsys_initcall(max8997_pmic_init);
--
--static void __exit max8997_pmic_cleanup(void)
--{
--	platform_driver_unregister(&max8997_pmic_driver);
--}
--module_exit(max8997_pmic_cleanup);
-+subsys_platform_driver(max8997_pmic_driver);
- 
- MODULE_DESCRIPTION("MAXIM 8997/8966 Regulator Driver");
- MODULE_AUTHOR("MyungJoo Ham <myungjoo.ham@samsung.com>");
-diff --git a/drivers/regulator/max8998.c b/drivers/regulator/max8998.c
-index 90651f4d1828..2eb16fa92b86 100644
---- a/drivers/regulator/max8998.c
-+++ b/drivers/regulator/max8998.c
-@@ -765,18 +765,7 @@ static struct platform_driver max8998_pmic_driver = {
- 	.probe = max8998_pmic_probe,
- 	.id_table = max8998_pmic_id,
- };
--
--static int __init max8998_pmic_init(void)
--{
--	return platform_driver_register(&max8998_pmic_driver);
--}
--subsys_initcall(max8998_pmic_init);
--
--static void __exit max8998_pmic_cleanup(void)
--{
--	platform_driver_unregister(&max8998_pmic_driver);
--}
--module_exit(max8998_pmic_cleanup);
-+subsys_platform_driver(max8998_pmic_driver);
- 
- MODULE_DESCRIPTION("MAXIM 8998 voltage regulator driver");
- MODULE_AUTHOR("Kyungmin Park <kyungmin.park@samsung.com>");
-diff --git a/drivers/regulator/mc13783-regulator.c b/drivers/regulator/mc13783-regulator.c
-index fb3aa1cec1f2..449f4e3621c1 100644
---- a/drivers/regulator/mc13783-regulator.c
-+++ b/drivers/regulator/mc13783-regulator.c
-@@ -459,18 +459,7 @@ static struct platform_driver mc13783_regulator_driver = {
- 	},
- 	.probe		= mc13783_regulator_probe,
- };
--
--static int __init mc13783_regulator_init(void)
--{
--	return platform_driver_register(&mc13783_regulator_driver);
--}
--subsys_initcall(mc13783_regulator_init);
--
--static void __exit mc13783_regulator_exit(void)
--{
--	platform_driver_unregister(&mc13783_regulator_driver);
--}
--module_exit(mc13783_regulator_exit);
-+subsys_platform_driver(mc13783_regulator_driver);
- 
- MODULE_LICENSE("GPL v2");
- MODULE_AUTHOR("Sascha Hauer <s.hauer@pengutronix.de>");
-diff --git a/drivers/regulator/mc13892-regulator.c b/drivers/regulator/mc13892-regulator.c
-index b29cf6ba6f12..debec21aaf3c 100644
---- a/drivers/regulator/mc13892-regulator.c
-+++ b/drivers/regulator/mc13892-regulator.c
-@@ -633,18 +633,7 @@ static struct platform_driver mc13892_regulator_driver = {
- 	},
- 	.probe	= mc13892_regulator_probe,
- };
--
--static int __init mc13892_regulator_init(void)
--{
--	return platform_driver_register(&mc13892_regulator_driver);
--}
--subsys_initcall(mc13892_regulator_init);
--
--static void __exit mc13892_regulator_exit(void)
--{
--	platform_driver_unregister(&mc13892_regulator_driver);
--}
--module_exit(mc13892_regulator_exit);
-+subsys_platform_driver(mc13892_regulator_driver);
- 
- MODULE_LICENSE("GPL v2");
- MODULE_AUTHOR("Yong Shen <yong.shen@linaro.org>");
-diff --git a/drivers/regulator/palmas-regulator.c b/drivers/regulator/palmas-regulator.c
-index f82618a70106..bf66cfd11465 100644
---- a/drivers/regulator/palmas-regulator.c
-+++ b/drivers/regulator/palmas-regulator.c
-@@ -1668,18 +1668,7 @@ static struct platform_driver palmas_driver = {
- 	},
- 	.probe = palmas_regulators_probe,
- };
--
--static int __init palmas_init(void)
--{
--	return platform_driver_register(&palmas_driver);
--}
--subsys_initcall(palmas_init);
--
--static void __exit palmas_exit(void)
--{
--	platform_driver_unregister(&palmas_driver);
--}
--module_exit(palmas_exit);
-+subsys_platform_driver(palmas_driver);
- 
- MODULE_AUTHOR("Graeme Gregory <gg@slimlogic.co.uk>");
- MODULE_DESCRIPTION("Palmas voltage regulator driver");
-diff --git a/drivers/regulator/rc5t583-regulator.c b/drivers/regulator/rc5t583-regulator.c
-index a25a141e86c4..fff2b5be5cc1 100644
---- a/drivers/regulator/rc5t583-regulator.c
-+++ b/drivers/regulator/rc5t583-regulator.c
-@@ -152,18 +152,7 @@ static struct platform_driver rc5t583_regulator_driver = {
- 	},
- 	.probe		= rc5t583_regulator_probe,
- };
--
--static int __init rc5t583_regulator_init(void)
--{
--	return platform_driver_register(&rc5t583_regulator_driver);
--}
--subsys_initcall(rc5t583_regulator_init);
--
--static void __exit rc5t583_regulator_exit(void)
--{
--	platform_driver_unregister(&rc5t583_regulator_driver);
--}
--module_exit(rc5t583_regulator_exit);
-+subsys_platform_driver(rc5t583_regulator_driver);
- 
- MODULE_AUTHOR("Laxman Dewangan <ldewangan@nvidia.com>");
- MODULE_DESCRIPTION("RC5T583 regulator driver");
-diff --git a/drivers/regulator/tps6105x-regulator.c b/drivers/regulator/tps6105x-regulator.c
-index 7f99f3e90bec..d5a6d3554631 100644
---- a/drivers/regulator/tps6105x-regulator.c
-+++ b/drivers/regulator/tps6105x-regulator.c
-@@ -97,18 +97,7 @@ static struct platform_driver tps6105x_regulator_driver = {
- 	},
- 	.probe = tps6105x_regulator_probe,
- };
--
--static __init int tps6105x_regulator_init(void)
--{
--	return platform_driver_register(&tps6105x_regulator_driver);
--}
--subsys_initcall(tps6105x_regulator_init);
--
--static __exit void tps6105x_regulator_exit(void)
--{
--	platform_driver_unregister(&tps6105x_regulator_driver);
--}
--module_exit(tps6105x_regulator_exit);
-+subsys_platform_driver(tps6105x_regulator_driver);
- 
- MODULE_AUTHOR("Linus Walleij <linus.walleij@linaro.org>");
- MODULE_DESCRIPTION("TPS6105x regulator driver");
-diff --git a/drivers/regulator/tps6507x-regulator.c b/drivers/regulator/tps6507x-regulator.c
-index 6655d9c31187..bcfa418a503d 100644
---- a/drivers/regulator/tps6507x-regulator.c
-+++ b/drivers/regulator/tps6507x-regulator.c
-@@ -442,18 +442,7 @@ static struct platform_driver tps6507x_pmic_driver = {
- 	},
- 	.probe = tps6507x_pmic_probe,
- };
--
--static int __init tps6507x_pmic_init(void)
--{
--	return platform_driver_register(&tps6507x_pmic_driver);
--}
--subsys_initcall(tps6507x_pmic_init);
--
--static void __exit tps6507x_pmic_cleanup(void)
--{
--	platform_driver_unregister(&tps6507x_pmic_driver);
--}
--module_exit(tps6507x_pmic_cleanup);
-+subsys_platform_driver(tps6507x_pmic_driver);
- 
- MODULE_AUTHOR("Texas Instruments");
- MODULE_DESCRIPTION("TPS6507x voltage regulator driver");
-diff --git a/drivers/regulator/tps65090-regulator.c b/drivers/regulator/tps65090-regulator.c
-index 8f916ee366e5..8a5e0889551c 100644
---- a/drivers/regulator/tps65090-regulator.c
-+++ b/drivers/regulator/tps65090-regulator.c
-@@ -515,18 +515,7 @@ static struct platform_driver tps65090_regulator_driver = {
- 	},
- 	.probe		= tps65090_regulator_probe,
- };
--
--static int __init tps65090_regulator_init(void)
--{
--	return platform_driver_register(&tps65090_regulator_driver);
--}
--subsys_initcall(tps65090_regulator_init);
--
--static void __exit tps65090_regulator_exit(void)
--{
--	platform_driver_unregister(&tps65090_regulator_driver);
--}
--module_exit(tps65090_regulator_exit);
-+subsys_platform_driver(tps65090_regulator_driver);
- 
- MODULE_DESCRIPTION("tps65090 regulator driver");
- MODULE_AUTHOR("Venu Byravarasu <vbyravarasu@nvidia.com>");
-diff --git a/drivers/regulator/tps65217-regulator.c b/drivers/regulator/tps65217-regulator.c
-index b167ba22fe16..f55cc1a8079d 100644
---- a/drivers/regulator/tps65217-regulator.c
-+++ b/drivers/regulator/tps65217-regulator.c
-@@ -262,18 +262,7 @@ static struct platform_driver tps65217_regulator_driver = {
- 	},
- 	.probe = tps65217_regulator_probe,
- };
--
--static int __init tps65217_regulator_init(void)
--{
--	return platform_driver_register(&tps65217_regulator_driver);
--}
--subsys_initcall(tps65217_regulator_init);
--
--static void __exit tps65217_regulator_exit(void)
--{
--	platform_driver_unregister(&tps65217_regulator_driver);
--}
--module_exit(tps65217_regulator_exit);
-+subsys_platform_driver(tps65217_regulator_driver);
- 
- MODULE_AUTHOR("AnilKumar Ch <anilkumar@ti.com>");
- MODULE_DESCRIPTION("TPS65217 voltage regulator driver");
-diff --git a/drivers/regulator/tps6586x-regulator.c b/drivers/regulator/tps6586x-regulator.c
-index 1ab5767590f3..a144b4c5ed20 100644
---- a/drivers/regulator/tps6586x-regulator.c
-+++ b/drivers/regulator/tps6586x-regulator.c
-@@ -524,18 +524,7 @@ static struct platform_driver tps6586x_regulator_driver = {
- 	},
- 	.probe		= tps6586x_regulator_probe,
- };
--
--static int __init tps6586x_regulator_init(void)
--{
--	return platform_driver_register(&tps6586x_regulator_driver);
--}
--subsys_initcall(tps6586x_regulator_init);
--
--static void __exit tps6586x_regulator_exit(void)
--{
--	platform_driver_unregister(&tps6586x_regulator_driver);
--}
--module_exit(tps6586x_regulator_exit);
-+subsys_platform_driver(tps6586x_regulator_driver);
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Mike Rapoport <mike@compulab.co.il>");
-diff --git a/drivers/regulator/tps65910-regulator.c b/drivers/regulator/tps65910-regulator.c
-index 3a3027e0b94e..61bb269fc7c6 100644
---- a/drivers/regulator/tps65910-regulator.c
-+++ b/drivers/regulator/tps65910-regulator.c
-@@ -1259,18 +1259,7 @@ static struct platform_driver tps65910_driver = {
- 	.probe = tps65910_probe,
- 	.shutdown = tps65910_shutdown,
- };
--
--static int __init tps65910_init(void)
--{
--	return platform_driver_register(&tps65910_driver);
--}
--subsys_initcall(tps65910_init);
--
--static void __exit tps65910_cleanup(void)
--{
--	platform_driver_unregister(&tps65910_driver);
--}
--module_exit(tps65910_cleanup);
-+subsys_platform_driver(tps65910_driver);
- 
- MODULE_AUTHOR("Graeme Gregory <gg@slimlogic.co.uk>");
- MODULE_DESCRIPTION("TPS65910/TPS65911 voltage regulator driver");
-diff --git a/drivers/regulator/tps68470-regulator.c b/drivers/regulator/tps68470-regulator.c
-index de7db7690f6b..7aef0c12fbcc 100644
---- a/drivers/regulator/tps68470-regulator.c
-+++ b/drivers/regulator/tps68470-regulator.c
-@@ -185,17 +185,7 @@ static struct platform_driver tps68470_regulator_driver = {
-  * registering before the drivers for the camera-sensors which use them bind.
-  * subsys_initcall() ensures this when the drivers are builtin.
-  */
--static int __init tps68470_regulator_init(void)
--{
--	return platform_driver_register(&tps68470_regulator_driver);
--}
--subsys_initcall(tps68470_regulator_init);
--
--static void __exit tps68470_regulator_exit(void)
--{
--	platform_driver_unregister(&tps68470_regulator_driver);
--}
--module_exit(tps68470_regulator_exit);
-+subsys_platform_driver(tps68470_regulator_driver);
- 
- MODULE_ALIAS("platform:tps68470-regulator");
- MODULE_DESCRIPTION("TPS68470 voltage regulator driver");
-diff --git a/drivers/regulator/wm8350-regulator.c b/drivers/regulator/wm8350-regulator.c
-index d09864bae5ef..8dfc24a74765 100644
---- a/drivers/regulator/wm8350-regulator.c
-+++ b/drivers/regulator/wm8350-regulator.c
-@@ -1310,18 +1310,7 @@ static struct platform_driver wm8350_regulator_driver = {
- 		.probe_type = PROBE_PREFER_ASYNCHRONOUS,
- 	},
- };
--
--static int __init wm8350_regulator_init(void)
--{
--	return platform_driver_register(&wm8350_regulator_driver);
--}
--subsys_initcall(wm8350_regulator_init);
--
--static void __exit wm8350_regulator_exit(void)
--{
--	platform_driver_unregister(&wm8350_regulator_driver);
--}
--module_exit(wm8350_regulator_exit);
-+subsys_platform_driver(wm8350_regulator_driver);
- 
- /* Module information */
- MODULE_AUTHOR("Liam Girdwood");
-diff --git a/drivers/regulator/wm8400-regulator.c b/drivers/regulator/wm8400-regulator.c
-index fb3ca7956d00..f9b9973b70e5 100644
---- a/drivers/regulator/wm8400-regulator.c
-+++ b/drivers/regulator/wm8400-regulator.c
-@@ -257,18 +257,7 @@ int wm8400_register_regulator(struct device *dev, int reg,
- 	return platform_device_register(&wm8400->regulators[reg]);
- }
- EXPORT_SYMBOL_GPL(wm8400_register_regulator);
--
--static int __init wm8400_regulator_init(void)
--{
--	return platform_driver_register(&wm8400_regulator_driver);
--}
--subsys_initcall(wm8400_regulator_init);
--
--static void __exit wm8400_regulator_exit(void)
--{
--	platform_driver_unregister(&wm8400_regulator_driver);
--}
--module_exit(wm8400_regulator_exit);
-+subsys_platform_driver(wm8400_regulator_driver);
- 
- MODULE_AUTHOR("Mark Brown <broonie@opensource.wolfsonmicro.com>");
- MODULE_DESCRIPTION("WM8400 regulator driver");
 -- 
 2.51.0
 
