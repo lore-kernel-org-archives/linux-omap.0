@@ -1,61 +1,58 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.246.84.56
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793805408;
-	b=gaOylCn4LCdJySuKmlfBASJ6cSPjRMTf9BYd/STVsmB+2V2jyhu0lsXWbM4VoMVlqPRQ
-	 hUbaBYHBHWt5zY/9Wbo2E7jlBOcfK8WhDfIPy8rOAJLjaZ1owsrNrfEY+3B1SRdxGlTO1
-	 PMNt/BdUeyYi7M8Kgdyj+S9aiIgiRC36M152eNWtUbROHqbgUUSTzIB1YNXgQDHAHzA6f
-	 A0JxprUq0k7e4Lc53Hmbrx9tuHrAzXJatwNRHdsaB/DPg5xT2El7Dwoe98emoML+x7vY+
-	 SpytgaODx9F0MEhyUWIKsr+DPxCEwiGTeo5aO4/DqYDMl8nxIRsuIwCQELqq+2Vkb5w==
+	t=1793805791;
+	b=0Ja3nuF4mWfuI6T7zp9KQlqibDfdwS/46ZkzdB5t8lkTIV49fSJqn+LW/AeXrGTm8U+N
+	 vIVh5uBpzxJ50wgRimP38B4LCkxy7FNgGPpIZyX0EY6hfTdwy/WJD8+0WBEHCGSwD/Vu4
+	 ZI7SODzpCIKvLzdgF1EfVKB8BVmHqz4tUfAM9ISo0S+R5PXuB2vH6D8gU/I7kdrI28fPd
+	 bqkgbWbOw8/1kN66M3kiJ1G7hmZhXusJXdKJ7RMLgmGt+ktQLSoejBI9GUHanWf6tXah4
+	 nydHtdyROJ1eoZMhwEq5zt8El1EHOVrYhS92bK0x85p1qcDxSuD50mGoSdTW5cDle5Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793805408;
-	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
-	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
-	 X-Mailer:X-Developer-Signature:X-Developer-Key;
-	bh=1VTaFjPBiDhjXVq+z9mq2lWMiswrahJow/QHzMvYA4k=;
-	b=Yb0Qp5o3BuWIDu/428PnH5U4a2zZnFQffoeZbAsPuaUczxLHR9drrzo8yzRuuZRJ4wYU
-	 ekmTLpGYSng9RaB+jmjvGm9dR/Czc1whzScfLBKYfKvZX8KbqCV8g3MIvmdJIGVM1cmHU
-	 F+/l4s4HYgNcFHXSVtdFBmmEVOat07jkp33JPacqJCEd7C8qTpboe2UVDM8PdExeNXGnu
-	 FXyVeTN6s0NZqQ/N4OUDkxYcvN5wvsFNGekHdF3nOKgRBl0OVEI7KgzdTNckYNB6BZxNc
-	 RUneCRzEI30KCclGPR7WZiYDi2syx3Ke5vzMl3JeZzMgrRsCCjy0C1OIYnvwhuaboLA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793805791;
+	h=DMARC-Filter:Received:Received:Received:DKIM-Signature:From:Date:
+	 Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 Message-Id:X-B4-Tracking:X-Change-ID:To:Cc:X-Mailer:
+	 X-Last-TLS-Session-Version;
+	bh=/C2hcYZOYvJEefWID095f9m7L8eAhaaSvDOhtc1OYaM=;
+	b=2ImzNhzFQ0Hz/jy67KBwFHYcKVx7ZRyJUkL3wCLtWtj/zp5aFif0YzWQ6f8ik5SGxHle
+	 W22TAZoFG+osLipYNobkp29v1aW2/cNj+vc+wXFFenZwzgWLn8CkB7HNd285sLSMhFb4f
+	 4YmbtHtgdkmHKAApTatwAFteWV88dT74nM5n25c8zt6poB6Ji/vAwFLJCCemEywqepajV
+	 lKmoIOKCZiLmBYxfEf/ZR+ZXtQpx5j0K/ONd9ywhn2ftr0Gv7tvmpJ62wxWwP2Ff+cnt+
+	 k/Tesz9v7t9kr7HB1hE7LUqYLqD9MKt6lao6uh6W30a7f+L1tqghQkW7vjWR4E68VTw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=K3VVBg6N;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=bootlin.com;
+	spf=pass smtp.mailfrom=bootlin.com;
+	dkim=pass header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=SxT4X7NL;
+	arc=none smtp.remote-ip=185.246.84.56
+Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80C3460A6F7B;
-	Wed,  4 Nov 2026 15:16:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C062606A31B;
+	Wed,  4 Nov 2026 15:23:11 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3C062606A31B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=K3VVBg6N
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4BA51F000C1;
-	Wed,  4 Nov 2026 15:16:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793805408;
-	bh=1VTaFjPBiDhjXVq+z9mq2lWMiswrahJow/QHzMvYA4k=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=K3VVBg6NjdDtKRtWB9cfvtH/FteizduHQWiRWREVbTQTuTA8NIkR6mfKCDq5tU9NA
-	 iOgfbQbbJzY3OX0N89l6jvmgr+bboJS0P51OLE9o7RbAI+73vCwYEjwSrS2tBnHPyd
-	 UB2L4BCpSuGjNci6k5rhrD1hqQW5p/HxMA/JrrpPGAvq8OPDCgH6zvtu498RLRtBTl
-	 lbf/TkhpoS5b/GSvnw6CEiunIkKzGknsodfyUOF9NIKxi5t6jmlV9b8S3Y3HcHuNpl
-	 Nw1KOJMKjCGU9Y3b6IY28vwgs/K/re3ZgGbydJHA1TRfdGwtsVUn2oD/67SrBmoWMo
-	 4lFSlcuG6TQHA==
-From: Brian Masney <masneyb@kernel.org>
-To: linux-kernel@vger.kernel.org, 
- Dario Binacchi <dario.binacchi@amarulasolutions.com>
-Cc: michael@amarulasolutions.com, linux-amarula@amarulasolutions.com, 
- Brian Masney <bmasney+clk@redhat.com>, Conor Dooley <conor+dt@kernel.org>, 
- Jerome Brunet <jbrunet+clk@baylibre.com>, 
- Krzysztof Kozlowski <krzk+dt@kernel.org>, Rob Herring <robh@kernel.org>, 
- Stephen Boyd <sboyd@kernel.org>, Tero Kristo <kristo@kernel.org>, 
- devicetree@vger.kernel.org, linux-clk@vger.kernel.org, 
- linux-omap@vger.kernel.org
-In-Reply-To: <20261104101732.4043372-1-dario.binacchi@amarulasolutions.com>
-References: <20261104101732.4043372-1-dario.binacchi@amarulasolutions.com>
-Subject: Re: [PATCH v4 0/3] clk: ti: dpll: switch spread spectrum to the
- generic framework
-Message-Id: <179380540063.620564.14085497880404861333.b4-ty@b4>
-Date: Wed, 04 Nov 2026 10:16:40 -0500
+	dkim=pass (2048-bit key, unprotected) header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=SxT4X7NL
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-02.galae.net (Postfix) with ESMTPS id 7EC7B1A139E;
+	Wed,  4 Nov 2026 15:23:09 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 50E5760770;
+	Wed,  4 Nov 2026 15:23:09 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 0CFE7103291D1;
+	Wed,  4 Nov 2026 16:23:04 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1793805788; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding; bh=/C2hcYZOYvJEefWID095f9m7L8eAhaaSvDOhtc1OYaM=;
+	b=SxT4X7NLHKvj7CHPFTAlZII+WFJ3xmJWpcW3TxQICl2ID4y9/N7gCTHyc+jkTGXMA4X9V0
+	KvSdd+fN4/pfAFW6QYqEfWTE0PUrr9vjeFVDmr7PibtiD3ulZyo/AD0mSZWUtDoZ03Lx8o
+	gpO0ddPp4EPk9jPUr6cnzJxjAbnsur2+5dYfrvlzrBfy8RizxdOmZETd9S+RSD68o7WBb7
+	jnB7D+DHkWFio75tfVb6hTyuqhH8mNWTYSuPenH7krpiHumHBt6C60e0M/QUxPwW1Y9cAH
+	zLtnfXWrwN8sWAg9vkAnQB9sQijLj8Y9oy/TJeC7TcFxMmYXOUBJuOuM0mbtvA==
+From: Bastien Curutchet <bastien.curutchet@bootlin.com>
+Date: Wed, 04 Nov 2026 16:23:01 +0100
+Subject: [PATCH] ARM: dts: ti: var-som-om44: add local-mac-address property
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -67,39 +64,72 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.17-dev-7ca47
-X-Developer-Signature: v=1; a=openpgp-sha256; l=929; i=masneyb@kernel.org;
- s=20250903; h=from:subject:message-id;
- bh=fPWgrL9fqWnEFQzArF4nDk6nAKC/WY5Bs3uZUIE1E5E=;
- b=owGbwMvMwCW2/dJd9di6A+2Mp9WSGLJe+0Q9N1U9r3t//nduL9P/00Ml5k12/luzjNvI14zf4
- c2W2BffOkpZGMS4GGTFFFmW5BoVRKSusr13R5MFZg4rE8gQBi5OAZiI5R9GhuaX3XoB+ucqNzu8
- nhilzzOFddUzVqV6VamfW2d7xnkHrWNk+LBl8mYJg4gFZfyJB//mHv8UeqFYxuGCx4FPaRPfBkd
- yMQMA
-X-Developer-Key: i=masneyb@kernel.org; a=openpgp;
- fpr=A46D32705865AA3DDEDC2904B7D2DD275D7EC087
+Message-Id: <20261104-omap4-dtsi-v1-1-8d987f953fe7@bootlin.com>
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/6tWKk4tykwtVrJSqFYqSi3LLM7MzwNyDHUUlJIzE
+ vPSU3UzU4B8JSMDIzNDQwMj3fzcxAIT3ZSS4kxdQ7MUE8NkE0vDZAtDJaCGgqLUtMwKsGHRsbW
+ 1ANko3QNcAAAA
+X-Change-ID: 20261102-omap4-dtsi-16d41c491c81
+To: Aaro Koskinen <aaro.koskinen@iki.fi>, 
+ Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
+ Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
+ Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
+ Conor Dooley <conor+dt@kernel.org>
+Cc: Thomas Petazzoni <thomas.petazzoni@bootlin.com>, 
+ Thomas Richard <thomas.richard@bootlin.com>, linux-omap@vger.kernel.org, 
+ devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ Bastien Curutchet <bastien.curutchet@bootlin.com>
+X-Mailer: b4 0.14.3
+X-Last-TLS-Session-Version: TLSv1.3
 
+Commit d8f1b27c9f12 ("ARM: dts: ti: var-som-om44: Add USB Ethernet
+controller node") added the Ethernet node to allow the bootloader to
+patch the device-tree to set the MAC address.
 
-On Wed, 04 Nov 2026 11:16:54 +0100, Dario Binacchi wrote:
-> clk: ti: dpll: switch spread spectrum to the generic framework
-> 
-> The am33xx/am43xx DPLL spread spectrum clocking (SSC) is configured
-> through vendor specific DT properties. Since 7.3 the clock framework
-> provides a generic API and the assigned-clock-sscs DT property for it,
-> so the series moves the TI DPLL to the generic configuration and
-> deprecates the vendor specific properties.
-> 
-> [...]
+U-Boot has an already-existing helper that does that but it needs the
+local-mac-address property to be already in the device-tree and an
+'ethernet' alias for the Ethernet node.
 
-Applied, thanks!
+Add the alias and the local-mac-address property to allow the use of
+this already existing helper in U-Boot.
 
-[1/3] dt-bindings: clock: ti: dpll: deprecate the ti,ssc-* properties
-      https://git.kernel.org/clk/linux/c/73e328f8775a
-[2/3] clk: ti: dpll: use the generic spread spectrum configuration
-      https://git.kernel.org/clk/linux/c/4d15810115f0
-[3/3] clk: ti: dpll: apply the spread spectrum configuration right away
-      https://git.kernel.org/clk/linux/c/f337f0361adc
+Signed-off-by: Bastien Curutchet <bastien.curutchet@bootlin.com>
+---
+On U-Boot side, the support for this has entered the main branch with
+commit f5df14cb949 ("omap4-var-som: forward MAC address to Linux")
+---
+ arch/arm/boot/dts/ti/omap/omap4-var-som-om44.dtsi | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/arch/arm/boot/dts/ti/omap/omap4-var-som-om44.dtsi b/arch/arm/boot/dts/ti/omap/omap4-var-som-om44.dtsi
+index 9e04aa70f982..6c615dd71491 100644
+--- a/arch/arm/boot/dts/ti/omap/omap4-var-som-om44.dtsi
++++ b/arch/arm/boot/dts/ti/omap/omap4-var-som-om44.dtsi
+@@ -10,6 +10,10 @@ / {
+ 	model = "Variscite VAR-SOM-OM44";
+ 	compatible = "variscite,var-som-om44", "ti,omap4460", "ti,omap4";
+ 
++	aliases {
++		ethernet = &ethernet;
++	};
++
+ 	memory@80000000 {
+ 		device_type = "memory";
+ 		reg = <0x80000000 0x40000000>; /* 1 GB */
+@@ -334,6 +338,8 @@ usbhub: hub@1 {
+ 		ethernet: ethernet@3 {
+ 			compatible = "usb424,7500";
+ 			reg = <3>;
++
++			local-mac-address = [00 00 00 00 00 00];
+ 		};
+ 	};
+ };
+
+---
+base-commit: 6628e7d4c6b25c8d18f1345e3a20d21829aae7e4
+change-id: 20261102-omap4-dtsi-16d41c491c81
 
 Best regards,
 -- 
-Brian Masney <masneyb@kernel.org>
+Bastien Curutchet <bastien.curutchet@bootlin.com>
 
