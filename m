@@ -1,46 +1,44 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=202.248.49.38
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=154.81.10.76
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793757524;
-	b=patPR/cW5MLSdnMnc+WIrA+n3ydefs1ebg8D7egwC10SWif/6DsnrFNHyF4OeA7CV6U2
-	 rk/bjkZ9vVoucLKmbBVh5i8BK1rmQORmiDdsK136gdQILmPExEtIuNb5ZLueW13kvfnly
-	 qp8OFO6f8cJ3+piRJJEGTRzZ/7G8WFcN5AEzrb9B4NXLB7MaYcxrrxrf3vqD7d2hIPAjw
-	 ry8J91dJk5eoyRqVYBF37Ds4UbI68JoNkToRpJZ5kvl9dOwky1ZeAjo+4ZzwWyeEd6fuA
-	 f0BMLw1wVKZNYtCP9fW+XkHyeqNj9UROkzdGypa5dB0Symc9JZmvXVn2koioWVbwvew==
+	t=1793760016;
+	b=QJTEfSEkykSIpJ3uEnLr7p12arvFvI5AuFEdmUG3eoIfVxly+NRvDE6w7U4o0si3gRrP
+	 OSVXqZSQ1x4jqYAt4zZt1HcfbtZ/LxH3HGX5PPMnGcerVh7mALVhOodUWFRhb25YQ9HQl
+	 iOAbLQ0raT7+OBpPcjzKch0cXiFNYYRGLaAErZJ8/YF6OJR4YCLLkK0HdKBhxZxyptCkt
+	 ifn9E1MVMPLko1VRvT/IWXSojXuAOexFVZLGifKdQLP+jAlu0qm2NduxEEd5Vhya7x0tH
+	 H6eKwsz2iJwTbC1leyJa0eVqDyR8PEiIdUd3CfVOOEW62HX2mfT60PNHA6k6DpbkYjA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793757524;
-	h=DMARC-Filter:X-CSE-ConnectionGUID:X-CSE-MsgGUID:Received:Received:
-	 Received:Received:Message-ID:Date:MIME-Version:User-Agent:Subject:To:
-	 Cc:References:Content-Language:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=XS2nYBAzLCH+inOf8OGB6kdMPv3r2GGidxq0NzQ4cJk=;
-	b=CrUv0RgYIY/wA1Tf1rntIfDb9HR0gNT0wqBQzac2n2+MSQg/4AcIybDD/pE9ELW09ChS
-	 6o1YlVUZqOyJ3xFQ8HmELzSF2v8wx5x/NYmjmeVJcTicsH9uFikmcH3QM8ieE/y9/gzCm
-	 m9XqGtXxDEgmk3mRZOP8ixjojyvwyauCCLbY3s63IZsAOZCbg8mdxWJE1DULAT3HkM1fy
-	 rVLuC0nAQQwC/10hiXLFTqMem4N0FI4uWk0qhVO9YcIrC8qWnsoF5IREc8RO4yOzL4jcX
-	 Id1udqio6nr86teKLdEhSqcddUUy6bXCmfo7dFut+dZmqsn3YuwzWqpPJo2slbOugkQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793760016;
+	h=DMARC-Filter:Received:Message-ID:Date:MIME-Version:User-Agent:Cc:
+	 Subject:To:References:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding:X-HM-Tid:X-HM-MType:X-HM-Spam-Status:
+	 DKIM-Signature;
+	bh=2xE1Al8wj2vlLQSBshL2OcXzRsXJVItNZxoz+0qsrmw=;
+	b=a67EGLcQlFo8sxJ4DCU7lZNV9nGnYWQUOTFRFIVheWsOpgRcSLr+sOuAiNN7fZQV6kqh
+	 nm3SVEuZJsLHYuwY9tdcMdhwDrHuK29QUCtpKhcPUX4n7DU+q1IltjnB6GiiToY1TcBbI
+	 D750yB2E/c/1MYF5YWhvFAD+vm06sDhjsiJdwkpr4Bb+D8RZ2+h67ipWWJfxy71LMhtOr
+	 hKNjEgkY9NGVXD5RbtBcSUyZ4tyOwmPldP/GchleIZs07G5l+5pZpmEQctrJ6qKpZmQM2
+	 xVjwJ1Ava0SQHFVkm8BIQo85qRgowyA/PgzmwyTCDLxJJ0IO/5Sksr0TBIn2gkqo+Xg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=socionext.com;
-	spf=pass smtp.mailfrom=socionext.com;
-	arc=none smtp.remote-ip=202.248.49.38
-Received: from mx.socionext.com (mx.socionext.com [202.248.49.38])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id C2E1A606A328;
-	Wed,  4 Nov 2026 01:58:43 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C2E1A606A328
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=socionext.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=socionext.com
-X-CSE-ConnectionGUID: 3B2EypkPQeirMGtRpzEbow==
-X-CSE-MsgGUID: efgAja9eSgqeIT/hu3a/xw==
-Received: from unknown (HELO iyokan3-ex.css.socionext.com) ([172.31.9.54])
-  by mx.socionext.com with ESMTP; 04 Nov 2026 10:58:42 +0900
-Received: from mail.mfilter.local (mail-arc01.css.socionext.com [10.213.46.36])
-	by iyokan3-ex.css.socionext.com (Postfix) with ESMTP id AC36F2094543;
-	Wed,  4 Nov 2026 10:58:42 +0900 (JST)
-Received: from iyokan3.css.socionext.com ([172.31.9.53]) by m-FILTER with ESMTP; Wed, 4 Nov 2026 10:58:42 +0900
-Received: from [10.212.247.157] (unknown [10.212.247.157])
-	by iyokan3.css.socionext.com (Postfix) with ESMTP id 6E59210FA4D;
-	Wed,  4 Nov 2026 10:58:41 +0900 (JST)
-Message-ID: <7d07a2cf-0fa1-4ac9-bdd6-630f44b10a0e@socionext.com>
-Date: Wed, 4 Nov 2026 10:58:43 +0900
+	dmarc=pass header.from=rock-chips.com;
+	spf=pass smtp.mailfrom=rock-chips.com;
+	dkim=pass header.d=rock-chips.com header.i=@rock-chips.com header.a=rsa-sha256 header.s=default header.b=Biti4XDN;
+	arc=none smtp.remote-ip=154.81.10.76
+Received: from mail-m1076.netease.com (mail-m1076.netease.com [154.81.10.76])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 892C9606A31B;
+	Wed,  4 Nov 2026 02:40:11 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 892C9606A31B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=rock-chips.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rock-chips.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key, unprotected) header.d=rock-chips.com header.i=@rock-chips.com header.a=rsa-sha256 header.s=default header.b=Biti4XDN
+Received: from [172.16.12.48] (unknown [61.154.14.86])
+	by smtp.qiye.163.com (Hmail) with ESMTP id 5368a9cf8;
+	Wed, 4 Nov 2026 10:40:01 +0800 (GMT+08:00)
+Message-ID: <55255451-4778-4bf0-83bf-eac4176947d6@rock-chips.com>
+Date: Wed, 4 Nov 2026 10:40:01 +0800
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -51,9 +49,9 @@ List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
+Cc: shawn.lin@rock-chips.com, vkoul@kernel.org
 Subject: Re: [PATCH 1/1] mmc: use dmaengine_desc_set_callback()
-To: Frank.Li@oss.nxp.com
-Cc: vkoul@kernel.org, Aubin Constans <aubin.constans@microchip.com>,
+To: Frank.Li@oss.nxp.com, Aubin Constans <aubin.constans@microchip.com>,
  Ulf Hansson <ulfh@kernel.org>, Nicolas Ferre <nicolas.ferre@microchip.com>,
  Alexandre Belloni <alexandre.belloni@bootlin.com>,
  Claudiu Beznea <claudiu.beznea@tuxon.dev>,
@@ -61,8 +59,7 @@ Cc: vkoul@kernel.org, Aubin Constans <aubin.constans@microchip.com>,
  <rjui@broadcom.com>, Scott Branden <sbranden@broadcom.com>,
  Broadcom internal kernel review list
  <bcm-kernel-feedback-list@broadcom.com>,
- Jaehoon Chung <jh80.chung@samsung.com>, Shawn Lin
- <shawn.lin@rock-chips.com>, Frank Li <Frank.Li@nxp.com>,
+ Jaehoon Chung <jh80.chung@samsung.com>, Frank Li <Frank.Li@nxp.com>,
  Sascha Hauer <s.hauer@pengutronix.de>,
  Pengutronix Kernel Team <kernel@pengutronix.de>,
  Fabio Estevam <festevam@gmail.com>, Aaro Koskinen <aaro.koskinen@iki.fi>,
@@ -70,6 +67,7 @@ Cc: vkoul@kernel.org, Aubin Constans <aubin.constans@microchip.com>,
  Manivannan Sadhasivam <mani@kernel.org>,
  Wolfram Sang <wsa+renesas@sang-engineering.com>,
  Adrian Hunter <adrian.hunter@intel.com>,
+ Kunihiko Hayashi <hayashi.kunihiko@socionext.com>,
  Masami Hiramatsu <mhiramat@kernel.org>,
  Jesper Nilsson <jesper.nilsson@axis.com>,
  Lars Persson <lars.persson@axis.com>, John Garry <john.garry@linux.dev>,
@@ -96,13 +94,22 @@ Cc: vkoul@kernel.org, Aubin Constans <aubin.constans@microchip.com>,
  "open list:TMIO/SDHI MMC DRIVER" <linux-renesas-soc@vger.kernel.org>,
  "open list:ARM/ARTPEC MACHINE SUPPORT" <linux-arm-kernel@axis.com>
 References: <20261102172126.3890568-1-Frank.Li@oss.nxp.com>
-Content-Language: en-US
-From: Kunihiko Hayashi <hayashi.kunihiko@socionext.com>
+From: Shawn Lin <shawn.lin@rock-chips.com>
 In-Reply-To: <20261102172126.3890568-1-Frank.Li@oss.nxp.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-HM-Tid: 0aa1a46d7f6503a4kunmc8d4954b6d561
+X-HM-MType: 1
+X-HM-Spam-Status: e1kfGhgUHx5ZQUpXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
+	tZV1koWUFITzdXWRgWCB1ZQUpXWS1ZQUlXWQ8JGhUIEh9ZQVlDGEodVk9OHRpIHU9IHRhOSlYVFA
+	kWGhdVEwETFhoSFyQUDg9ZV1kYEgtZQVlNSlVKTk9VSk9VQ01ZV1kWGg8SFR0UWUFZT0tIVUpLSE
+	pKQkxVSktLVUpCS0tZBg++
+DKIM-Signature: a=rsa-sha256;
+	b=Biti4XDNFXbuvNogqfGaU5N4HArvWpfvwOVNjSodcEYv0t0phcptB4QduFrWcRexuRTe/knwUsf0/yDB30GVNwoaPgfz++UAZ3rVuwD1APwWBcw7naO/XxLk837m4FMy4g/Fg85oMG9NPSG7H74raei5DBJ4+UegYTt0XNgCFTg=; c=relaxed/relaxed; s=default; d=rock-chips.com; v=1;
+	bh=2xE1Al8wj2vlLQSBshL2OcXzRsXJVItNZxoz+0qsrmw=;
+	h=date:mime-version:subject:message-id:from;
 
-On 2026/11/03 2:21, Frank.Li@oss.nxp.com wrote:
+在 2026/11/03 星期二 1:21, Frank.Li@oss.nxp.com 写道:
 > From: Frank Li <Frank.Li@nxp.com>
 > 
 > Replace open-coded assignments to callback and callback_param fields
@@ -114,14 +121,9 @@ On 2026/11/03 2:21, Frank.Li@oss.nxp.com wrote:
 > 
 > Signed-off-by: Frank Li <Frank.Li@nxp.com>
 
-(snip)
+...
 
->   drivers/mmc/host/uniphier-sd.c           | 3 +--
+>   drivers/mmc/host/dw_mmc.c                | 3 +--
+For dw_mmc.c,
 
-Reviewed-by: Kunihiko Hayashi <hayashi.kunihiko@socionet.com>
-
-Thank you,
-
----
-Best Regards
-Kunihiko Hayashi
+Reviewed-by: Shawn Lin <shawn.lin@rock-chips.com>
