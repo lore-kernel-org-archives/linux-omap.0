@@ -1,60 +1,66 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793801338;
-	b=Z6lGxzOvGToblLFTDeS24ajJMNKU3/NpDjzWQEyefvTrx5c61U6snnw3RjIfKVnxGafg
-	 aN/zFhBEBbMfV75MLWrhdu0M09LqyRTgyT1Z0wn3HvbOd7MqL5MeU54vr2MEH21ezCyc0
-	 kb+v4mKQlQ0nItYfiZZEylkeFcbDEBatvtnMxRNmw3dGEHCHMbCzEsWcgo1mOWiPiOsO1
-	 5anUnexbfPs1DBHw/FbBvI1iUERBFVc2KOwhAd30jkbHlYWzsAXlUNnbeHWNMCkfjsyBW
-	 jtJY4B8gTXYYmA3BwZGKWXphH5/sP1xh0z5cpzFpHL7FDHeHB+PztovaH7dMd/VPEeQ==
+	t=1793801918;
+	b=Ob4DrBqqVd6i/Yg0tKlT5UidmLVBPRwZ+Dnx1mdaTJQt+tIJFjOV/bNGBNw6XL/0g4Qa
+	 oG6FHxx7dZdNAWJFojYiB5yvZELUViDX0GYav7EDADHxOHqrLGP4dhSvU3kx6WI4ca1Ft
+	 2Cx07Fg7U4f/ZS82TGlZgFSvZUoO12DcJ+b0PUxbdnq/WmnQBzZJjxJGI/YRqWW+BEyY7
+	 GmV9Wh/GYLPW9nBM3iVVv7SOJs/CfclHUNOXgCLyscXueqy1jtXRaudBnW0j5TffCMa9F
+	 PD39v1ilMTYToF9xlkC3xALrfdxHnLI8h5lrrgfqgR7/7KJTMnsC8vmFB7SL84KD45w==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793801338;
-	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 MIME-Version:Content-Transfer-Encoding;
-	bh=ECQTKAjZ9Np9eYCJw+nsz0GV09F+1r+fPvzJLI4eMC0=;
-	b=NV43XRoj7j40Y58y95xDGK/sdyfdF9qO4utjz2TlyBjoTEMxl57mdhTFQ71mGQuNFuii
-	 tSw1zlyLqWOKq+jZnHpDyXHZjC8Ztk04xqLUrY4uOhoei+hlnhfaHJfCc8VQ9HShmEm2l
-	 E+frXJqt4OouGGwA9/1nXjcLamueDNnejoR1XMnudR+TlzcbLPjUDO5HGuz32sddrmBoz
-	 ZCGq3W4ANJxcSIjF3Jcl78aEuXTsS5DXNNcON3d4A16Dw0Hm/G2kLTG9MkgI2YziUKXmz
-	 XyD0SUyngeoNE3tQ91YuDNJyq5D6U3LM2NB0bDIn9psbCUesmY8WR+0OfWgNinZFUQA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793801918;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=tIsim5wpkIICh192gsX8FGT+MKKG5Z56KVBTAyYasJg=;
+	b=yTE2YOIC+92iH2bjQTb3ooQWzJhJZ3FMlZKB5eiklSlSR9mNxXZTTztkeschRjlhDRe6
+	 f8TONV2UCGtXHIu7e8eNRNQF6ncT10Ciw3Hv3Xa6iOG6JWNiA1ozKn0hTnEv7fVBkTgrB
+	 J6Bb6uFftSiHrqe+c39Cg3EwrLXY4dggd6Fhd8ua8dJUuCfk5zLDvlLpZS4TeLMjt9St0
+	 7OiS24C1EwO+yCMWv7wBgBIWBBqv9ObuH+eIhT2YSNR+at7GO7pfpCT2sC49sdN9w2ZrL
+	 thKUyHvKGu4VForUdrmsMFoicGJs33DSlNYhMWPjUlTNXHpJcFRBxjrEI6RquFNj0KA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="L3Ni/6Jd";
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nEBFhzWR;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 727F8606A31B;
-	Wed,  4 Nov 2026 14:08:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with UTF8SMTPS id F1D64606A326;
+	Wed,  4 Nov 2026 14:18:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=L3Ni/6Jd
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBDBA1F00A1E;
-	Wed,  4 Nov 2026 14:08:55 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nEBFhzWR
+Received: by smtp.kernel.org (Postfix) with UTF8SMTPSA id 6513B1F000C1;
+	Wed,  4 Nov 2026 14:18:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793801338;
-	bh=ECQTKAjZ9Np9eYCJw+nsz0GV09F+1r+fPvzJLI4eMC0=;
-	h=From:To:Cc:Subject:Date;
-	b=L3Ni/6JdXLXkmWuWZP2wBbTTZHR/OlEjjRFmeW0CyvG2837XjCGJGlpU3pl6wCru7
-	 0TdQTSg+pf2PLQ6BWMHJTZWZR5pQlQSJml4Mm4OKNgiD1fRlynLwpk4yn8Kc+s9r1b
-	 sEvAVELNzytolETzkviGZuuZaT4t+vZvMvbjTYPF7U10kvTILRA0qcZKbacJvMc13z
-	 5tH993qxLyTdviQi+jynYW6QMlF33FEPyEAnP4U7Twgm1jzcJyFz0RDUgrW8UfRmOi
-	 5iepJcgHwBGQMxgvtpEv1s4+2mmkJ2vN3bdVD1huS+PJZkjwz60Ao6ZAWr65TEG2PC
-	 pzwHVnPEg2AXQ==
-From: Alexander Sverdlin <asv@kernel.org>
-To: linux-gpio@vger.kernel.org
-Cc: Alexander Sverdlin <asv@kernel.org>,
-	Lokesh Vutla <lokeshvutla@ti.com>,
-	Nishanth Menon <nm@ti.com>,
-	Rob Herring <robh@kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
-	linux-omap@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Tony Lindgren <tony@atomide.com>,
-	Haojian Zhuang <haojian.zhuang@linaro.org>,
-	Linus Walleij <linusw@kernel.org>
-Subject: [PATCH] MAINTAINERS: pinctrl-single: Add Alexander Sverdlin
-Date: Wed,  4 Nov 2026 15:08:03 +0100
-Message-ID: <20261104140820.65243-1-asv@kernel.org>
-X-Mailer: git-send-email 2.56.0
+	s=k20260515; t=1793801917;
+	bh=tIsim5wpkIICh192gsX8FGT+MKKG5Z56KVBTAyYasJg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=nEBFhzWRIks+RPRMz6B9YBuEcxelF78jOoxhaGbQlrGOIEOF3j0r4ZN3AsSw82HWM
+	 PfVd37jaJHJA+9usuXZNPgGRYSimbNDnYfzEwcjLVi5tPC1p2ENsIUifco3Hk2uHSN
+	 P/0XtOlU/mMN6xk3YzmiKARg901Rn0WgDEBbY4JlDVbPe2swPcY88Z1iwTzkQCWHhv
+	 c+SQFgiIZzd+Pr4Baa+2NRTAiI8nBCg1miIKasAnUU3Bp3toOaQJe1MOLo/AwjY39B
+	 7KmrsqnOjGE0Cvdu5GFOyqlkNWPdX6oqfaiJmVQdZ+RhaBXHtAonVyvJLCZIenqIm2
+	 dkqzeViYeSr+Q==
+Date: Wed, 4 Nov 2026 15:18:33 +0100
+From: Bartosz Golaszewski <brgl@kernel.org>
+To: "Peng Fan (OSS)" <peng.fan@oss.nxp.com>
+Cc: Codrin Ciubotariu <codrin.ciubotariu@microchip.com>, 
+	Andi Shyti <andi.shyti@kernel.org>, Nicolas Ferre <nicolas.ferre@microchip.com>, 
+	Alexandre Belloni <alexandre.belloni@bootlin.com>, Claudiu Beznea <claudiu.beznea@tuxon.dev>, 
+	Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+	Oleksij Rempel <o.rempel@pengutronix.de>, Pengutronix Kernel Team <kernel@pengutronix.de>, 
+	Frank Li <Frank.Li@nxp.com>, Sascha Hauer <s.hauer@pengutronix.de>, 
+	Fabio Estevam <festevam@gmail.com>, Vignesh R <vigneshr@ti.com>, 
+	Aaro Koskinen <aaro.koskinen@iki.fi>, Janusz Krzysztofik <jmkrzyszt@gmail.com>, 
+	Tony Lindgren <tony@atomide.com>, Andreas Kemnade <andreas@kemnade.info>, 
+	Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, 
+	Vladimir Zapolskiy <vz@mleia.com>, Piotr Wojtaszczyk <piotr.wojtaszczyk@timesys.com>, 
+	Krzysztof Kozlowski <krzk@kernel.org>, Peter Griffin <peter.griffin@linaro.org>, 
+	Alim Akhtar <alim.akhtar@samsung.com>, Wolfram Sang <wsa+renesas@sang-engineering.com>, 
+	Linus Walleij <linusw@kernel.org>, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	linux-kernel@vger.kernel.org, imx@lists.linux.dev, linux-omap@vger.kernel.org, 
+	linux-samsung-soc@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] i2c: Convert to subsys_platform_driver()
+Message-ID: <ef6ce6fqyefm6ywoaym2f4ww5nclotp7i7ohmqnaikb2lb5dsm@lcrmzg2z7v7n>
+References: <20261104113316.1634141-1-peng.fan@oss.nxp.com>
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -64,31 +70,19 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261104113316.1634141-1-peng.fan@oss.nxp.com>
 
-Add myself as a co-maintainer of pinctrl-single driver.
+On Wed, Nov 04, 2026 at 07:33:16PM +0800, Peng Fan (OSS) wrote:
+> From: Peng Fan <peng.fan@nxp.com>
+> 
+> Replace the open-coded subsys_initcall()/module_exit() platform driver
+> registration with subsys_platform_driver().
+> 
+> No functional change.
+> 
+> Signed-off-by: Peng Fan <peng.fan@nxp.com>
+> ---
 
-Link: https://lore.kernel.org/all/CAD++jLn8yxh3LmUzbb2vZfJFJB=_mCZ+VeQhnZktfmuMiv5uEg@mail.gmail.com/
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Haojian Zhuang <haojian.zhuang@linaro.org>
-Cc: Linus Walleij <linusw@kernel.org>
-Signed-off-by: Alexander Sverdlin <asv@kernel.org>
----
- MAINTAINERS | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index e42edddf8f0db..2dcf454589726 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -20386,6 +20386,7 @@ F:	drivers/pinctrl/samsung/
- PIN CONTROLLER - SINGLE
- M:	Tony Lindgren <tony@atomide.com>
- M:	Haojian Zhuang <haojian.zhuang@linaro.org>
-+M:	Alexander Sverdlin <asv@kernel.org>
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- L:	linux-omap@vger.kernel.org
- S:	Maintained
--- 
-2.56.0
-
+Reviewed-by: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com> 
