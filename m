@@ -1,94 +1,47 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.182
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793835801;
-	b=FIanUk0X8Czt7lb4mpGl0I6RNwLKHsr01605Ii6I05vzPbAAdRQ/RJUVFU2OG4FsPSJp
-	 iyi1h3FMV3fytMdDPwH+E1DvwHTgWn986hSEVlTolSbABfMm19GIWjLtwBmYf+m7ciTl2
-	 3h5rBRkjSA7LArC9KB0N9+qfShUMBoLHQzqJD7RqMAZA4BnfdK2DpXurIE48vsioUwD3p
-	 Psse9nuF4BkqaolbuzS5Lvp7dPTcuLbpq6HzOtOHmfc+JwRNskTdvGDc/0LzvgMt/U6oQ
-	 4lnkVuAXNZu0Mtp4Y0YD/rs/cexwlU83rHqnWmJug77JB8b97hf95PxNCoDqKUWl1hg==
+	t=1793866589;
+	b=LDVUHSKZatsD3xmf9mwIw32wkNsWKU8Kcoi29F9hpbsJyNql7pRKzJYck3qts1MvIpw4
+	 adx4NkBmPLOAAJdMpTXdmflshqyVXLak1X/si+KXujGy8XTe3SF1if91D6qWlmSFvBZh0
+	 heUm+7/cOI00F2sDRMg7FesnuGrYGJFPv97xTpHTJz/dEDcBUVH8X4uwgwcDo63Ww0CBl
+	 arg7zzSBoWYlR7KVTHBnUbOnq5h+W6ZPiPvp7Ty9FE9icYtIs2z3t/E0mGn4BveCl0Usb
+	 v+l4Fp30+cY4ipy/pYLq0pfN+lPALVXwuIVLeBuUAXhrQI5DnCI3WXNnSD8snfky/mQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793835801;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To;
-	bh=5nFrUseiN9YOf0OgZ2S8yogfl08qqWr5d0TY5rbXHDg=;
-	b=O7O8yPDglnbhq/U2kTcoFs4m+kxpBteWsse4+TGpc9pN1EAcy/mPKuds9vHKrvdCL6zb
-	 /0E1UCp1XYktrHvGMRywMbSbTTxqkt2z/v9LiP3aO7J0yP8LlKcvbj7Vl9sTZzoc2ZVcP
-	 w988tU/Uj/Rr8M7/AyHXNgvqzFJCOnX8J18MWWpeiDhLg78Q3s22Oj+zwMcnfpDv7gf7c
-	 Xnq7RzMsmR51PM1b3quvTNrzwkLejgIIL2UhwmCzdZoGAzOxOf7sEoxa++9WOWB/rYlhO
-	 dIySqHUwAbVMpIHVbqEk6Mem5EZHd/SCw+a8W6t8IPxsxIt1qUodlE/ZlyJ5kLTF8YA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793866589;
+	h=Received:DKIM-Signature:Message-ID:Date:MIME-Version:User-Agent:
+	 Subject:To:Cc:References:From:Content-Language:Autocrypt:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding;
+	bh=CuJQoyb7IoYC0y7UfGHpRmB84OJXh943j/1/oLn+lg0=;
+	b=PXdRP2OME6mGXqN6z8guPkZvQHyDEE+Rz4NkBOhe8EW4dNhx7VjjDmZQZ3MviGcjQyEH
+	 4DtHZxUvfNRnNLR6UGH6UlYt6Fo5yWLgZAvAZ84szEtQKmuSffzjITDm+Jet0IUfg9CQc
+	 Xg+5OD4Z7A+o1UlFD7vEdjVrPQ1Bc+AoGi5A8MX2D6CgWbac7xO7Ym5ycqvyw/EfGa/fM
+	 Fb3zqL2X8dHKPZX9NvRE0imGAMx5Cy2m6qGa0CT5pQdqYxGh70REWqlIWqQkCPspMxXpX
+	 qnaVvo/GFxo10kME30iHE/uP593qJQHgyrg8Efzh0NMGu73eLi38N+1uNzfCZjS95kw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=fTUWy8jM;
-	arc=none smtp.remote-ip=74.125.82.182
-Received: from mail-dy1-f182.google.com (mail-dy1-f182.google.com [74.125.82.182])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GkEDMbG3;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC489606A328
-	for <linux-omap@vger.kernel.org>; Wed,  4 Nov 2026 23:43:20 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org EC489606A328
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B789E606A326;
+	Thu,  5 Nov 2026 08:16:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=fTUWy8jM
-Received: by mail-dy1-f182.google.com with SMTP id 5a478bee46e88-353804b591eso2444882eec.0
-        for <linux-omap@vger.kernel.org>; Wed, 04 Nov 2026 15:43:20 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793835800; x=1794440600; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=5nFrUseiN9YOf0OgZ2S8yogfl08qqWr5d0TY5rbXHDg=;
-        b=fTUWy8jM1PsytsBsChYqVoszYkib2vcZrvOgSPKUcKRvOR2J5KlKs9FxUqVw8q8iFH
-         Bc+DyvtMrivviUhsJf6HrM086DGRaC5KbowncGQ0/M1apkBieWLL4XEYGda4IKzCkmJ2
-         9tgEdaQrKAJOCBGJVguKlOnY6y+l2arA7bXhdD70ekFiZVw+fh+PCR3KJK+teTgWZsx3
-         Iex+BPdW4t5+1bylYB+A8YBcnddCBGtf4ZdVm56baw+25ZpVvLrU3v4bmPyA7c14pL8V
-         9lJaNEMZH6a9oYqTug2PXqB86vxJCcWAXonEuz9BAviQY67Uf4ME4EEbBGhTn4ua5j8m
-         gkDQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793835800; x=1794440600;
-        h=in-reply-to:content-disposition:content-type:mime-version
-         :references:message-id:subject:cc:to:from:date:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=5nFrUseiN9YOf0OgZ2S8yogfl08qqWr5d0TY5rbXHDg=;
-        b=Oe6juoAIuYQbrPyy0qOqh5MepWG/dZc6n2CB/yaA2+EYYhwXOGfYFm1u0xNSj8U4uf
-         kxNUkgwtGaifb2ZTVUBq0RvfTNQfTMtFA0d7ww7V4jZ4spdzTMdXUn92czcBv2UpLYPo
-         wv4GUD8NjmRuWnlaRAz16ciZVaS8gWiVj2DXNi7THs3orlPVqFvoTpMuvXrU6pCgFgQl
-         7If8Ff4eAgdl/0bvZS3fncOgRUxOVv3Uqd6JU7mMpWkIDe8wXw37jGZIUBXiM0eY8U9Y
-         bvs2a4VuIJHUbLMOjtXYZHvPWskmoyoakM2ojQ+z1hr1bArHjo4W/v5EnsamK0HtdU1d
-         1g3g==
-X-Forwarded-Encrypted: i=1; AKwUvBwa1Da4j6fHEut50wxC93vhDtddthi5gkO/jfp7KpRl/SwLYSVxecLjV7CQLLbJUl2XsgmO/TtsYGxe@vger.kernel.org
-X-Gm-Message-State: APuU4Z+API/vHv7fJal6Ag1xiLFn8fI+zpLPf41zd1/VkZV+s2XeWyhV
-	I6r3DBb2pa+20JyeEzgG3tm4Rhwi5WZqdZi5CQXIvPQO1MoTW7HAkjSY
-X-Gm-Gg: AYBFou3f21biwfNgyBpdaDQBS1dFP5cvbqJDyakkXXZwNpVMkRVTEz+P6ewTXxp85ln
-	emoIXYufgbshWLTP+h+AfFnRSWEhL02UIGo4Eld5k4Oi5GbEr0YDpK4coHD01V7vVyGjlPpJNcG
-	SvK/3LBcVKe0cGnTqfIHGl2NIsqyCNZuq6k5IRdg8UEVESrMmNqI3rpOG+VS+36tQhcQQ0vOUkI
-	nWiFqJaQYSCijkpYHvYQ6H8gKDynWzjeyNpyT1MtGtxhNqzZZIxFM4c/eIilsUVtIj69mSydJE9
-	h7PBbhoWI17cg1QC6jUN94+vkp4dWT/G8KscKV+YzhGQ8kztUFvnChREDzXUtp/GMFn5WjtLDNs
-	208BI0hIdgYIUG0/w8meu3q5M3clSzY5kJHbtGV7y4e1aOLlfIAo35Xqxoe6UrymhHCl+eCvoaQ
-	6KdWgjfV91ux6WqAoNVFEbx3Qd6Eh79yqzjia0+u9NdIuvh1RZV7a9encMO2WEK1galGZHzf7NT
-	+VxGUj7FxR8IWK3PjqdOC1dvUWOWHFkqiDMr6f05crVImPdloGVl0DlnKUB0TrKQ1pBApj6ZQqy
-	FrTLtkhwg3m2qM30WlEvQA2Nocl7fMLs8D8394+T1ifEAK+kFMRn6GGI3Eayh+Yxu3mb3A==
-X-Received: by 2002:a05:7022:b053:10b0:190:da74:2c89 with SMTP id a92af1059eb24-1ac5bda4447mr27386294c88.21.1793835799860;
-        Wed, 04 Nov 2026 15:43:19 -0800 (PST)
-Received: from google.com ([2a00:79e0:2ebe:8:c8f4:b7d9:252f:4483])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-36ca38d36a1sm12650219eec.12.2026.11.04.15.43.18
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 04 Nov 2026 15:43:19 -0800 (PST)
-Date: Wed, 4 Nov 2026 15:43:15 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Andreas Kemnade <andreas@kemnade.info>
-Cc: arnd@arndb.de, marco.crivellari@suse.com, 
-	bartosz.golaszewski@oss.qualcomm.com, tony@atomide.com, linux-input@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, brgl@kernel.org, linux-omap@vger.kernel.org
-Subject: Re: [PATCH] Input: gpio-keys - do not rely on debouncing
- capabilities of dedicated irqs
-Message-ID: <auvDDyECLJsQdIu9@google.com>
-References: <20261104185044.2551808-1-andreas@kemnade.info>
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=GkEDMbG3
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C49381F00A1D;
+	Thu,  5 Nov 2026 08:16:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793866588;
+	bh=CuJQoyb7IoYC0y7UfGHpRmB84OJXh943j/1/oLn+lg0=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=GkEDMbG3pbvOmv5QL4XpIyruzvCSEfqqg7tw75JazXjzBE9yvyowMepOn3y6+Som6
+	 7bZHMUqOxbR+1afQEh4X82o+M7uBBtCmbmCrBd5nH38d+ZFUyy3I4KRFYRc88Lvm4d
+	 lBe8qw2bc/IRVFhNya7rKkiajtNroKwHTm0QOMzaSLnDW4zquT95X7oazy/nNUGhtl
+	 7Fnay1nN7tTQn++UjaZidM0Cz2h86y4vRunnxH3KU1Y2ZpxnqTDaoX7OjobZCB674s
+	 bolXu8ulBcO5NL7Vio6ysB8oYk1nctYzD7LDAhYQD/GU0KjZDgVyBeoqHqUz5uujYP
+	 2TsXd8gBTPirg==
+Message-ID: <c6664dd8-871e-4b38-8017-d4c1a02fd36e@kernel.org>
+Date: Thu, 5 Nov 2026 09:16:15 +0100
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -98,19 +51,145 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261104185044.2551808-1-andreas@kemnade.info>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] i2c: Convert to subsys_platform_driver()
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Peng Fan (OSS)" <peng.fan@oss.nxp.com>,
+ Codrin Ciubotariu <codrin.ciubotariu@microchip.com>,
+ Andi Shyti <andi.shyti@kernel.org>,
+ Nicolas Ferre <nicolas.ferre@microchip.com>,
+ Alexandre Belloni <alexandre.belloni@bootlin.com>,
+ Claudiu Beznea <claudiu.beznea@tuxon.dev>,
+ Bartosz Golaszewski <brgl@kernel.org>,
+ Mika Westerberg <mika.westerberg@linux.intel.com>,
+ Oleksij Rempel <o.rempel@pengutronix.de>,
+ Pengutronix Kernel Team <kernel@pengutronix.de>, Frank Li
+ <Frank.Li@nxp.com>, Sascha Hauer <s.hauer@pengutronix.de>,
+ Fabio Estevam <festevam@gmail.com>, Vignesh R <vigneshr@ti.com>,
+ Aaro Koskinen <aaro.koskinen@iki.fi>,
+ Janusz Krzysztofik <jmkrzyszt@gmail.com>, Tony Lindgren <tony@atomide.com>,
+ Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>,
+ Roger Quadros <rogerq@kernel.org>, Vladimir Zapolskiy <vz@mleia.com>,
+ Piotr Wojtaszczyk <piotr.wojtaszczyk@timesys.com>,
+ Peter Griffin <peter.griffin@linaro.org>,
+ Alim Akhtar <alim.akhtar@samsung.com>,
+ Wolfram Sang <wsa+renesas@sang-engineering.com>,
+ Linus Walleij <linusw@kernel.org>, linux-i2c@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+ imx@lists.linux.dev, linux-omap@vger.kernel.org,
+ linux-samsung-soc@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+References: <20261104113316.1634141-1-peng.fan@oss.nxp.com>
+ <93534aaf-00f3-45f4-982e-7fd44ab3799c@kernel.org>
+ <auuXnndiQOkEaOsj@ashevche-desk.local>
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Content-Language: en-US
+Autocrypt: addr=krzk@kernel.org; keydata=
+ xsFNBFVDQq4BEAC6KeLOfFsAvFMBsrCrJ2bCalhPv5+KQF2PS2+iwZI8BpRZoV+Bd5kWvN79
+ cFgcqTTuNHjAvxtUG8pQgGTHAObYs6xeYJtjUH0ZX6ndJ33FJYf5V3yXqqjcZ30FgHzJCFUu
+ JMp7PSyMPzpUXfU12yfcRYVEMQrmplNZssmYhiTeVicuOOypWugZKVLGNm0IweVCaZ/DJDIH
+ gNbpvVwjcKYrx85m9cBVEBUGaQP6AT7qlVCkrf50v8bofSIyVa2xmubbAwwFA1oxoOusjPIE
+ J3iadrwpFvsZjF5uHAKS+7wHLoW9hVzOnLbX6ajk5Hf8Pb1m+VH/E8bPBNNYKkfTtypTDUCj
+ NYcd27tjnXfG+SDs/EXNUAIRefCyvaRG7oRYF3Ec+2RgQDRnmmjCjoQNbFrJvJkFHlPeHaeS
+ BosGY+XWKydnmsfY7SSnjAzLUGAFhLd/XDVpb1Een2XucPpKvt9ORF+48gy12FA5GduRLhQU
+ vK4tU7ojoem/G23PcowM1CwPurC8sAVsQb9KmwTGh7rVz3ks3w/zfGBy3+WmLg++C2Wct6nM
+ Pd8/6CBVjEWqD06/RjI2AnjIq5fSEH/BIfXXfC68nMp9BZoy3So4ZsbOlBmtAPvMYX6U8VwD
+ TNeBxJu5Ex0Izf1NV9CzC3nNaFUYOY8KfN01X5SExAoVTr09ewARAQABzSVLcnp5c3p0b2Yg
+ S296bG93c2tpIDxrcnprQGtlcm5lbC5vcmc+wsGPBBMBCgA5AhsDBgsJCAcDAgYVCAIJCgsE
+ FgIDAQIeAQIXgBYhBJvQfg4MUfjVlne3VBuTQ307QWKbBQJp2mE8AAoJEBuTQ307QWKbeaIP
+ /ihHTkTW4KsN/DQ945JJbyu5tI0J80Wue7QyyLPglyKfhgb5cLLNPpOC8cCIJsc7+W3i2P38
+ s2c1cOH6CYGE7E9ur3Vfme8NW2S2I/Z8VC7bZnzyS23wT17LrsdS/qCpx4o8U+pt/xdXDKph
+ EGRYrIEmMpUWvyYzyYKGIe25FtaayIIKpq8eZYyFcp2f/sG5IkOW5uZzHPMPdcm87jU7fyuQ
+ rAU2vx9r+ulUfQ/q9Z2roC/ode3l7t2pN7BCBCsUDp6JCrUyZrtT1e7EbA0ZRP3aOBNk2P2E
+ DQOgJGjGdO5Yx2Y9LFtltu6JbsBJHi1syGRX3AtQYOMc4Y1WGoeZJmMlvKj2ZqqXNkcWi2DS
+ IQEWB0uW6CqFsBBIMGDa+6OzdaVO/uAVXWDWml02Men3CILdI1MbVjoh8ECqYUY7OQ+JJvNN
+ vnliuq5WM3Ghd3jg/LZZrxXjdIginRHFQCjIJYLKpLZWm1/iDFedcfzqRNYmTtqscdCNHW41
+ oT3Z7BmO9xwdjuwBS6nmS6JJwkbf5Ot2QR4pB/DRU7ZwjT1qHe+9r9gF32wXVQatHNGK/VVu
+ sfwOnkdxCWkp/qb2gdQRmZh+SedStWshigH6sNfuHBloF/q+hjMRc8b2m326OZdrbSHwY1Sz
+ vti8Hn7n8NjdHO9LKB7BIdjkA9DA5WsqOuVCzsFNBFVDXDQBEADNkrQYSREUL4D3Gws46JEo
+ Z9HEQOKtkrwjrzlw/tCmqVzERRPvz2Xg8n7+HRCrgqnodIYoUh5WsU84N03KlLueMNsWLJBv
+ BaubYN4JuJIdRr4dS4oyF1/fQAQPHh8Thpiz0SAZFx6iWKB7Qrz3OrGCjTPcW6eiOMheesVS
+ 5hxietSmlin+SilmIAPZHx7n242u6kdHOh+/SyLImKn/dh9RzatVpUKbv34eP1wAGldWsRxb
+ f3WP9pFNObSzI/Bo3kA89Xx2rO2roC+Gq4LeHvo7ptzcLcrqaHUAcZ3CgFG88CnA6z6lBZn0
+ WyewEcPOPdcUB2Q7D/NiUY+HDiV99rAYPJztjeTrBSTnHeSBPb+qn5ZZGQwIdUW9YegxWKvX
+ XHTwB5eMzo/RB6vffwqcnHDoe0q7VgzRRZJwpi6aMIXLfeWZ5Wrwaw2zldFuO4Dt91pFzBSO
+ IpeMtfgb/Pfe/a1WJ/GgaIRIBE+NUqckM+3zJHGmVPqJP/h2Iwv6nw8U+7Yyl6gUBLHFTg2h
+ YnLFJI4Xjg+AX1hHFVKmvl3VBHIsBv0oDcsQWXqY+NaFahT0lRPjYtrTa1v3tem/JoFzZ4B0
+ p27K+qQCF2R96hVvuEyjzBmdq2esyE6zIqftdo4MOJho8uctOiWbwNNq2U9pPWmu4vXVFBYI
+ GmpyNPYzRm0QPwARAQABwsF2BBgBCgAgAhsMFiEEm9B+DgxR+NWWd7dUG5NDfTtBYpsFAmna
+ YUkACgkQG5NDfTtBYptX+BAApg32CkxwNucNEi8WfWA8oKkW0y8YDuY6ORMo9FWNGiT/OTy0
+ vyJrLocrpn86zwfjVp+eCrssPYh8eqJfnWqmYv6ACQtHPYzPZQ3mSo8H97Z01oUxITzCxpXm
+ ZkLgPIqtDPcC2E3dPM/fVxcyowM8XsaMA9wcsaUYrta8toOq2b9tKcjleKMfMrm0gQ9u7wUc
+ QbLkwj6TCLOwucb07GXzLTNF9PZmaDUpKAZjMjmrW+le+SFvQbhamx0rxLWPR0NWntXpbCn+
+ +ACch03p/JyTBVktxFsFyCt7pTPE1kEaeuXBTe/a2D9iQvRxRW19LvuO2e59/u1wYUiH/orz
+ wbIC2S4dBsPAPihL3ztOU1yE86GPyQtSE0kU+/7snnLt4QGi6PChf3t5gnNjAzjUUovO8rgI
+ c+5yN5heq5loYHgK6OQ9OlHzsPHO9e9MOQcKlFycs1pyijFGzDwdNUm/SchK8iWT2QApTx4A
+ K9bCVaboTA2T77QYkRcRJYSsO1alGX0ome/hMLD1daXlkrNUp1HWa3K4iytLRXjCSIorWiGs
+ n+q3krnpXu3TFkA8qtOFZMdnIiFuiq1yLT8hptsV5xh1TA2nsVvSYiaCr3q4s4BKjS/KrLDb
+ qoxzw8ISjdUp4pA85vb6YLCmb39NgidD+7PmAr65lBNveIFynTgsja1rRQ4=
+In-Reply-To: <auuXnndiQOkEaOsj@ashevche-desk.local>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Wed, Nov 04, 2026 at 07:50:44PM +0100, Andreas Kemnade wrote:
-> If no GPIO interrupts are used, these IRQs are unlikely subject to the same
-> debouncing mechanisms as a GPIO interrupt would be, so stick to software
-> debouncing. Experienced on OMAP4 using pinctrl IRQs.
+On 04/11/2026 21:37, Andy Shevchenko wrote:
+> On Wed, Nov 04, 2026 at 06:38:40PM +0100, Krzysztof Kozlowski wrote:
+>> On 04/11/2026 12:33, Peng Fan (OSS) wrote:
+>>>
+>>> Replace the open-coded subsys_initcall()/module_exit() platform driver
+>>> registration with subsys_platform_driver().
+>>>
+>>> No functional change.
 > 
-> Fixes: 3717194f2492 ("Input: gpio-keys - add system suspend support for dedicated wakeirqs")
-> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+> ...
+> 
+>>> -subsys_initcall(i2c_adap_pxa_init);
+>>> -module_exit(i2c_adap_pxa_exit);
+>>> +subsys_platform_driver(i2c_pxa_driver);
+>>> diff --git a/drivers/i2c/busses/i2c-s3c2410.c b/drivers/i2c/busses/i2c-s3c2410.c
+>>> index 15e14a6fe6dc..dd1f6f854a32 100644
+>>> --- a/drivers/i2c/busses/i2c-s3c2410.c
+>>> +++ b/drivers/i2c/busses/i2c-s3c2410.c
+>>> @@ -1188,18 +1188,7 @@ static struct platform_driver s3c24xx_i2c_driver = {
+>>>  		.of_match_table = of_match_ptr(s3c24xx_i2c_match),
+>>>  	},
+>>>  };
+>>> -
+>>> -static int __init i2c_adap_s3c_init(void)
+>>> -{
+>>> -	return platform_driver_register(&s3c24xx_i2c_driver);
+>>> -}
+>>> -subsys_initcall(i2c_adap_s3c_init);
+>>> -
+>>> -static void __exit i2c_adap_s3c_exit(void)
+>>> -{
+>>> -	platform_driver_unregister(&s3c24xx_i2c_driver);
+>>> -}
+>>> -module_exit(i2c_adap_s3c_exit);
+>>> +subsys_platform_driver(s3c24xx_i2c_driver);
+>>
+>> Apparently reviewing only a few lines out of 300 is still reviewing:
+>>
+>> https://lore.kernel.org/all/9e39502a-dd17-4fa2-98a3-9019523cb5e8@kernel.org/
+>>
+>> Therefore:
+>>
+>> Reviewed-by: Krzysztof Kozlowski <krzk@kernel.org>
+> 
+> In the similar way
+> 
+>   Reviewed-by: Krzysztof Kozlowski <krzk@kernel.org> # s3c24xx
+> 
+> (Note, I specifically put double space in front to make this as an example and not overwrite your tags)
+> 
+> And to others, the problem with partial reviews are lying on the side of the
+> sender as it's not reviewer's fault that unrelated things are going in a bundle
+> and not in the proper per-driver series (where each of the driver may have
+> distinct maintainer).
 
-Applied, thank you.
+Re-iterating my earlier opinion, the reviewer is at fault as well
+because either should use Ack, because person did not review THE patch,
+or at least path-limiting comment like you pointed above.
 
--- 
-Dmitry
+I'll send v2 of my patch for submitting patches mentioning this syntax.
+
+Best regards,
+Krzysztof
