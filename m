@@ -1,85 +1,118 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.51
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.17
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793886316;
-	b=vf6k++6FeZ0swMAYcwvxDej1vj32rdnBS9hF9glNNhJgFNH73JOxrnTfgO1fPyf/c8W/
-	 vqUlfwXbnrO3CxKe6lgoSNiunp8a2qarAdeYyKWpKlp3PxFX3EbMKR45iS94tTlbKcPnQ
-	 nN8tOIU2l33EypC16YWQ9PjPkCNTlZVz+dOBPZQxbGBfVDhxDxk428Ja15X82uBY17Okq
-	 R4HN4ljTjvHw2ike2hgSYN/8SBpQ0+DzN4pdS/XIOFza8DvtQMq1o1j8leCJW+v7O8F77
-	 cegH39wYnrZPd19VzWt4b3AcuiKv2/agSDXt6PV/sXU8QYaUJeAJjQl6zAj84B61CPQ==
+	t=1793888580;
+	b=s8+ZRCvWDxp+KKLYKlrDMQDJh2LCJtyewGt2vQEeKP23F3MF15SKoKJsU7ZXoIF9NIIV
+	 8ZUqmKevQV7j07wCE+PXpFCDtAxFswjovZucVsRfm74p+OzJ2n+TqCbepb4KJrhfVCVUX
+	 ap/nlhVcyKDGV3ywrQas4Igy2s8RMa3Q/E+l96H8FAdsT2Rv0Z2owltCrphJIP4trFsBU
+	 MpeJq7Z+hOwK1PPwdxVEViJ8a6qKcl0vnk75s4r7hfmjDaT4hsl9q0p8FmhQ+WUEdJpN9
+	 2YF4pX1Hw5zgqU1RCSG6Z35p7qNcraj/moIg7uZgF7pqIClwjsf59YNEn+88WzI1C2g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793886316;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:Message-ID:Date:
-	 MIME-Version:User-Agent:Subject:To:Cc:References:From:
-	 Content-Language:In-Reply-To:Content-Type:Content-Transfer-Encoding;
-	bh=4SSzib5VWeur1UFjzFHifegpVxu2wOnePo4bxIewHVU=;
-	b=qvepcbor6foezvZwkr6zkUDQeksznIyUWZYm7BOE925ycVQxMxh9j7CTbnF1DTYhzNAU
-	 tNZdojcNEZHpvVtK2hmKH8Bz0yiPNCxzBttuy+ZrkjCypOfrJ9uzGcR7PY2A+2PxzYPki
-	 F2oxNGtJkPMPhOT9qwZOIR/rQjyAJ8oU9IYkklvN+TqoDuve7m3ylM3HpkvX9nqG2IDFA
-	 9USbiajpllx59rzlj9+UyjuuBShw3CS6+G4bZrOI0ikVw1pF255HOqgvrsi2k9C+0kudd
-	 EnR1S7tVdRAUH6Caz1fBIazjX5PYlfb99FVC7KyMqtyJ/lT3Cl0cXuVv33o8GMmQ40g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793888580;
+	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
+	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
+	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Date:From:To:Cc:
+	 Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:Content-Transfer-Encoding:In-Reply-To:
+	 Organization;
+	bh=fr/sToHFkpF9BPihxA953uG8doO1fE0lFSHPRxWhDoE=;
+	b=U7Dh5zbJaSE4+k8E3AAl7dpNXC+IqrGNusY7aXFwOLic5YlfeCYwpH/fJAQNEiwfcims
+	 Mhwo/uYdR48Anp3oqCgUfIQ/YpcSHP3pGNAc9rSYOya8NjZKi/pCkCQ3f57ivDGQzr4Ab
+	 RiyZqq2287FUKRD0lboHVBk4lTlmwOg3elQesYxsNPc0tfadcb3Djtj6i3a/InDPZQVeg
+	 BzLfPP/cQgOJv1NPlirf6m1erZZrKiZTafImpiYsle1PHSNfQcjWd8ZGGkgE8Z8pTSDZu
+	 HOnmYN+ZghZFfa6Xp7fRhWigDsO6idZBBgSvGES/7IasXIHNQ5/Da6+962OOoZXmvOg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=EmqlH7ni;
-	arc=none smtp.remote-ip=209.85.128.51
-Received: from mail-wm1-f51.google.com (mail-wm1-f51.google.com [209.85.128.51])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dmarc=pass header.from=linux.intel.com;
+	spf=pass smtp.mailfrom=linux.intel.com;
+	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=kqUQNpzO;
+	arc=none smtp.remote-ip=198.175.65.17
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
+	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41926606A329
-	for <linux-omap@vger.kernel.org>; Thu,  5 Nov 2026 13:45:16 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 41926606A329
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C548606A326;
+	Thu,  5 Nov 2026 14:22:59 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7C548606A326
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=EmqlH7ni
-Received: by mail-wm1-f51.google.com with SMTP id 5b1f17b1804b1-4a35db1f202so14938815e9.3
-        for <linux-omap@vger.kernel.org>; Thu, 05 Nov 2026 05:45:16 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793886315; x=1794491115; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:in-reply-to:content-language
-         :from:references:cc:to:subject:user-agent:mime-version:date
-         :message-id:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=4SSzib5VWeur1UFjzFHifegpVxu2wOnePo4bxIewHVU=;
-        b=EmqlH7nikgIUs4lABse+RVCI39H2DzVmBvEa9v/whwmVP1aJYm6K+0hXifFOneR2xf
-         AJTZxNfW0Z/lzWGZJOK9CCJ+55az25Q6zozJmr7wV1IJubS5nRy22RUQiWU8qXJtP6uz
-         RNnpwtepATRAe6Hk6MW4amrYTwZ6Pr9a1tdYk1CoZEWqLR2ZHO4nQhWXdg+Gi+yOAWJq
-         k7oY8OMOwFXCS6sXu7+q7/49+ivOCZe8EqNqTeJWGwPekbDPNutVUTiDfvK8EDsVrmj+
-         hhb+6HpZk3eoEWgN+6sr6NO2+3pU6+f2FvxJfxLoRgcsNEd+reWWaHpq+jcg9bcdxQsE
-         d9vw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793886315; x=1794491115;
-        h=content-transfer-encoding:content-type:in-reply-to:content-language
-         :from:references:cc:to:subject:user-agent:mime-version:date
-         :message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=4SSzib5VWeur1UFjzFHifegpVxu2wOnePo4bxIewHVU=;
-        b=udiFioNJp/x5lLyN+aFyuACtBU/XUx5qp8V47t8TtoVgxJXbqml8PEBjCpgjq4I8ih
-         rOUh5lDvpF75HtJuneH7+FC//cfgMP+RMdYs12hhUf9bL1yld/PduG5B/7YhMxTJ8bQb
-         6QhuIzuBiAzUoIxWSVfeV6yrdUMkY1lcKrwRPuOvt3zIITJYUxfhC8xwUC5+zh/Qy1+z
-         m5NTz+6VHgpLK/78b4D4NxPQ4rH8EZwBk7avqVTypDjTDJo1a1w4vadz8+9u0+YHyFF1
-         0zHeXU6G7+1ENlRTtcbpVIKmVsw5n2nJwM3DNHPyXrIf+S+1jtawPGlP3wy2pj1tvKi3
-         HF4A==
-X-Gm-Message-State: APuU4Z8T4wnuCbhp99G9XDmUlszsDlDqheMnfzst3qsaVQWyHqcK3GtD
-	eNvtyQMjU4DGsRpVtJayLYX6o0zglkXt+AZ8Al7ezCtUGtR1RzeTV7Qx
-X-Gm-Gg: AYBFou2voa5wT7duki4zhSNjm1WJqTyuPFzHE7ZsPAIt11BdIUGEsCmbOtd0jcjgHdT
-	NHdl7PMCV+bquPNw35u5wscfbMo48UCRhN8n+tPU8P4HUSe1jhVuAOLWejkGikgTeNUEqJuknvn
-	nkYpXcuNS1qDKqdT7nZf5JQQWCrVfgo/tI9VsWsajrwrZfGjXcYI+YuzBw8GH0xwAwYls0Egly7
-	DQwKsoaspw0dz8yjtmjGizG2gTtvg7PbJsNXnk7Ad7+fLP82r6zzix0wMOo7bc7B26TzdNc2v1F
-	alLT1AEpjzwXEBnOTj4njSaMiRjdDIqhHkMjeN5EnMuv89DIwhztCnpi7uURMcCAgmRHzJLHmFc
-	uJ2Zd/+l8iI1POYcG4QGBCa3TRvtqNAti6tkeIs0nmSWPEc2am9Uplczo1AIaG2FT69zC3+OBYH
-	p4MGW5o/tHh8Fp9wVt+HWidQH8VczOGZXHuN9va9meVeWpJNfAP6n7WH4HNPSXECZ3Xo0c1WlOn
-	0zpMjO2cQpZrYLnfbBHsV0PIrVXEc830PTuIoxFmad3iPTxJS/cXGMYOC3Brh2TGG0k9bNThhWY
-	VH5bbVIaA02aaEiqzsXvG1gk/GS9u9+qhBpgOVb9fhsvQJsdg96t+dAD5OpyGWzKXHdGcw==
-X-Received: by 2002:a05:600c:4714:b0:4a6:30c3:1114 with SMTP id 5b1f17b1804b1-4ac180f1c7amr420433645e9.12.1793886314348;
-        Thu, 05 Nov 2026 05:45:14 -0800 (PST)
-Received: from [192.168.2.178] (109-252-159-107.dynamic.spd-mgts.ru. [109.252.159.107])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4b56eb4da1esm110800005e9.6.2026.11.05.05.45.12
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 05 Nov 2026 05:45:13 -0800 (PST)
-Message-ID: <3018a4cb-d986-4c77-a472-ca4d1b83c3b4@gmail.com>
-Date: Thu, 5 Nov 2026 16:45:11 +0300
+	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=kqUQNpzO
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1793888580; x=1825424580;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:content-transfer-encoding:in-reply-to;
+  bh=8aE99+VJcMQQ2lFtFNMEVuo+WAHaGpOaIlVw0wUkjj8=;
+  b=kqUQNpzOAFCaYDSHcp8Wj4WmpoX3nJS4a+Kgf73h8jtx535iIXYYaWOe
+   K0Ea57swpZPo5j8bLuVT7bTDYB4F+f0tuwUQH4ZC99CXKTnfsFDX5TXY/
+   i6xUcn5URrVaHkYLilXDyz909mDABgqMSPSqwyt9RxltWwqH0JvaREGZX
+   Ofz5IGRm296N/vS+3rBNBIhX/rQ4IfGN4Uy7pR6YI8GSgrLaksPFXeES8
+   KU9Dr+YOg76ZZmPaFzwIFGav1dnKbeabAUU7RzNkIgXYEpEPxT85n/Ebe
+   bct31QF/JCTlCuG/1Mod9N6tbDgiVUZCYJf6T/+vjf7AaH8uVllOkmbT5
+   g==;
+X-CSE-ConnectionGUID: 1l10Jx00QbyIWqho+oNmdA==
+X-CSE-MsgGUID: dc6UTu26R/qspd0UlFgWQg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11957"; a="2703073"
+X-IronPort-AV: E=Sophos;i="6.27,197,1787036400"; 
+   d="scan'208";a="2703073"
+Received: from fmviesa003.fm.intel.com ([10.60.135.143])
+  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2026 06:22:59 -0800
+X-CSE-ConnectionGUID: /K275MsMS2iu65atWdhLvw==
+X-CSE-MsgGUID: RsKg5am+RfCPmB5pvRDPCQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.27,197,1787036400"; 
+   d="scan'208";a="7192371"
+Received: from amilburn-desk.amilburn-desk (HELO localhost) ([10.245.244.144])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2026 06:22:47 -0800
+Date: Thu, 5 Nov 2026 16:22:45 +0200
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Bartosz Golaszewski <brgl@kernel.org>
+Cc: Uwe =?iso-8859-1?Q?Kleine-K=F6nig_=28The_Capable_Hub=29?= <u.kleine-koenig@baylibre.com>,
+	Linus Walleij <linusw@kernel.org>,
+	Andy Shevchenko <andy@kernel.org>, linux-gpio@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Lixu Zhang <lixu.zhang@intel.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>,
+	Florian Fainelli <florian.fainelli@broadcom.com>,
+	Eugeniy Paltsev <Eugeniy.Paltsev@synopsys.com>,
+	Frank Li <Frank.Li@nxp.com>, Sascha Hauer <s.hauer@pengutronix.de>,
+	Pengutronix Kernel Team <kernel@pengutronix.de>,
+	Fabio Estevam <festevam@gmail.com>, Imre Kaloz <kaloz@kernel.org>,
+	Conor Dooley <conor.dooley@microchip.com>,
+	Valentina Fernandez <valentina.fernandezalanis@microchip.com>,
+	Daire McNamara <daire.mcnamara@microchip.com>,
+	Daniel Palmer <daniel@thingy.jp>,
+	Romain Perier <romain.perier@gmail.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>, imx@lists.linux.dev,
+	linux-arm-kernel@lists.infradead.org,
+	linux-riscv@lists.infradead.org,
+	Hoan Tran <hoan@os.amperecomputing.com>,
+	Alan Borzeszkowski <alan.borzeszkowski@linux.intel.com>,
+	Mika Westerberg <westeri@kernel.org>,
+	Hans de Goede <hansg@kernel.org>,
+	Nuno =?iso-8859-1?Q?S=E1?= <nuno.sa@analog.com>,
+	linux-hwmon@vger.kernel.org,
+	Matti Vaittinen <mazziesaccount@gmail.com>,
+	"Enrico Weigelt, metux IT consult" <info@metux.net>,
+	Viresh Kumar <vireshk@kernel.org>, virtualization@lists.linux.dev,
+	Yinbo Zhu <zhuyinbo@loongson.cn>,
+	Thierry Reding <thierry.reding@kernel.org>,
+	Jonathan Hunter <jonathanh@nvidia.com>, linux-tegra@vger.kernel.org,
+	Geert Uytterhoeven <geert+renesas@glider.be>,
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
+	Srinivas Neeli <srinivas.neeli@amd.com>,
+	Michal Simek <michal.simek@amd.com>, linux-aspeed@lists.ozlabs.org,
+	asahi@lists.linux.dev, linux-mediatek@lists.infradead.org,
+	openbmc@lists.ozlabs.org, linux-omap@vger.kernel.org,
+	linux-renesas-soc@vger.kernel.org, linux-unisoc@lists.infradead.org,
+	linux-rockchip@lists.infradead.org,
+	linux-stm32@st-md-mailman.stormreply.com,
+	Michael Buesch <m@bues.ch>, William Breathitt Gray <wbg@kernel.org>,
+	Robert Richter <rric@kernel.org>, linux-acpi@vger.kernel.org
+Subject: Re: [PATCH v4 00/23] gpio: Improvements around device-id arrays
+Message-ID: <auyRNagFOmxf_3nW@ashevche-desk.local>
+References: <cover.1793097104.git.u.kleine-koenig@baylibre.com>
+ <2hfpcbk6r56vvhkqyiex2apl3pinieybad5sd3vkvvabqs3uto@lydt3gin5kxe>
+ <auxh9PxpJScFO3i2@monoceros>
+ <le5gbua6s2mhhv32di4j77qr2we5z5ngzyzmiemhodmblvjiji@q4wf5tdgrbtv>
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -89,37 +122,30 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 0/2] mfd: tps65910: Use modern API for poweroff and
- restart
-To: Svyatoslav Ryhel <clamor95@gmail.com>, Lee Jones <lee@kernel.org>,
- Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade
- <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>,
- Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, mfd@lists.linux.dev,
- linux-kernel@vger.kernel.org
-References: <20261027152423.194794-1-clamor95@gmail.com>
-From: Dmitry Osipenko <digetx@gmail.com>
-Content-Language: en-US
-In-Reply-To: <20261027152423.194794-1-clamor95@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <le5gbua6s2mhhv32di4j77qr2we5z5ngzyzmiemhodmblvjiji@q4wf5tdgrbtv>
+Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
+ krs, Bertel Jungin Aukio 5, 02600 Espoo
 
-27.10.2026 18:24, Svyatoslav Ryhel пишет:
-> Switch to modern way of registering poweroff call and add restart call.
+On Thu, Nov 05, 2026 at 01:25:34PM +0100, Bartosz Golaszewski wrote:
+> On Thu, Nov 05, 2026 at 12:06:33PM +0100, Uwe Kleine-K�nig (The Capable Hub) wrote:
+> > 
+> > Maybe you just need to add `-3` to your workflow? ISTR this should be
+> > the default for b4, but it seems if failed to mention the -3 in the git
+> > am cmdline.
+> > 
+> > Should I still resend?
 > 
-> ---
-> Changes in v2:
-> - swapped to use dev_err_probe
-> - ddata is passed directly into handler
-> ---
-> 
-> Dmitry Osipenko (2):
->   mfd: tps65910: Use devm_register_power_off_handler()
->   mfd: tps65910: Add restart handler
-> 
->  drivers/mfd/tps65910.c | 36 ++++++++++++++++++++++++++++--------
->  1 file changed, 28 insertions(+), 8 deletions(-)
-> 
+> No, it's alright. I would have preferred a clean b4 shazam but that
+> works too, thanks.
 
-Thanks for sending the patches :)
+To make that one should really have a unbiased base with the gpio/for-next,
+say v7.4-rc1. Then with --base present `b4 shazam` should follow that.
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
