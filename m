@@ -1,118 +1,47 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.17
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793888580;
-	b=s8+ZRCvWDxp+KKLYKlrDMQDJh2LCJtyewGt2vQEeKP23F3MF15SKoKJsU7ZXoIF9NIIV
-	 8ZUqmKevQV7j07wCE+PXpFCDtAxFswjovZucVsRfm74p+OzJ2n+TqCbepb4KJrhfVCVUX
-	 ap/nlhVcyKDGV3ywrQas4Igy2s8RMa3Q/E+l96H8FAdsT2Rv0Z2owltCrphJIP4trFsBU
-	 MpeJq7Z+hOwK1PPwdxVEViJ8a6qKcl0vnk75s4r7hfmjDaT4hsl9q0p8FmhQ+WUEdJpN9
-	 2YF4pX1Hw5zgqU1RCSG6Z35p7qNcraj/moIg7uZgF7pqIClwjsf59YNEn+88WzI1C2g==
+	t=1793896560;
+	b=3MxJePvqET/rKF8sWWlCZX9rmV+WdUC1Ei6/fJ7fpu1ckNpGUgTqJf1P/ojunVFIfnp+
+	 XzGoDYCD1B0aqqN633mfkTYCkBPZcpbkfyXIDpEEJur61lQIxSy5u17Yx9aT8rrjIxK20
+	 PW9KMraFP9xlKN/GlTy7sRSJPIEOjxRg6H6E5NV8wmwcT/byD9GfLGYrzTTjOdIutvx94
+	 e3KXXN+rTe81gj/25AcZQY9Ttmlm9aXWC57oKIc9E7W3xXX1pJ9+8LNU5Q33STQHGfikn
+	 SFkw5iQ3A95NncLJniYBtw1zewO5lLc+k3ag776pfRCx1rBkbk9GQJha8r3FWtZglrA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793888580;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Date:From:To:Cc:
-	 Subject:Message-ID:References:MIME-Version:Content-Type:
-	 Content-Disposition:Content-Transfer-Encoding:In-Reply-To:
-	 Organization;
-	bh=fr/sToHFkpF9BPihxA953uG8doO1fE0lFSHPRxWhDoE=;
-	b=U7Dh5zbJaSE4+k8E3AAl7dpNXC+IqrGNusY7aXFwOLic5YlfeCYwpH/fJAQNEiwfcims
-	 Mhwo/uYdR48Anp3oqCgUfIQ/YpcSHP3pGNAc9rSYOya8NjZKi/pCkCQ3f57ivDGQzr4Ab
-	 RiyZqq2287FUKRD0lboHVBk4lTlmwOg3elQesYxsNPc0tfadcb3Djtj6i3a/InDPZQVeg
-	 BzLfPP/cQgOJv1NPlirf6m1erZZrKiZTafImpiYsle1PHSNfQcjWd8ZGGkgE8Z8pTSDZu
-	 HOnmYN+ZghZFfa6Xp7fRhWigDsO6idZBBgSvGES/7IasXIHNQ5/Da6+962OOoZXmvOg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793896560;
+	h=Received:DKIM-Signature:Message-ID:Date:MIME-Version:User-Agent:
+	 Subject:To:Cc:References:Content-Language:From:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding;
+	bh=oaFEybmB3/LpRlTwU2ESXZoM0QOYsoH22CakPe6LiW0=;
+	b=WKUB0QkMDAn4Vx0wTnBZ7LmLyjIx4d4hxvqXsqBN8XLGM4b2Jld6Vsm6aIMWjYbJicMj
+	 JAu+fOlyxtr0fjWKmqdqJ8Liut5/DRaZ9nUMASWNenp8OV+CNBzSAyTJd5ObFDizc8PvI
+	 9VxYJehL+tuYpptGJwBatIC6vXTZSZZ4aJZ0u7gZ3f7WkoCU5dnjLGnmoh3bVAx7ONEAa
+	 2Q6O3+ILeX3aN+4QXNESuBl0J0op9azPpNDxLi8p9vODc52vRlO0rqmG6RRCQyzO2CvIN
+	 eMqbwT3T1XMjZQ6om2s//oqrnrB2N1Oru+yc9zth1iR9J+llMoq3oGyVJ2ADuOrSupQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linux.intel.com;
-	spf=pass smtp.mailfrom=linux.intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=kqUQNpzO;
-	arc=none smtp.remote-ip=198.175.65.17
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="PpT8/D5z";
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C548606A326;
-	Thu,  5 Nov 2026 14:22:59 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7C548606A326
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D52B606A33F;
+	Thu,  5 Nov 2026 16:35:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=kqUQNpzO
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1793888580; x=1825424580;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=8aE99+VJcMQQ2lFtFNMEVuo+WAHaGpOaIlVw0wUkjj8=;
-  b=kqUQNpzOAFCaYDSHcp8Wj4WmpoX3nJS4a+Kgf73h8jtx535iIXYYaWOe
-   K0Ea57swpZPo5j8bLuVT7bTDYB4F+f0tuwUQH4ZC99CXKTnfsFDX5TXY/
-   i6xUcn5URrVaHkYLilXDyz909mDABgqMSPSqwyt9RxltWwqH0JvaREGZX
-   Ofz5IGRm296N/vS+3rBNBIhX/rQ4IfGN4Uy7pR6YI8GSgrLaksPFXeES8
-   KU9Dr+YOg76ZZmPaFzwIFGav1dnKbeabAUU7RzNkIgXYEpEPxT85n/Ebe
-   bct31QF/JCTlCuG/1Mod9N6tbDgiVUZCYJf6T/+vjf7AaH8uVllOkmbT5
-   g==;
-X-CSE-ConnectionGUID: 1l10Jx00QbyIWqho+oNmdA==
-X-CSE-MsgGUID: dc6UTu26R/qspd0UlFgWQg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11957"; a="2703073"
-X-IronPort-AV: E=Sophos;i="6.27,197,1787036400"; 
-   d="scan'208";a="2703073"
-Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2026 06:22:59 -0800
-X-CSE-ConnectionGUID: /K275MsMS2iu65atWdhLvw==
-X-CSE-MsgGUID: RsKg5am+RfCPmB5pvRDPCQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,197,1787036400"; 
-   d="scan'208";a="7192371"
-Received: from amilburn-desk.amilburn-desk (HELO localhost) ([10.245.244.144])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2026 06:22:47 -0800
-Date: Thu, 5 Nov 2026 16:22:45 +0200
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Bartosz Golaszewski <brgl@kernel.org>
-Cc: Uwe =?iso-8859-1?Q?Kleine-K=F6nig_=28The_Capable_Hub=29?= <u.kleine-koenig@baylibre.com>,
-	Linus Walleij <linusw@kernel.org>,
-	Andy Shevchenko <andy@kernel.org>, linux-gpio@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Lixu Zhang <lixu.zhang@intel.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>,
-	Florian Fainelli <florian.fainelli@broadcom.com>,
-	Eugeniy Paltsev <Eugeniy.Paltsev@synopsys.com>,
-	Frank Li <Frank.Li@nxp.com>, Sascha Hauer <s.hauer@pengutronix.de>,
-	Pengutronix Kernel Team <kernel@pengutronix.de>,
-	Fabio Estevam <festevam@gmail.com>, Imre Kaloz <kaloz@kernel.org>,
-	Conor Dooley <conor.dooley@microchip.com>,
-	Valentina Fernandez <valentina.fernandezalanis@microchip.com>,
-	Daire McNamara <daire.mcnamara@microchip.com>,
-	Daniel Palmer <daniel@thingy.jp>,
-	Romain Perier <romain.perier@gmail.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>, imx@lists.linux.dev,
-	linux-arm-kernel@lists.infradead.org,
-	linux-riscv@lists.infradead.org,
-	Hoan Tran <hoan@os.amperecomputing.com>,
-	Alan Borzeszkowski <alan.borzeszkowski@linux.intel.com>,
-	Mika Westerberg <westeri@kernel.org>,
-	Hans de Goede <hansg@kernel.org>,
-	Nuno =?iso-8859-1?Q?S=E1?= <nuno.sa@analog.com>,
-	linux-hwmon@vger.kernel.org,
-	Matti Vaittinen <mazziesaccount@gmail.com>,
-	"Enrico Weigelt, metux IT consult" <info@metux.net>,
-	Viresh Kumar <vireshk@kernel.org>, virtualization@lists.linux.dev,
-	Yinbo Zhu <zhuyinbo@loongson.cn>,
-	Thierry Reding <thierry.reding@kernel.org>,
-	Jonathan Hunter <jonathanh@nvidia.com>, linux-tegra@vger.kernel.org,
-	Geert Uytterhoeven <geert+renesas@glider.be>,
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
-	Srinivas Neeli <srinivas.neeli@amd.com>,
-	Michal Simek <michal.simek@amd.com>, linux-aspeed@lists.ozlabs.org,
-	asahi@lists.linux.dev, linux-mediatek@lists.infradead.org,
-	openbmc@lists.ozlabs.org, linux-omap@vger.kernel.org,
-	linux-renesas-soc@vger.kernel.org, linux-unisoc@lists.infradead.org,
-	linux-rockchip@lists.infradead.org,
-	linux-stm32@st-md-mailman.stormreply.com,
-	Michael Buesch <m@bues.ch>, William Breathitt Gray <wbg@kernel.org>,
-	Robert Richter <rric@kernel.org>, linux-acpi@vger.kernel.org
-Subject: Re: [PATCH v4 00/23] gpio: Improvements around device-id arrays
-Message-ID: <auyRNagFOmxf_3nW@ashevche-desk.local>
-References: <cover.1793097104.git.u.kleine-koenig@baylibre.com>
- <2hfpcbk6r56vvhkqyiex2apl3pinieybad5sd3vkvvabqs3uto@lydt3gin5kxe>
- <auxh9PxpJScFO3i2@monoceros>
- <le5gbua6s2mhhv32di4j77qr2we5z5ngzyzmiemhodmblvjiji@q4wf5tdgrbtv>
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=PpT8/D5z
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10A1A1F000C1;
+	Thu,  5 Nov 2026 16:35:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1793896559;
+	bh=oaFEybmB3/LpRlTwU2ESXZoM0QOYsoH22CakPe6LiW0=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=PpT8/D5zeLlfhjXRHDS9Xn7yTDCLEhyyWpMkM0/IfblI9PMLXcKedSOlnoASybHch
+	 QMV8ab3TA2uSLtQsY231ygXHLK4E1dZjZWYTUyaq5EG+U+7SRxv/SC5EV5zIEGfbl+
+	 Anl6FvxIWk2bzbUyorgGwbK7QtWE0eneo9Vkb0oEtRPqNHIcsTwj/H9gaUxgdyQRKl
+	 9la8Ee4KQAzAUk3BDbj8WwQQ1UKgW36gLtWALpg8W7Mm455sUJQJK7b75HwOTlAxFH
+	 tWWXsXG7Et2NnPPdGnHQoyRFRfRXjPc/WvDrWcLkNmwuDZMfzvcAqJShtCN7KTNjC+
+	 ltbn1tD2mVL7w==
+Message-ID: <cf2e3292-d591-42a4-bf6e-76f4567604c6@kernel.org>
+Date: Thu, 5 Nov 2026 17:35:34 +0100
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -122,30 +51,206 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <le5gbua6s2mhhv32di4j77qr2we5z5ngzyzmiemhodmblvjiji@q4wf5tdgrbtv>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next v1 0/5] net: deprecate skb->pp_recycle and
+ skb_mark_for_recycle()
+To: Mina Almasry <almasrymina@google.com>, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org, virtualization@lists.linux.dev,
+ linux-mm@kvack.org, bpf@vger.kernel.org, linux-wireless@vger.kernel.org,
+ linux-doc@vger.kernel.org, bcm-kernel-feedback-list@broadcom.com,
+ imx@lists.linux.dev, linux-rdma@vger.kernel.org,
+ linux-hyperv@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+ linux-omap@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>,
+ Eric Dumazet <edumazet@kernel.org>, Jakub Kicinski <kuba@kernel.org>,
+ Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
+ Steffen Klassert <steffen.klassert@secunet.com>,
+ Herbert Xu <herbert@gondor.apana.org.au>,
+ Willem de Bruijn <willemb@google.com>, Stanislav Fomichev <sdf@fomichev.me>,
+ Pavel Begunkov <asml.silence@gmail.com>,
+ Bobby Eshleman <bobbyeshleman@meta.com>, Andrew Lunn
+ <andrew+netdev@lunn.ch>, "Michael S. Tsirkin" <mst@redhat.com>,
+ Jason Wang <jasowangio@gmail.com>, =?UTF-8?Q?Eugenio_P=C3=A9rez?=
+ <eperezma@redhat.com>, Xuan Zhuo <xuanzhuo@linux.alibaba.com>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ David Hildenbrand <david@kernel.org>, Lorenzo Stoakes <ljs@kernel.org>,
+ "Liam R. Howlett" <liam@infradead.org>, Vlastimil Babka <vbabka@kernel.org>,
+ Mike Rapoport <rppt@kernel.org>, Suren Baghdasaryan <surenb@google.com>,
+ Michal Hocko <mhocko@suse.com>,
+ Ilias Apalodimas <ilias.apalodimas@linaro.org>,
+ Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>,
+ John Fastabend <john.fastabend@gmail.com>,
+ Sabrina Dubroca <sd@queasysnail.net>,
+ Johannes Berg <johannes@sipsolutions.net>, Byungchul Park
+ <byungchul@sk.com>, Jonathan Corbet <corbet@lwn.net>,
+ Shuah Khan <skhan@linuxfoundation.org>, Randy Dunlap
+ <rdunlap@infradead.org>, Lorenzo Bianconi <lorenzo@kernel.org>,
+ Wen Gu <guwen@linux.alibaba.com>, Philo Lu <lulie@linux.alibaba.com>,
+ Justin Chen <justin.chen@broadcom.com>,
+ Florian Fainelli <florian.fainelli@broadcom.com>,
+ Vikas Gupta <vikas.gupta@broadcom.com>,
+ Michael Chan <michael.chan@broadcom.com>,
+ Pavan Chebbi <pavan.chebbi@broadcom.com>, Doug Berger <opendmb@gmail.com>,
+ Nicolai Buchwitz <nb@tipi-net.de>, Satish Kharat <satishkh@cisco.com>,
+ Wei Fang <wei.fang@nxp.com>, Frank Li <frank.li@nxp.com>,
+ Shenwei Wang <shenwei.wang@nxp.com>, Joshua Washington
+ <joshwash@google.com>, Harshitha Ramamurthy <hramamurthy@google.com>,
+ Jijie Shao <shaojijie@huawei.com>, Jian Shen <shenjian15@huawei.com>,
+ Fan Gong <gongfan1@huawei.com>, Tony Nguyen <anthony.l.nguyen@intel.com>,
+ Przemek Kitszel <przemyslaw.kitszel@intel.com>,
+ Marcin Wojtas <marcin.s.wojtas@gmail.com>,
+ Russell King <linux@armlinux.org.uk>, Sunil Goutham <sgoutham@marvell.com>,
+ Geetha sowjanya <gakula@marvell.com>, Ratheesh Kannoth
+ <rkannoth@marvell.com>, Subbaraya Sundeep <sbhatta@marvell.com>,
+ Bharat Bhushan <bbhushan2@marvell.com>, Felix Fietkau <nbd@nbd.name>,
+ Matthias Brugger <matthias.bgg@gmail.com>,
+ AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
+ Tariq Toukan <tariqt@nvidia.com>, Saeed Mahameed <saeedm@nvidia.com>,
+ Mark Bloch <mbloch@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
+ Ido Schimmel <idosch@nvidia.com>, Petr Machata <petrm@nvidia.com>,
+ Horatiu Vultur <horatiu.vultur@microchip.com>, UNGLinuxDriver@microchip.com,
+ Daniel Machon <daniel.machon@microchip.com>,
+ Steen Hegelund <Steen.Hegelund@microchip.com>,
+ Haiyang Zhang <haiyangz@microsoft.com>, Wei Liu <wei.liu@kernel.org>,
+ Dexuan Cui <decui@microsoft.com>, Yibo Dong <dong100@mucse.com>,
+ Brett Creeley <brett.creeley@amd.com>, Justin Lai
+ <justinlai0215@realtek.com>, Larry Chiu <larry.chiu@realtek.com>,
+ =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+ Paul Barker <paul@pbarker.dev>,
+ Masahisa Kojima <kojima.masahisa@socionext.com>,
+ Maxime Chevallier <maxime.chevallier@bootlin.com>,
+ Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+ Alexandre Torgue <alexandre.torgue@foss.st.com>,
+ FUJITA Tomonori <fujita.tomonori@gmail.com>,
+ Siddharth Vadapalli <s-vadapalli@ti.com>, Roger Quadros <rogerq@kernel.org>,
+ MD Danish Anwar <danishanwar@ti.com>, Jiawen Wu <jiawenwu@trustnetic.com>,
+ Mengyuan Lou <mengyuanlou@net-swift.com>,
+ Ronak Doshi <ronak.doshi@broadcom.com>, Ryder Lee <ryder.lee@mediatek.com>,
+ Shayne Chen <shayne.chen@mediatek.com>, Sean Wang <sean.wang@mediatek.com>,
+ Juergen Gross <jgross@suse.com>, Stefano Stabellini
+ <sstabellini@kernel.org>,
+ Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>,
+ Jordan Rhee <jordanrhee@google.com>, Ankit Garg <nktgrg@google.com>,
+ Tim Hostetler <thostet@google.com>,
+ Erni Sri Satya Vennela <ernis@linux.microsoft.com>,
+ Eric Joyner <eric.joyner@amd.com>, Mohammad Heib <mheib@redhat.com>,
+ Prabu Thayalan <prabu.ponrajthayalan@amd.com>,
+ Chintan Vankar <c-vankar@ti.com>,
+ Nora Schiffer <nora.schiffer@ew.tq-group.com>,
+ Alexander Sverdlin <alex@sverdlin.org>, Kevin Hao <haokexin@gmail.com>,
+ Karl Mehltretter <kmehltretter@gmail.com>,
+ Aleksandr Loktionov <aleksandr.loktionov@intel.com>,
+ Meghana Malladi <m-malladi@ti.com>, Jacob Keller <jacob.e.keller@intel.com>,
+ StanleyYP Wang <StanleyYP.Wang@mediatek.com>
+References: <20261103211424.127627-1-almasrymina@google.com>
+Content-Language: en-US
+From: Jesper Dangaard Brouer <hawk@kernel.org>
+In-Reply-To: <20261103211424.127627-1-almasrymina@google.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Thu, Nov 05, 2026 at 01:25:34PM +0100, Bartosz Golaszewski wrote:
-> On Thu, Nov 05, 2026 at 12:06:33PM +0100, Uwe Kleine-König (The Capable Hub) wrote:
-> > 
-> > Maybe you just need to add `-3` to your workflow? ISTR this should be
-> > the default for b4, but it seems if failed to mention the -3 in the git
-> > am cmdline.
-> > 
-> > Should I still resend?
+
+
+On 11/3/26 22:14, Mina Almasry wrote:
+> Remove the per-SKB skb->pp_recycle bitfield and skb_mark_for_recycle()
+> helper, and reference-count netmems directly by their underlying type
+> via netmem_is_pp() inside netmem_inc_ref() and netmem_dec_ref().
 > 
-> No, it's alright. I would have preferred a clean b4 shazam but that
-> works too, thanks.
+> This series simplifies SKB and netmem reference counting:
+> - Reclaims 1 bit from struct sk_buff (skb->pp_recycle).
+> - Unifies reference counting of SKB fragment netmems and regular netmems
+>    under netmem_inc_ref() and netmem_dec_ref(), eliminating the separate
+>    skb_netmem_ref(), skb_netmem_unref(), and skb_mark_for_recycle() APIs.
 
-To make that one should really have a unbiased base with the gpio/for-next,
-say v7.4-rc1. Then with --base present `b4 shazam` should follow that.
+Part of the performance gain from page_pool was to completely avoid the
+atomic refcnt operation, when we can see that page refcnt==1.
+Are you removing this?
 
--- 
-With Best Regards,
-Andy Shevchenko
 
+> - Removes 110 net lines of non-test/doc code across 63 files (196
+>    insertions, 306 deletions).
+> 
+> 1/5: net: skbuff: skip managed zerocopy frags in skb_frag_ref()
+> 2/5: net: skbuff: refcount spliced page_pool frags via skb_pipe_buf_ops
+> 3/5: net: datagram: refcount page_pool frags in zerocopy_fill_skb_from_iter()
+> 4/5: net: remove skb->pp_recycle and consolidate netmem refcounting
+> 5/5: net: remove skb_mark_for_recycle()
+> 
+> Mina Almasry (5):
+>    net: skbuff: skip managed zerocopy frags in skb_frag_ref()
+>    net: skbuff: refcount spliced page_pool frags via skb_pipe_buf_ops
+>    net: datagram: refcount page_pool frags in
+>      zerocopy_fill_skb_from_iter()
+>    net: remove skb->pp_recycle and consolidate netmem refcounting
+>    net: remove skb_mark_for_recycle()
+> 
+>   Documentation/networking/page_pool.rst        |   1 -
+>   drivers/net/ethernet/airoha/airoha_eth.c      |   1 -
+>   drivers/net/ethernet/alibaba/eea/eea_rx.c     |   3 -
+>   .../net/ethernet/broadcom/asp2/bcmasp_intf.c  |   1 -
+>   .../net/ethernet/broadcom/bnge/bnge_txrx.c    |   5 -
+>   drivers/net/ethernet/broadcom/bnxt/bnxt.c     |   8 -
+>   .../net/ethernet/broadcom/genet/bcmgenet.c    |   2 -
+>   drivers/net/ethernet/cisco/enic/enic_rq.c     |   1 -
+>   drivers/net/ethernet/engleder/tsnep_main.c    |   2 -
+>   drivers/net/ethernet/freescale/fec_main.c     |   1 -
+>   drivers/net/ethernet/google/gve/gve_rx_dqo.c  |   9 -
+>   .../net/ethernet/hisilicon/hibmcge/hbg_txrx.c |   1 -
+>   .../net/ethernet/hisilicon/hns3/hns3_enet.c   |   6 -
+>   .../net/ethernet/huawei/hinic3/hinic3_rx.c    |   1 -
+>   drivers/net/ethernet/intel/iavf/iavf_txrx.c   |   2 -
+>   drivers/net/ethernet/marvell/mvneta.c         |   2 -
+>   .../net/ethernet/marvell/mvpp2/mvpp2_main.c   |   2 -
+>   .../marvell/octeontx2/nic/otx2_txrx.c         |   1 -
+>   drivers/net/ethernet/mediatek/mtk_eth_soc.c   |   1 -
+>   drivers/net/ethernet/mellanox/mlx4/en_rx.c    |   1 -
+>   .../net/ethernet/mellanox/mlx5/core/en_rx.c   |   8 -
+>   drivers/net/ethernet/mellanox/mlxsw/pci.c     |   2 -
+>   .../ethernet/microchip/lan966x/lan966x_fdma.c |   2 -
+>   .../microchip/sparx5/lan969x/lan969x_fdma.c   |   1 -
+>   drivers/net/ethernet/microsoft/mana/mana_en.c |   3 -
+>   .../net/ethernet/mucse/rnpgbe/rnpgbe_lib.c    |   1 -
+>   .../net/ethernet/pensando/ionic/ionic_txrx.c  |   2 -
+>   .../net/ethernet/realtek/rtase/rtase_main.c   |   1 -
+>   drivers/net/ethernet/renesas/ravb_main.c      |   2 -
+>   drivers/net/ethernet/socionext/netsec.c       |   1 -
+>   .../net/ethernet/stmicro/stmmac/stmmac_main.c |   1 -
+>   drivers/net/ethernet/tehuti/tn40.c            |   1 -
+>   drivers/net/ethernet/ti/am65-cpsw-nuss.c      |   1 -
+>   drivers/net/ethernet/ti/cpsw.c                |   2 -
+>   drivers/net/ethernet/ti/cpsw_new.c            |   2 -
+>   drivers/net/ethernet/ti/icssg/icssg_common.c  |   1 -
+>   drivers/net/ethernet/wangxun/libwx/wx_lib.c   |   2 -
+>   drivers/net/veth.c                            |   3 +-
+>   drivers/net/virtio_net.c                      |  16 +-
+>   drivers/net/vmxnet3/vmxnet3_xdp.c             |   1 -
+>   drivers/net/wireless/mediatek/mt76/dma.c      |   1 -
+>   .../net/wireless/mediatek/mt76/mt7996/mac.c   |   1 -
+>   drivers/net/wireless/mediatek/mt76/npu.c      |   1 -
+>   drivers/net/wireless/mediatek/mt76/usb.c      |   1 -
+>   drivers/net/xen-netfront.c                    |   1 -
+>   include/linux/mm.h                            |   2 +-
+>   include/linux/skbuff.h                        |  12 +-
+>   include/linux/skbuff_ref.h                    |  60 +--
+>   include/net/netmem.h                          |  39 +-
+>   include/net/page_pool/helpers.h               |  46 ++-
+>   net/core/datagram.c                           |   5 +
+>   net/core/gro.c                                |   9 -
+>   net/core/net_test.c                           | 369 +++++++++++-------
+>   net/core/netmem_priv.h                        |  23 +-
+>   net/core/page_pool.c                          |   8 +-
+>   net/core/skbuff.c                             |  78 ++--
+>   net/core/xdp.c                                |  13 +-
+>   net/ipv4/esp4.c                               |  11 +-
+>   net/ipv6/esp6.c                               |  11 +-
+>   net/tls/tls_device.c                          |  14 +-
+>   net/tls/tls_device_fallback.c                 |   6 +-
+>   net/tls/tls_main.c                            |   4 +-
+>   net/wireless/util.c                           |  31 +-
+>   net/xfrm/trace_iptfs.h                        |   6 +-
+>   net/xfrm/xfrm_iptfs.c                         |  16 +-
+>   65 files changed, 418 insertions(+), 454 deletions(-)
+> 
+> 
+> base-commit: 7b6ab4dbc156e2f96419715130b3d5738a306c93
 
