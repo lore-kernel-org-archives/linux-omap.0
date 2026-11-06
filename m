@@ -1,58 +1,63 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.171.202.116
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=180.181.231.80
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793963735;
-	b=BKQgqFeOuDf99GiPgSwl8MJmU/qDI6mzI/rwKmU3Av9yH8T70D9fYWze8a25yMW/apvs
-	 Xnry+CY7BZsDW/C5US0+94ExeWkd9sXPLG0LCltnO+/Jynn20Dx3CmR9blYGgrX8cMLep
-	 jFu8rfviOutjF4y1Rle2s+n/UiWfCKM9r0wbwOlGFlYqezlMrGuLgtvBmcDmcmHqeBaYX
-	 BwZvjUjeaIPD3Bw2o0qJBm2f493Azw+gWX0T6RijMreIEilHYFj8D3M/k+z5ngopYDYIo
-	 LnHPrwnFpuIvcIiSAeHx8vARrQZncGx8l3V+LRrpdlhzwaJE8Trec8hEczOmfpXFuGA==
+	t=1793964440;
+	b=QNvCcFmQAFCgRgqubCuVtqqlJz6uI7NIrmQn7kvt6u9PzjD8zNDBj3YcZvJKLfUvp5pC
+	 joRQGEQiW9YNpLfduqQC5nNzcQSb5XjAosegUYzUKt8E9X+pIbR/TsWdkhsQ/JINiWyZm
+	 2LTw0TNlnmP+Z9If8AOb9dmVBHwGcCIGbVbdWOOK28/JcNLcpJGU1IoU+AR4An7+i7QaJ
+	 m6yDkQJC1pQ3LOmd5BCFFrEZT0QGYtqXmf2s8to5kWlrMs1SP/eowkY3S6uRoQ4TfvrLU
+	 OtcZJRzDZ3ehjGMRkIMu/Q7+bq593Fsf9fByr8L0/+KhygrMkXHBu50Mo+VpALbX4SA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793963735;
-	h=DMARC-Filter:Received:Received:Received:DKIM-Signature:Message-ID:
-	 Date:MIME-Version:User-Agent:Subject:To:Cc:References:From:
-	 Content-Language:In-Reply-To:Content-Type:Content-Transfer-Encoding:
-	 X-Last-TLS-Session-Version;
-	bh=Nyn2sZbhq3kt4CccG6fePtvo1Akg5z56u9y7maQkw80=;
-	b=0/xmvlf+6eYx9URzVylaV5kcFIm2MT7m2jqTx/tsSaMlCvoZxHp2z7/s2/B+cIkfk4Rc
-	 RY0TRCmCa95NIJB8pLy67v1PppB2qoJv9pzofYPkedtYCDLXPA55uu0+Fiiz7IQ6MGhrf
-	 VG9N3MirRbJiA1jtnGycczeR1i4TVj/MRMyzHRI2X/X5k+DGeVMMyPnDyOYAHT0liz0IC
-	 8auzll5VYl450h99U7ql4HHQRXOMn2DJtfdSMxluqDBufpM0T/ZI6c6eZZy6ygumgR4Jz
-	 l4SE7LkhkXMNbzyJhOrpftnnw1b3hm+rRX75aND8KRCOQLbw8Q2fT3aXdB+xBFg+jBQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793964440;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:Date:From:To:Cc:
+	 Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To;
+	bh=dMkNie5jgxNx3G5eTbxj6pYOJmObSXEtjaZ2+ZMR9Vg=;
+	b=Ol70R3L0/f6OVABh9ECcJEV6B5HXm0qHU3wu1WSFuzyD8FitodrT185CEsQGkr2eBZtl
+	 tZAtL5zvsoAsiV6cBAYKTLAPv7/DpGvZ4wFFLiauhaP+BlrFU20RmuLDZCdpizw7y5slu
+	 GvKqo9XLmRZnxptvkD3KTzRqev+o8N10rmqCHs6F1FhA8HmQNW4fwKX6hqbdSf5zhrRZ5
+	 uj9EGX2yRrpfIDEU5guBzVZZFs2vfeg4eilPTX9P0HT0jvxENQsIsBYfNabJ4OTD/PDMr
+	 cmXZ64w96+pfuOs4f9K8mW1Cxnr1H5lCrhcjAoghZCtUlqcmhbqd0V6pf+3ngOiVGeg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=bootlin.com;
-	spf=pass smtp.mailfrom=bootlin.com;
-	dkim=pass header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=LBrVpIlf;
-	arc=none smtp.remote-ip=185.171.202.116
-Received: from smtpout-04.galae.net (smtpout-04.galae.net [185.171.202.116])
+	dmarc=pass header.from=gondor.apana.org.au;
+	spf=pass smtp.mailfrom=gondor.apana.org.au;
+	dkim=pass header.d=gondor.apana.org.au header.i=@gondor.apana.org.au header.a=rsa-sha256 header.s=h01 header.b=rqgmO3jP;
+	arc=none smtp.remote-ip=180.181.231.80
+Received: from abb.hmeau.com (abb.hmeau.com [180.181.231.80])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB84E60705E3;
-	Fri,  6 Nov 2026 11:15:32 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BB84E60705E3
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47852606D808;
+	Fri,  6 Nov 2026 11:27:20 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 47852606D808
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gondor.apana.org.au
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gondor.apana.org.au
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=LBrVpIlf
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-04.galae.net (Postfix) with ESMTPS id 69B2FC6915E;
-	Fri,  6 Nov 2026 11:15:30 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id C8D985FFBC;
-	Fri,  6 Nov 2026 11:15:30 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id B6A321032929C;
-	Fri,  6 Nov 2026 12:15:24 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1793963729; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding:content-language:in-reply-to:references;
-	bh=Nyn2sZbhq3kt4CccG6fePtvo1Akg5z56u9y7maQkw80=;
-	b=LBrVpIlfb2RThKpdFCYkqd/0DXt1SwiaBA58dChyn85XdhiAGyzmMEML8D7XgBdXTvq42h
-	6IAVEqreDIgMFoSTBhkLnbWPEdsCX4gmx766Tcke0Emwb8LIhIjUOn4j+UWppoflTHeGMg
-	od+eoyOCHvxJC0SMvaFZt+ZDokqo6igQ1+egrl5GCRoEDc/TeA0pDzk8sGsnxtt86fbEUC
-	Q0qGK1Z2jGy6vhAXXhNaApdfzgyVn4wZrf5WbusAodPOpoZF3NAc0fB66YlmEzKB3TWY/N
-	1P/4ecpTI3AJMNb10wv+rli03H6S8gwbUwHLoS5WphzSHBN+gQBWJjgT1PIHOw==
-Message-ID: <58552af1-62db-4ca6-835d-bdfb597d104b@bootlin.com>
-Date: Fri, 6 Nov 2026 12:15:24 +0100
+	dkim=pass (2048-bit key, unprotected) header.d=gondor.apana.org.au header.i=@gondor.apana.org.au header.a=rsa-sha256 header.s=h01 header.b=rqgmO3jP
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=gondor.apana.org.au; s=h01; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:cc:to:subject:message-id:date:
+	from:content-type:reply-to; bh=dMkNie5jgxNx3G5eTbxj6pYOJmObSXEtjaZ2+ZMR9Vg=; 
+	b=rqgmO3jPmin9pHdVJ4zE2o9W4BOcMg7B9hoOiF6gDqhwSEILw7ca9oXdjkYoMHWOp+i8EUs1nvt
+	mE8alVOvr/wjDzVATMlRgDo5GcI+WQMb9/5ilqM8RwxD3pC3lv7OW9q/jElmYAXFaKdLk7Re9eT3m
+	YeLePMswocDe6jEUon3nGFr9EJnHVEKc6zOuQf5jNdxdN6UaNb2QE8NhvoFhAEs4tLFNFDI8Q1LoV
+	6ByIiJ0qhzRMcMSfbtr8mDlmT5Wj/xr+rlewD2yrfr09JBCy5yuyf90rpS6Lkaf5zvVsLuPpwtwAq
+	atRQ80VLfXm4DDZc/6UMMGR8lyACC5Yrjxvg==;
+Received: from loth.rohan.me.apana.org.au ([192.168.167.2])
+	by formenos.hmeau.com with smtp (Exim 4.98.2 #2 (Debian))
+	id 1xPI6G-0000000Br29-197x;
+	Fri, 06 Nov 2026 19:27:17 +0800
+Received: by loth.rohan.me.apana.org.au (sSMTP sendmail emulation); Fri, 06 Nov 2026 19:27:16 +0800
+Date: Fri, 6 Nov 2026 19:27:16 +0800
+From: Herbert Xu <herbert@gondor.apana.org.au>
+To: ZhaoJinming <zhaojinming@uniontech.com>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Lokesh Vutla <lokeshvutla@ti.com>, Tero Kristo <t-kristo@ti.com>,
+	linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-omap@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [PATCH] crypto: omap-aes - fix NULL pointer dereference in
+ omap_aes_remove()
+Message-ID: <au25lCTnY1FmsPuT@gondor.apana.org.au>
+References: <20261016-omap-aes-remove-null-deref-v1-1-195d36295ed4@uniontech.com>
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -62,74 +67,55 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Betterbird (Linux)
-Subject: Re: [PATCH] bus: ti-sysc: Don't reserve the system timers on AM33xx
-To: Judith Mendez <jm@ti.com>,
- "Markus Schneider-Pargmann (TI)" <msp@baylibre.com>,
- Aaro Koskinen <aaro.koskinen@iki.fi>, Andreas Kemnade
- <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>,
- Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
- Alexander Stein <alexander.stein@ew.tq-group.com>,
- Matthias Schiffer <matthias.schiffer@tq-group.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
- Julien Panis <jpanis@baylibre.com>, "Francis, Sebin" <sebin.francis@ti.com>,
- stable@vger.kernel.org
-References: <20261103-v7-3-topic-am335lpm-ti-sysc-v1-1-1b9a23b4a7c1@baylibre.com>
- <bbe7c601-88df-4162-83bc-047b810430a9@ti.com>
-From: Kory Maincent <kory.maincent@bootlin.com>
-Content-Language: en-US
-In-Reply-To: <bbe7c601-88df-4162-83bc-047b810430a9@ti.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Last-TLS-Session-Version: TLSv1.3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261016-omap-aes-remove-null-deref-v1-1-195d36295ed4@uniontech.com>
 
-
-
-On 11/4/26 16:53, Judith Mendez wrote:
-> Hi Markus
+On Fri, Oct 16, 2026 at 04:30:04PM +0800, ZhaoJinming wrote:
+> omap_aes_remove() unconditionally dereferences dd->pdata->aead_algs_info,
+> but only omap_aes_pdata_omap4 initializes that field:
 > 
-> On 11/3/26 7:24 AM, Markus Schneider-Pargmann (TI) wrote:
->> Commit
->>      3f6178392050 ("ti-sysc: allow OMAP2 and OMAP4 timers to be 
->> reserved on AM33xx")
->> introduced handling of am33 SoC timers that are already active as
->> reserved. During probe this means the clocks are enabled and a reference
->> is kept.
->>
->> On AM33xx deep sleep is entered by the PM coprocessor which
->> requires the PER power domain to be idle. The system timer driver
->> disables the clock during suspend but the additional reference held by
->> ti-sysc leads to the PER power domain not being idle:
->>
->>      pm33xx pm33xx: PM: Could not transition all powerdomains to 
->> target state
->>
->> The reserved status is only needed where the
->> gpt12 system timer must be kept from idling, see commit
->>      3ff340e24c9d ("bus: ti-sysc: Fix gpt12 system timer issue with 
->> reserved status")
->>
->> The timer configuration in the devicetree is the same on all SoCs, so
->> there is no reason to reserve the timers on AM33xx.
->>
->> Return -ENODEV for the system timers on all other SoCs. Like -EBUSY it
->> stops the probe but the driver core doesn't report it as failure.
->>
->> Fixes: 3f6178392050 ("ti-sysc: allow OMAP2 and OMAP4 timers to be 
->> reserved on AM33xx")
->> Cc: stable@vger.kernel.org
->> Signed-off-by: Markus Schneider-Pargmann (TI) <msp@baylibre.com>
+> 	static const struct omap_aes_pdata omap_aes_pdata_omap2 = {
+> 		.algs_info	= omap_aes_algs_info_ecb_cbc,
+> 		...
+> 	};
 > 
-> Thanks for the patch, tested on various AM3* boards.
+> 	static const struct omap_aes_pdata omap_aes_pdata_omap3 = {
+> 		.algs_info	= omap_aes_algs_info_ecb_cbc_ctr,
+> 		...
+> 	};
 > 
-> Tested-by: Judith Mendez <jm@ti.com>
+> 	static const struct omap_aes_pdata omap_aes_pdata_omap4 = {
+> 		...
+> 		.aead_algs_info	= &omap_aes_aead_info,
+> 		...
+> 	};
+> 
+> For omap2 and omap3 the field stays NULL, so on those SoCs unbinding
+> the bound device (e.g. via sysfs unbind) or unloading the module (rmmod)
+> dereferences a NULL pointer:
+> 
+> 	crypto_engine_unregister_aeads(dd->pdata->aead_algs_info->algs_list,
+> 				       dd->pdata->aead_algs_info->registered);
+> 	dd->pdata->aead_algs_info->registered = 0;
+> 
+> This is a hard crash, reachable from the teardown path only; probe
+> errors do not get here.  The asymmetry dates back to the commit that
+> introduced GCM support, which guarded the registration of the AEAD
+> algorithms but not their unregistration.  The registration path in
+> omap_aes_probe() already guards the same access with
+> "if (dd->pdata->aead_algs_info && ...)", so add the matching check to
+> the remove path.
+> 
+> Fixes: ad18cc9d0f91 ("crypto: omap-aes - Add support for GCM mode")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: ZhaoJinming <zhaojinming@uniontech.com>
+> ---
+>  drivers/crypto/omap-aes.c | 8 +++++---
+>  1 file changed, 5 insertions(+), 3 deletions(-)
 
-Tested-by: Kory Maincent <kory.maincent@bootlin.com>
-On BeagleBone Green Eco.
-
-Thank you!
+Patch applied.  Thanks.
 -- 
-Köry Maincent, Bootlin
-Embedded Linux and kernel engineering
-https://bootlin.com
-
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
