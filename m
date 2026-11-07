@@ -1,55 +1,47 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=160.30.148.34
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794039690;
-	b=oAnts7/2AeK3/Xzrjgc92Sy9zroMZpeAWa83uPyawcpbtJlb3eE8WGDdlk4FZ8NmRkkw
-	 VtaU+wrNcsesIVYBk8dVQllTi5OBX0KRS0ufWIHRvSss0znBzecxcowMDXeNblvgqLhUI
-	 XK9eEeHouB2C9OmbD7DJXui3c9MeOqEjd7a+xanGsCmsuRtQOW6P3neAreCRoDSS3EV3w
-	 +Nds2xtE/He54Gb3XhUh6dY99G9zORw5duOEpvgYxe4zsqVFgHClE8grOj5H3dZG/jfj0
-	 VOTaqQsjyCI9SXsLIR47w7ygpxR3iVDIT5hfukVY96GrRu+15ozKPhUqSA5P4Ek09pA==
+	t=1794048458;
+	b=ON7qm5WuzoklyNarq4UQBqHssN+/DBp5lOuchDXSj30fAUsh79ZZhwu4HYOq4yYIwwbC
+	 txQaHKPP06+FlQbz38USCLP64gG16pmL+wYxJdLrzidl5/5LlzrCnmCaY+O85cImDQvm/
+	 yMlzDcq7nSil3bO9uow+FIOJIsllyaa2FiRfhwKPbeu64Su9pYiMgTqka01QD75xp/+7v
+	 C/jPb42H52K2BoRyX678gJQiinavqvhROQ01TLZNPZd/yWuNpH6UqMb27IG8jC1bLF/oZ
+	 HsA0JYpdbbVEYKH0sjTzmOSpo2p72EH9+AY/tp2GbETpJI2aznavELaStoALj9D/B2g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794039690;
-	h=DMARC-Filter:Received:Received:Received:X-Zmail-TransId:X-Mailer:
-	 Message-ID:In-Reply-To:References:Date:Mime-Version:From:To:Cc:
-	 Subject:Content-Type:X-MAIL:X-TLS:X-ENVELOPE-SENDER:X-SOURCE-IP:
-	 X-CLEAN:X-Fangmail-Anti-Spam-Filtered:X-Fangmail-MID-QID;
-	bh=3HfUD5ft+3FV3KBYBx8e7YafxGrVlmoQBUcbJDZvVg4=;
-	b=CQKJ406UdGvX6Kwrc4YBhZOd/80PUydLCpBkhgUnjDkt+bK+m8c8uK0YeD2WQdBhjIaJ
-	 gBjaWRs+HQRoSHpw4Hma3sE1FWgsTOSbEPQNLLlQNElgrLYdOhzvkNeiz6qNu+h8HBhvY
-	 KdPLLXSqjfoL5BHfyh6pZDesOkXcPvvoofVo6I6QrTXUSM7kaXivhoqFnmnZUZdDz+sAM
-	 vyT0Dx/dlFbYi/6brh90c7SAqNqt5/JbG5P0f7XLax4LsJDfzoZqVLwn3tIMosj0VxCVb
-	 ssCgNp/wQb0EZhdPvQmJ/aZK5xxpCWtNCMCBJBykTm7X1WRaFvDaQhqm4ozcbps51FA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794048458;
+	h=Received:DKIM-Signature:Message-ID:Date:MIME-Version:User-Agent:
+	 Subject:To:Cc:References:From:Content-Language:Autocrypt:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding;
+	bh=MSrHjfY/WZkk/pETr/Q3Wr6iNXKs2+5J8fccaM2oDgE=;
+	b=Y8tddqslgWjevPzqkKr/BBBWVtNux2eh4xamdI+BLymwSEDv337+7rbgTCdfhcTp3oKI
+	 PKhA6uj2uF8U6hhlY4u0nTVrDZ5yeMvt8eR8mViQVNOTZFFX9uWJffMRChsy2QikjsWb8
+	 SrwQDx0TQRZjuuGntH2UyrLCVnWUPTn9R948luvlh2YOkdshPyTDQ8G3dHjDFk7erQACp
+	 MyMcRaakVt0XfVDYe9YxeTAggtPzoD6if1kC1R/Hqm5it4k2DU/nWH6gUIrOyR2KxqYu5
+	 yU90f2uSY4CrBG22vsvG380Z6xgwWMVEzlLiXycOuCbrRUJ+IAIFMdZBm8UcHr+hBMQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=zte.com.cn;
-	spf=pass smtp.mailfrom=zte.com.cn;
-	arc=none smtp.remote-ip=160.30.148.34
-Received: from mxhk.zte.com.cn (mxhk.zte.com.cn [160.30.148.34])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=U9pHJyTm;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 023E1606A32E;
-	Sat,  7 Nov 2026 08:21:29 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 023E1606A32E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zte.com.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zte.com.cn
-Received: from mse-fl1.zte.com.cn (unknown [10.5.228.132])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange x25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mxhk.zte.com.cn (FangMail) with ESMTPS id 4jM8CD5xbkz5B137;
-	Sat, 07 Nov 2026 16:21:28 +0800 (CST)
-Received: from xaxapp04.zte.com.cn ([10.99.98.157])
-	by mse-fl1.zte.com.cn with SMTP id 6A78LMUY029929;
-	Sat, 7 Nov 2026 16:21:22 +0800 (+08)
-	(envelope-from shao.mingyin@zte.com.cn)
-Received: from mapi (xaxapp02[null])
-	by mapi (Zmail) with MAPI id mid32;
-	Sat, 7 Nov 2026 16:21:25 +0800 (CST)
-X-Zmail-TransId: 2afa6aeedf85234-a2dc2
-X-Mailer: Zmail v1.0
-Message-ID: <20261107162125044ldKkwYPQxZOTWg6IDe_LX@zte.com.cn>
-In-Reply-To: <202611071621143491uRwluLhxYsUHx2V3qhm_@zte.com.cn>
-References: 202611071621143491uRwluLhxYsUHx2V3qhm_@zte.com.cn
-Date: Sat, 7 Nov 2026 16:21:25 +0800 (CST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C0B4606A330;
+	Sat,  7 Nov 2026 10:47:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=U9pHJyTm
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CF4D1F0089F;
+	Sat,  7 Nov 2026 10:47:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794048458;
+	bh=MSrHjfY/WZkk/pETr/Q3Wr6iNXKs2+5J8fccaM2oDgE=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=U9pHJyTmHor+lViwKsJPk33P7P14jbD1SrJ+rSupXs08aJ/dbq7zxrV6NUfayDjbS
+	 OzzQG6rUbr+ZSwLP1yPKdHmuR1cGU591MLZxuvu+AlEFCAM49cUNhO9nefJUE2846S
+	 Fh2hhBJzb8VH5QyTCzVf1g5lzrUrnqGD3NHHdzkQbYcOsOBfSiILwipnvg49KKAm4S
+	 BhJEw6OZydQRFIuOJXWhroFOgBVo+GBpOxtvvwc5abgG9l5BvBRoEJzrPRE2CTGIuW
+	 O0VtcUOMN0Y+SpgAPJlmHM+RK1J/+mGL+CY0qWFS9NF+lpvt3GWkMWtbV27DJmYSU5
+	 IDA36vkplXHrg==
+Message-ID: <09e64838-2b95-4c82-912c-34f95a0f3993@kernel.org>
+Date: Sat, 7 Nov 2026 11:47:31 +0100
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -58,55 +50,75 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
-Mime-Version: 1.0
-From: <shao.mingyin@zte.com.cn>
-To: <lee@kernel.org>, <mfd@lists.linux.dev>
-Cc: <tony@atomide.com>, <linux-omap@vger.kernel.org>, <tharvey@gateworks.com>,
-        <support.opensource@diasemi.com>, <patches@opensource.cirrus.com>,
-        <linux-kernel@vger.kernel.org>
-Subject: =?UTF-8?B?W1BBVENIIFJFU0VORCA1LzVdIG1mZDogZ2F0ZXdvcmtzLWdzYzogQ2hlY2sgZmlybXdhcmUgQ1JDIHJlYWRzIGZvciBlcnJvcnM=?=
-Content-Type: text/plain;
-	charset="UTF-8"
-X-MAIL:mse-fl1.zte.com.cn 6A78LMUY029929
-X-TLS: YES
-X-ENVELOPE-SENDER: shao.mingyin@zte.com.cn
-X-SOURCE-IP: 10.5.228.132 unknown Sat, 07 Nov 2026 16:21:28 +0800
-X-CLEAN: YES
-X-Fangmail-Anti-Spam-Filtered: true
-X-Fangmail-MID-QID: 6AEEDF88.001/4jM8CD5xbkz5B137
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] regulator: convert to subsys_platform_driver()
+To: Brian Masney <bmasney@redhat.com>, Liam Girdwood <lgirdwood@gmail.com>,
+ Mark Brown <broonie@kernel.org>,
+ Support Opensource <support.opensource@diasemi.com>,
+ Chanwoo Choi <cw00.choi@samsung.com>, Aaro Koskinen <aaro.koskinen@iki.fi>,
+ Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>,
+ Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
+ linux-arm-msm@vger.kernel.org, patches@opensource.cirrus.com
+References: <20261106-regulator-subsys-v1-1-1f91f4204bf5@redhat.com>
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Content-Language: en-US
+Autocrypt: addr=krzk@kernel.org; keydata=
+ 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
+In-Reply-To: <20261106-regulator-subsys-v1-1-1f91f4204bf5@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-From: Shao Mingyin <shao.mingyin@zte.com.cn>
+On 07/11/2026 01:28, Brian Masney wrote:
+> Reduce boilerplate code in these drivers and convert them over to use
+> the macro subsys_platform_driver().
+> 
+> Signed-off-by: Brian Masney <bmasney@redhat.com>
 
-gsc_probe() checks the return value of the GSC_FW_VER regmap_read() but
-the two reads of GSC_FW_CRC just below it are not checked.  On an I2C
-error regmap_read() leaves "reg" holding the value of the previous
-successful read (the firmware version, or the CRC low byte), so
-gsc->fwcrc ends up with a wrong value that is later printed as the
-firmware revision, and the error is silently ignored.
 
-Check both CRC reads and fail the probe with -EIO, matching the handling
-of the version read above.
+Reviewed-by: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
 
-Fixes: d85234994b2f ("mfd: Add Gateworks System Controller core driver")
-Signed-off-by: Shao Mingyin <shao.mingyin@zte.com.cn>
----
-diff --git a/drivers/mfd/gateworks-gsc.c b/drivers/mfd/gateworks-gsc.c
-index a3301502ce6a..1d697e82ea29 100644
---- a/drivers/mfd/gateworks-gsc.c
-+++ b/drivers/mfd/gateworks-gsc.c
-@@ -219,9 +219,11 @@ static int gsc_probe(struct i2c_client *client)
- 		return -EIO;
- 	gsc->fwver = reg;
- 
--	regmap_read(gsc->regmap, GSC_FW_CRC, &reg);
-+	if (regmap_read(gsc->regmap, GSC_FW_CRC, &reg))
-+		return -EIO;
- 	gsc->fwcrc = reg;
--	regmap_read(gsc->regmap, GSC_FW_CRC + 1, &reg);
-+	if (regmap_read(gsc->regmap, GSC_FW_CRC + 1, &reg))
-+		return -EIO;
- 	gsc->fwcrc |= reg << 8;
- 
- 	gsc->i2c_hwmon = devm_i2c_new_dummy_device(dev, client->adapter,
--- 
-2.47.0
+Best regards,
+Krzysztof
