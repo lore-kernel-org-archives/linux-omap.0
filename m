@@ -1,23 +1,23 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=160.30.148.34
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794039685;
-	b=t1XqLZf67Zc1bjmKNim2SNIqjVuaKyLwfPhbiqYKPiIwyshK+vtLK8QJh6rsf4whpzq6
-	 5UmpHHPjjz28WdBlkzOePrwYW7UQxin99P5tMmn+HT6sD/U+A+IQ3aZNxqkw2T7hy8APG
-	 W0xAMY4178yuLke4FzDV4zxdTldAN/NYomIWC2S70hexaxKVizvOHJAI+4anK+PC2e3dH
-	 I8zQ04+gduwb1wNSKZPm5DRExO5WzB977sk54yMCG34e40nfRcIklYrOQAI90ClsXhja1
-	 fVIJjz16oJWc5l2I/tJ14BjRqgb2IT9+s+WlGdEZdoCGlZcSfIJaLefwSKS21bXj+5g==
+	t=1794039686;
+	b=lUGWMb8ve5aRSQEt6EQM/ZgoKqOL57LMJL2CC8e7zEiWHr2zBhbDluo2j2AyPDvYIpqG
+	 FO3mgMxFwZjlKhJeMcWjkOv/65fURunWPYr2WzD0mhtEr/op4w6AdZ9aAA602SLSvLd+W
+	 DQSCAFvD00vOlbvPLFv0TuUCNIOVjkfLlTRYkefRGEcinvd8ifTRh/asaxEixHaopxf5R
+	 c19qjYI7tP2tnqTGP2ROx59A8rYnfP00drxxIWZDZOihXQCbs7Gpx2MEqn6vI2jtvD66e
+	 HyqxfTyW1ZppNWy/t1ouvinRPb7arxuXRWDqE68LUxTjPXu3ZbrHuDgixWJIy90pGJQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794039685;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794039686;
 	h=DMARC-Filter:Received:Received:Received:X-Zmail-TransId:X-Mailer:
-	 Message-ID:Date:Mime-Version:From:To:Cc:Subject:Content-Type:X-MAIL:
-	 X-TLS:X-ENVELOPE-SENDER:X-SOURCE-IP:X-CLEAN:
-	 X-Fangmail-Anti-Spam-Filtered:X-Fangmail-MID-QID;
-	bh=rPXEM1BJ3DOPSW4Bc6p4otoxErTXXc3mU5gGibGHZOE=;
-	b=VJbKcO0PDJH/W05W2jejwDS3AAvbd8dvBM7SFQDQZsCKy9/b7OP0kuX3+kjsnEqJAPZ+
-	 3ulAthn3PCg8SZ+nS+VK5gL2qfnkCyOXgz3VFM0CkDsrAO0WUmMNsOurxsvRvM7fWrfm+
-	 a+V6+6nnZFjVvwTi3iOEWkfHM9DO6k4jrLOSr9AkarIoppSmUISXgr0Xb0P2UQAZm/la6
-	 kYEt/40eO03UEemA+tDyuxTvKphvs9qT4QL0nhaO5ff7vkBort7OHy54srUQ95jmmOi44
-	 ibBBE9VVv5sOdpBmmQgtPLf954YiRQmcETPz2nz3cNGG1i0BQWeAP6dchoO3ZGBGOgQ==
+	 Message-ID:In-Reply-To:References:Date:Mime-Version:From:To:Cc:
+	 Subject:Content-Type:X-MAIL:X-TLS:X-ENVELOPE-SENDER:X-SOURCE-IP:
+	 X-CLEAN:X-Fangmail-Anti-Spam-Filtered:X-Fangmail-MID-QID;
+	bh=ipmSXacYEaqmPoM68DDULB2QJSY2Wn8jrOGObyWE4vk=;
+	b=Q832z7YyI31vRrio3fn9g/uC8R5StUAtlY9pwChlWTE0ODUZBifkKVA1vkQvPZP+msq1
+	 yBaOHyGx4PtYS2qcGgqFafA7jxrBeDwObHjoTfipZZK5CmQQ2KVF+7NZxx7StL5EWpusQ
+	 9lGdf518wMadg6//Y0rotZ2XlVxMnXro54ODGI8M9tFdCTrneoDFId+U1ngtkZI0ZoqQV
+	 yTrMW1Qhh/pbO7iSO6ikE+ZIMqrNNO1X6Skw9S6kzao8l5iBZALqsheUXNHG4VO689D0P
+	 eJibDPlJHSWHOVC6pX11PLN5gdtX9rCT23OCCCrZh33K62L8FB81UGKW0hxFh5nWOCA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=zte.com.cn;
 	spf=pass smtp.mailfrom=zte.com.cn;
@@ -26,28 +26,30 @@ Received: from mxhk.zte.com.cn (mxhk.zte.com.cn [160.30.148.34])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A25B9606A32C;
-	Sat,  7 Nov 2026 08:21:24 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A25B9606A32C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 663CB606A330;
+	Sat,  7 Nov 2026 08:21:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 663CB606A330
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zte.com.cn
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zte.com.cn
-Received: from mse-fl1.zte.com.cn (unknown [10.5.228.132])
+Received: from mse-fl2.zte.com.cn (unknown [10.5.228.133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange x25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by mxhk.zte.com.cn (FangMail) with ESMTPS id 4jM8C66Hzjz5B137;
-	Sat, 07 Nov 2026 16:21:22 +0800 (CST)
-Received: from xaxapp05.zte.com.cn ([10.99.98.109])
-	by mse-fl1.zte.com.cn with SMTP id 6A78LDmt029722;
-	Sat, 7 Nov 2026 16:21:14 +0800 (+08)
+	by mxhk.zte.com.cn (FangMail) with ESMTPS id 4jM8C81Gs5z5B136;
+	Sat, 07 Nov 2026 16:21:24 +0800 (CST)
+Received: from xaxapp01.zte.com.cn ([10.88.99.176])
+	by mse-fl2.zte.com.cn with SMTP id 6A78LHVR003095;
+	Sat, 7 Nov 2026 16:21:17 +0800 (+08)
 	(envelope-from shao.mingyin@zte.com.cn)
 Received: from mapi (xaxapp01[null])
 	by mapi (Zmail) with MAPI id mid32;
-	Sat, 7 Nov 2026 16:21:14 +0800 (CST)
-X-Zmail-TransId: 2af96aeedf7a22a-90dca
+	Sat, 7 Nov 2026 16:21:19 +0800 (CST)
+X-Zmail-TransId: 2af96aeedf7f3c0-90f60
 X-Mailer: Zmail v1.0
-Message-ID: <202611071621143491uRwluLhxYsUHx2V3qhm_@zte.com.cn>
-Date: Sat, 7 Nov 2026 16:21:14 +0800 (CST)
+Message-ID: <20261107162119836VR3jHjgaOF-Np7Cmm0nl3@zte.com.cn>
+In-Reply-To: <202611071621143491uRwluLhxYsUHx2V3qhm_@zte.com.cn>
+References: 202611071621143491uRwluLhxYsUHx2V3qhm_@zte.com.cn
+Date: Sat, 7 Nov 2026 16:21:19 +0800 (CST)
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -62,63 +64,50 @@ To: <lee@kernel.org>, <mfd@lists.linux.dev>
 Cc: <tony@atomide.com>, <linux-omap@vger.kernel.org>, <tharvey@gateworks.com>,
         <support.opensource@diasemi.com>, <patches@opensource.cirrus.com>,
         <linux-kernel@vger.kernel.org>
-Subject: =?UTF-8?B?W1BBVENIIFJFU0VORCAwLzVdIG1mZDogRml4IGFuIG91dC1vZi1ib3VuZHMgSVJRIG1hcCBhbmQgZXJyb3ItcGF0aCBidWdz?=
+Subject: =?UTF-8?B?W1BBVENIIFJFU0VORCAxLzVdIG1mZDogdHBzNjUyMTk6IEZpeCBvdXQtb2YtYm91bmRzIGFjY2VzcyBpbiB0cHM2NTIxNCBJUlEgbWFw?=
 Content-Type: text/plain;
 	charset="UTF-8"
-X-MAIL:mse-fl1.zte.com.cn 6A78LDmt029722
+X-MAIL:mse-fl2.zte.com.cn 6A78LHVR003095
 X-TLS: YES
 X-ENVELOPE-SENDER: shao.mingyin@zte.com.cn
-X-SOURCE-IP: 10.5.228.132 unknown Sat, 07 Nov 2026 16:21:22 +0800
+X-SOURCE-IP: 10.5.228.133 unknown Sat, 07 Nov 2026 16:21:24 +0800
 X-CLEAN: YES
 X-Fangmail-Anti-Spam-Filtered: true
-X-Fangmail-MID-QID: 6AEEDF82.001/4jM8C66Hzjz5B137
+X-Fangmail-MID-QID: 6AEEDF84.000/4jM8C81Gs5z5B136
 
-Five independent fixes in the MFD core address an out-of-bounds IRQ-map
-lookup, an uninitialized interrupt-mask write, an IRQ leak on a failed
-probe, a missing IRQ-wake teardown on removal, and two unchecked
-firmware CRC reads.  Each patch touches a different driver; they are
-grouped only because they go through the same MFD tree.  Every patch is
-independent and can be applied and reviewed on its own, and taking a
-subset is fine.
+From: Shao Mingyin <shao.mingyin@zte.com.cn>
 
-The series is ordered by severity:
+The tps65214_sub_irq_offsets[] array has only seven entries (bits 0-5
+and 7; INT_SOURCE bit 6 is reserved) while the corresponding IRQ chip
+advertises num_main_status_bits = 8.  regmap-irq's read_irq_data()
+indexes sub_reg_offsets with the main-status bit number, so whenever
+bit 7 of INT_SOURCE is set (the power-button interrupt) it reads past
+the end of the seven-element array and uses garbage offset/num_regs
+values to compute status_buf indices, which can also lead to an
+out-of-bounds status_buf access.
 
-  1/5 mfd: tps65219: Fix out-of-bounds access in tps65214 IRQ map
-  2/5 mfd: twl6030-irq: Don't write garbage to interrupt mask on read failure
-  3/5 mfd: arizona: Free info IRQs on probe failure
-  4/5 mfd: da9052: Disable IRQ wake on device removal
-  5/5 mfd: gateworks-gsc: Check firmware CRC reads for errors
+Add an empty placeholder entry for the reserved bit 6 so that the array
+lines up with the bit numbering and bit 7 hits the power-button entry.
 
-1/5 adds the missing reserved-bit placeholder so that a power-button
-interrupt no longer indexes past tps65214_sub_irq_offsets[].  2/5
-returns the I2C read error instead of writing uninitialized stack data
-to the PMIC interrupt mask.  3/5 frees the three informational IRQs
-before arizona_irq_exit() tears down their domain.  4/5 tracks whether
-enable_irq_wake() succeeded and disables it on the probe failure and
-removal paths.  5/5 checks the two GSC_FW_CRC reads and fails the probe
-instead of printing a stale CRC.
-
-No dependencies; all five apply directly on next-20261030.
-
-This is a resend: the copies of 1/5 and 2/5 that reached the list lost
-their final empty context line in transit, so they do not apply with
-git am.  The patches are unchanged; the git signature trailer is kept
-so the line survives.
-
-Shao Mingyin (5):
-  mfd: tps65219: Fix out-of-bounds access in tps65214 IRQ map
-  mfd: twl6030-irq: Don't write garbage to interrupt mask on read failure
-  mfd: arizona: Free info IRQs on probe failure
-  mfd: da9052: Disable IRQ wake on device removal
-  mfd: gateworks-gsc: Check firmware CRC reads for errors
-
- drivers/mfd/arizona-core.c        |  3 +++
- drivers/mfd/da9052-irq.c          | 11 ++++++++++-
- drivers/mfd/gateworks-gsc.c       |  6 ++++--
- drivers/mfd/tps65219.c            |  1 +
- drivers/mfd/twl6030-irq.c         | 10 ++++++----
- include/linux/mfd/da9052/da9052.h |  2 ++
- 6 files changed, 26 insertions(+), 7 deletions(-)
-
+Fixes: 7947219ab1a2 ("mfd: tps65219: Add support for TI TPS65214 PMIC")
+Signed-off-by: Shao Mingyin <shao.mingyin@zte.com.cn>
 ---
-base-commit: 7649ba73f9e7e1e04d0b46213e39c79ae09dd55c
+---
+Resend: the first copy of this patch lost its final empty context
+line in transit; the diff below is unchanged.
+diff --git a/drivers/mfd/tps65219.c b/drivers/mfd/tps65219.c
+index f8c08dd86618..4f4bfc49542c 100644
+--- a/drivers/mfd/tps65219.c
++++ b/drivers/mfd/tps65219.c
+@@ -268,6 +268,7 @@ static const struct regmap_irq_sub_irq_map tps65214_sub_irq_offsets[] = {
+ 	REGMAP_IRQ_MAIN_REG_OFFSET(tps65214_bit3_offsets),
+ 	REGMAP_IRQ_MAIN_REG_OFFSET(tps65214_bit4_offsets),
+ 	REGMAP_IRQ_MAIN_REG_OFFSET(tps65214_bit5_offsets),
++	{ .num_regs = 0 },	/* INT_SOURCE bit 6 is reserved */
+ 	REGMAP_IRQ_MAIN_REG_OFFSET(tps65214_bit7_offsets),
+ };
+ 
+-- 
+2.47.0
+-- 
+2.47.0
