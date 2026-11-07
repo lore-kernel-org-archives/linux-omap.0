@@ -1,47 +1,62 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=178.238.236.174
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794048458;
-	b=ON7qm5WuzoklyNarq4UQBqHssN+/DBp5lOuchDXSj30fAUsh79ZZhwu4HYOq4yYIwwbC
-	 txQaHKPP06+FlQbz38USCLP64gG16pmL+wYxJdLrzidl5/5LlzrCnmCaY+O85cImDQvm/
-	 yMlzDcq7nSil3bO9uow+FIOJIsllyaa2FiRfhwKPbeu64Su9pYiMgTqka01QD75xp/+7v
-	 C/jPb42H52K2BoRyX678gJQiinavqvhROQ01TLZNPZd/yWuNpH6UqMb27IG8jC1bLF/oZ
-	 HsA0JYpdbbVEYKH0sjTzmOSpo2p72EH9+AY/tp2GbETpJI2aznavELaStoALj9D/B2g==
+	t=1794049567;
+	b=M8iMatRNdu/8OUHV8QwClpEKi7J0NumuzbQA0sZZdQ2Vg5BJz2BRX+UnkZZQPG+bzfSW
+	 sAPnZ8Lx7wJKMOWX1v1W9x1hO99h5w64rVspftUV/tfnKE+QI0oN9DQJm0urQH7lMLvhq
+	 /7NDmOjI29lHb5GGqkPW9k4jPsvvF2f+R7b+cIqdYn7bD5RpFa5qT8HIV9+PstxOMNe94
+	 Ry7X/T84ir+60je+AowkvAFkCiHZ4NQTBYqkLOv+/rx3AHH9pYqo06eVcklpsiDB/s0F9
+	 1iiln6a1BH5P85CwkyDb7mnihpyoXivyuezOpN6W0HsOg0eNaBdNpeKMOYP2pLJ2Cog==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794048458;
-	h=Received:DKIM-Signature:Message-ID:Date:MIME-Version:User-Agent:
-	 Subject:To:Cc:References:From:Content-Language:Autocrypt:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding;
-	bh=MSrHjfY/WZkk/pETr/Q3Wr6iNXKs2+5J8fccaM2oDgE=;
-	b=Y8tddqslgWjevPzqkKr/BBBWVtNux2eh4xamdI+BLymwSEDv337+7rbgTCdfhcTp3oKI
-	 PKhA6uj2uF8U6hhlY4u0nTVrDZ5yeMvt8eR8mViQVNOTZFFX9uWJffMRChsy2QikjsWb8
-	 SrwQDx0TQRZjuuGntH2UyrLCVnWUPTn9R948luvlh2YOkdshPyTDQ8G3dHjDFk7erQACp
-	 MyMcRaakVt0XfVDYe9YxeTAggtPzoD6if1kC1R/Hqm5it4k2DU/nWH6gUIrOyR2KxqYu5
-	 yU90f2uSY4CrBG22vsvG380Z6xgwWMVEzlLiXycOuCbrRUJ+IAIFMdZBm8UcHr+hBMQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794049567;
+	h=DMARC-Filter:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 In-Reply-To:References:X-Mailer:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=UG+kev6sv6bJydTreZxT+p4tWO+j9O42mYRD9kAExIc=;
+	b=HMCTkavtim9KFbHlMeso8ljqvDezGsgLJFwO85yaH8HABf47IdixngN4vDAHjEjotK59
+	 SaE5pMZ09wJYqmFeqat9x37pLaH+axjoWc0/CRI/W6RkDV8NSTVp72UztsPQax84sLtTx
+	 Sx95MgR9GZgXcmOdUQs+QO7IiZMy4V9Fmwu1pcP2t4CLbxFvcUfL0Tbdl3plJUrFIIfJe
+	 BCxdSR80INBHRCt6yBCiGbYfX9UOBphs706BzgIbGpcB85Um04EMdC+/ZGGVPZd2v8jv0
+	 W0QVUXRmJ1eQdNC6ebXvkb/F23GBQ9fNABoPW1oYi65VAlrFsAVezrXkzCNYCMDOqfQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=U9pHJyTm;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=kemnade.info;
+	spf=pass smtp.mailfrom=kemnade.info;
+	dkim=pass header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=D1W2Rqdb;
+	arc=none smtp.remote-ip=178.238.236.174
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C0B4606A330;
-	Sat,  7 Nov 2026 10:47:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32A1C606A326;
+	Sat,  7 Nov 2026 11:06:07 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 32A1C606A326
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=U9pHJyTm
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CF4D1F0089F;
-	Sat,  7 Nov 2026 10:47:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794048458;
-	bh=MSrHjfY/WZkk/pETr/Q3Wr6iNXKs2+5J8fccaM2oDgE=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=U9pHJyTmHor+lViwKsJPk33P7P14jbD1SrJ+rSupXs08aJ/dbq7zxrV6NUfayDjbS
-	 OzzQG6rUbr+ZSwLP1yPKdHmuR1cGU591MLZxuvu+AlEFCAM49cUNhO9nefJUE2846S
-	 Fh2hhBJzb8VH5QyTCzVf1g5lzrUrnqGD3NHHdzkQbYcOsOBfSiILwipnvg49KKAm4S
-	 BhJEw6OZydQRFIuOJXWhroFOgBVo+GBpOxtvvwc5abgG9l5BvBRoEJzrPRE2CTGIuW
-	 O0VtcUOMN0Y+SpgAPJlmHM+RK1J/+mGL+CY0qWFS9NF+lpvt3GWkMWtbV27DJmYSU5
-	 IDA36vkplXHrg==
-Message-ID: <09e64838-2b95-4c82-912c-34f95a0f3993@kernel.org>
-Date: Sat, 7 Nov 2026 11:47:31 +0100
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=D1W2Rqdb
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=kemnade.info; s=20220719; h=References:In-Reply-To:Subject:Cc:To:From:
+	Reply-To:Content-ID:Content-Description;
+	bh=UG+kev6sv6bJydTreZxT+p4tWO+j9O42mYRD9kAExIc=; t=1794049566; x=1795259166; 
+	b=D1W2RqdbMVNNhuSPk4uyHtxv2dhfdaJrcaqbCSq4BY61geo11rVqEpAFMK6if9KjvKXReSGMYdd
+	TkySxZySn47R+PlVIASG+YiYBZM6QjOTdwjj1Fc/Dzf3ugc88BcCkr1zJj4qhM0oEJyt33ZKqmnLo
+	o7TL8+n6jSFtCXPHdNZK8GO97h0EdJbJKOwaI/2BV9q1LPMWQ90txQmHzW1XgVhNifAcljyMA9UzQ
+	u6AHvt7gZT0t+IFtiAWwtLd+6hPzpskcEkkE1uQhh5m/9Hoj0zP/tKwMzf7tmDDkZkorBZayfZ7/6
+	EFzVGz2eBg/DeAAeBEAC/zSW13OZSM0erq2g==;
+Date: Sat, 7 Nov 2026 12:05:59 +0100
+From: Andreas Kemnade <andreas@kemnade.info>
+To: Lee Jones <lee@kernel.org>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman
+ <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, Tony Lindgren
+ <tony@atomide.com>, Myeonghun Pak <mhun512@gmail.com>, Kai Svahn
+ <kai.svahn@nokia.com>, syed khasim <x0khasim@ti.com>,
+ linux-omap@vger.kernel.org, mfd@lists.linux.dev,
+ linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] mfd: twl-core: Reset twl_priv using
+ devm_add_action_or_reset()
+Message-ID: <20261107120559.50c33c09@kemnade.info>
+In-Reply-To: <20261105110332.1874728-1-lee@kernel.org>
+References: <20261105110332.1874728-1-lee@kernel.org>
+X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -51,74 +66,71 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] regulator: convert to subsys_platform_driver()
-To: Brian Masney <bmasney@redhat.com>, Liam Girdwood <lgirdwood@gmail.com>,
- Mark Brown <broonie@kernel.org>,
- Support Opensource <support.opensource@diasemi.com>,
- Chanwoo Choi <cw00.choi@samsung.com>, Aaro Koskinen <aaro.koskinen@iki.fi>,
- Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>,
- Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org,
- linux-arm-msm@vger.kernel.org, patches@opensource.cirrus.com
-References: <20261106-regulator-subsys-v1-1-1f91f4204bf5@redhat.com>
-From: Krzysztof Kozlowski <krzk@kernel.org>
-Content-Language: en-US
-Autocrypt: addr=krzk@kernel.org; keydata=
- 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
-In-Reply-To: <20261106-regulator-subsys-v1-1-1f91f4204bf5@redhat.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On 07/11/2026 01:28, Brian Masney wrote:
-> Reduce boilerplate code in these drivers and convert them over to use
-> the macro subsys_platform_driver().
+On Thu,  5 Nov 2026 11:03:23 +0000
+Lee Jones <lee@kernel.org> wrote:
+
+> Register a devres cleanup action immediately after allocating twl_priv
+> with devm_kzalloc() so that twl_priv is automatically reset to NULL just
+> before its underlying memory is released on probe failure or driver
+> unbind.  This removes the need to manually clear twl_priv in both
+> twl_remove() and the probe error unwind path.
 > 
-> Signed-off-by: Brian Masney <bmasney@redhat.com>
+> Suggested-by: Andreas Kemnade <andreas@kemnade.info>
+> Signed-off-by: Lee Jones <lee@kernel.org>
 
+Reviewed-by: Andreas Kemnade <andreas@kemnade.info>
+> ---
+>  drivers/mfd/twl-core.c | 14 ++++++++++----
+>  1 file changed, 10 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+> index 21fc0acb827b..6077a87282f5 100644
+> --- a/drivers/mfd/twl-core.c
+> +++ b/drivers/mfd/twl-core.c
+> @@ -711,7 +711,6 @@ static void twl_remove(struct i2c_client *client)
+>  		twl->client = NULL;
+>  	}
+>  	twl_priv->ready = false;
+> -	twl_priv = NULL;
+>  }
+>  
+>  
+> @@ -728,6 +727,11 @@ static const struct mfd_cell twl6032_cells[] = {
+>  	{ .name = "twl6032-clk" },
+>  };
+>  
+> +static void twl_reset_priv(void *data)
+> +{
+> +	twl_priv = NULL;
+> +}
+> +
+>  /* NOTE: This driver only handles a single twl4030/tps659x0 chip */
+>  static int
+>  twl_probe(struct i2c_client *client)
+> @@ -776,6 +780,10 @@ twl_probe(struct i2c_client *client)
+>  		goto free;
+>  	}
+>  
+> +	status = devm_add_action_or_reset(&client->dev, twl_reset_priv, NULL);
+> +	if (status)
+> +		goto free;
+> +
+>  	if ((id->driver_data) & TWL6030_CLASS) {
+>  		twl_priv->twl_id = TWL6030_CLASS_ID;
+>  		twl_priv->twl_map = &twl6030_map[0];
+> @@ -906,10 +914,8 @@ twl_probe(struct i2c_client *client)
+>  	if (status < 0)
+>  		twl_remove(client);
+>  free:
+> -	if (status < 0) {
+> +	if (status < 0)
+>  		platform_device_unregister(pdev);
+> -		twl_priv = NULL;
+> -	}
+>  
+>  	return status;
+>  }
 
-Reviewed-by: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
-
-Best regards,
-Krzysztof
