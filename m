@@ -1,88 +1,89 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.172
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.181
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794340370;
-	b=tMxM5wILMxrk/Sx8wplNfkW2lXt97UT+Fxy7vWDec6uBRKNDyTtZjgWMW2uG1sDlD60l
-	 5dmrXMa7FWlMRFKWDFCxCOReoVpuWjEw6Gu2I/zWR4XIlMqKZpLqv6SByzLdPnPE7ScBw
-	 psJwayOZR3w1A3HMJr60EB+WMsXGNFyOdF3Hn4dTmhh+f7TXOWmGOensoSIqDwQ7T2H+k
-	 cXQaSp6nDzN3qYEfyKVAYRI+ddfRhsD/sWcJvLpUOrnysh6MSocphuhOuls6EZ0I2LGa2
-	 I0W+jsjsnsmbgBNWQE6NlljPUYlpaM36F/LCLsBf5XTh5bz5191VoUo6vUZApOiLbsQ==
+	t=1794340375;
+	b=SPlwpt/0lxAJjGz2QHcISCmN8LnlLriNmhk3LKrMmt+5iospjcaIxXX2nf/DsPzOLQE/
+	 MOhBoKouMTe6IZtm6NwewTSrPmu9LmWzC1OcYOrqVmHPr6XUZGMi4p2dwkUi8CSULkJKJ
+	 v46dvNNEsLtHJnVvepvCCBHueFZqhZLC4CfeNmMNG+wx+tamgDhZyfGqPRBVqwqJnZWK1
+	 LP9WD4fqnsPtJHY61n9TUEQ1CO3TrrlPD8fw1H+KkWup7OkW+83TyDC05BtuPw8JQY+2W
+	 NwGc7KR4Cj1/NgEDE9z9tvL2Zd6V6W8sjHp5fZjBfQTBx9VOXel23HFKoeHjgjRyHYQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794340370;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794340375;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
 	 From:Date:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:
 	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key;
-	bh=WV1W9nBfS3ldLXeMMEvma4A9q4C8mtYJggnjjv7e4es=;
-	b=pOm4/qAA6ah51sICQVjplWF1vUePQ+lMPwUguD4NwSJXmtHfvELcfj3q5wIPMZA6Cvci
-	 x2dBp9p/SSZoudUhCpaIi5QCbFz8WIAc04/yaD1S8rwn2a8F1zSw2MJmxpov2R+yJo1iI
-	 5BpFCTMgdlI7+OU3T3GCLUQfQMrMcH5n0GhUiwFzL18DRonCSP7Q3A+9fGEf57/4abDlm
-	 x/Y3WgVSIql0MgNZ/g9Y65UciqAQ+7bA0PqnZcdkX/3aMjOijkb3gXTdZ1+8FfbRiAeUw
-	 NTErJwSTyc3HN+28s5oU16KABR7LiJaG2DNqICJw7KoN8NORV8unUzzGsKvXcpUdNew==
+	bh=XK0glUGtYh2qenvIp5qWYb1mVMZVDWpeT01ZIqCTHss=;
+	b=x7lRhehn9H0koJ6lMemXeS0BZr0IhrdhU5rBoQJtRExBZJoc1UXcWN0nvqpvJX7D11cW
+	 97jx5flDPyTAlg8ESnSGUOrQDk1YBSTVjaGADeRyZPGji34JIt/GhB0n16QTpzcJrcx0m
+	 tmyrXmJarZd0rCqZRMYvwHpO2S3MZMLp1EABJ158CQTVjbaVcC/TUf+tfpDywlGYBqgpS
+	 mOWyj5DpGw6seQgW1piEVxVNVJKfRkHU3viwpgeJh4kwVuoNO6tSZdZEpPCqTUzzoI2p7
+	 cF8Jpu6aeQYDwNT3WFfECveVbpisSiWXYaT97vYHWBvUgjLW757M1c61VxTWAig73Eg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=lUH0io+d;
-	arc=none smtp.remote-ip=74.125.82.172
-Received: from mail-dy1-f172.google.com (mail-dy1-f172.google.com [74.125.82.172])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=gvKc+S5C;
+	arc=none smtp.remote-ip=74.125.82.181
+Received: from mail-dy1-f181.google.com (mail-dy1-f181.google.com [74.125.82.181])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63B43606A32D
-	for <linux-omap@vger.kernel.org>; Tue, 10 Nov 2026 19:52:50 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 63B43606A32D
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AD25606A326
+	for <linux-omap@vger.kernel.org>; Tue, 10 Nov 2026 19:52:55 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 3AD25606A326
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=lUH0io+d
-Received: by mail-dy1-f172.google.com with SMTP id 5a478bee46e88-36e90071735so409700eec.0
-        for <linux-omap@vger.kernel.org>; Tue, 10 Nov 2026 11:52:50 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=gvKc+S5C
+Received: by mail-dy1-f181.google.com with SMTP id 5a478bee46e88-36ecc11bd26so287082eec.3
+        for <linux-omap@vger.kernel.org>; Tue, 10 Nov 2026 11:52:55 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794340369; x=1794945169; darn=vger.kernel.org;
+        d=gmail.com; s=20260707; t=1794340374; x=1794945174; darn=vger.kernel.org;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :content-type:mime-version:subject:date:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=WV1W9nBfS3ldLXeMMEvma4A9q4C8mtYJggnjjv7e4es=;
-        b=lUH0io+dIJkjL80OHBeuKDzqchC7AbmDLhSqgQ24PZTwwBvZVSDljr1Gk6w6sBlv+r
-         z6E8eBSxdKpeSmSe4zz7QT2ba4CEHDv3Ew6q2+E5CW9BxmI8i28cGvkvFu2eSX0uEGiR
-         K9bWyrgI/pnEFPGB+ziuvA4CEI3YGKfG6JhJRlXHRZ+hPNmaLMEmBHfEZqRlcw6gSM+R
-         Ygiw7gYN9hg6VLk03KzzaB0HYc/PAliPad4kJNPBu5Sdjwyq1j68bTAcA20pnVD4gzFX
-         0vHGphWMEw5Opw7ZrvS7q4DfabU5TDDyiiZ7jRbVo3PJE21w2gtn/EYfKg8okA8xdyUx
-         zzwg==
+        bh=XK0glUGtYh2qenvIp5qWYb1mVMZVDWpeT01ZIqCTHss=;
+        b=gvKc+S5CLxUYAye0zrhTm1rEdr8R6KJpXFKE9ItC4AUioMkqErMof+XzlAb807xC/C
+         yMMaIFlJ1xsWUD0ThK8F3QnkoR6BnB54EraFAvsLniIthjoFsH7MeMjL75sPC8q7upLN
+         PAM5JJyKuCUAjzJ9xBwnLkX63Vvd7CSKh/aQQNYJWOtPhaKGrOHFYcpHxFIK/0HqvcOR
+         XR0w4qKtvRSdy4ieIolCIlJ5BEl7YRj4qFxjy/9YB0EctPyu9eUttLQRBm9vWRm2C19P
+         tbEPN7nmUZH0jDgL9U4zfy8saqUImMUR7YkLB3vbNHqeYZj0dX5OhnKn+prhAskEjynu
+         F1Sw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794340369; x=1794945169;
+        d=1e100.net; s=20260707; t=1794340374; x=1794945174;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :content-type:mime-version:subject:date:from:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=WV1W9nBfS3ldLXeMMEvma4A9q4C8mtYJggnjjv7e4es=;
-        b=TNudTtJuF5ysGcM3jvxzW3hYS8Ao3T9fkN4D+45PANoLvC9VsmCQ6vBv+6tPWd6x+Z
-         LrSw/a1Y72oPiKrwQWsGp1EEi79yZTAYXkujbQXmfO08iqv3DTqtO/BavyVLbU0Ea79R
-         FVkTV2gF2BG8ioajWMSVsBB+V2x1w7u8Y/nPCyz2k1WZaKiNO6b9SEn+vAsEjHTCWBRQ
-         FJ7VR9ctOWCSGyMqKF30N2tDcuERmu8RPpaKa44udR4oEBkQ2Jnx2zdb1myxknNOzb0l
-         ny67Fp3/amtqYcDtcxhr2aDPm0bFOli9TzZqwnDhps5tWRQwPYI/uKqp9DbnL0zNnAmS
-         Po7A==
-X-Forwarded-Encrypted: i=1; AL+hErFy2Bx79tJhxHoeXdeUctWmnur75uFeVnAVbZJwiN6tn/5eu9z3bQ5fg0vvl8pSa3fwQLgfFaiVZqxE@vger.kernel.org
-X-Gm-Message-State: APuU4Z9di2XS6tRIl85aaqAeFR2b5fxaLJtFB1N+0XIVbHyBw5dyh0CD
-	qhyrpz/Q66uDM9nGYvYHtk81hyVH+Uco9baoKp0VnoEvlccjVKdeFaXl
-X-Gm-Gg: AYBFou1ShbEa/xd/0vHY2Zuy4WZcILbKk3YJHpZGfn3p6LLykYUnKkNeN/w5iFnoXaX
-	Dbyhj/CgcPHN3CpGDXWT3xSftscL+ZMGCVWB2d/4aRLggmYkFAlvE62MH90XQ9Zm7G4XRD19H8i
-	Exz8cZF//KgpXgzTEnxw9pHzf0X4IegpwJkzFO3l+1UQa84IaEgs6l/FCtLsRUincbMkCQi0QXr
-	DqnYvv8CKWQ1opridY/ml3Jovm0ano5CAvgS+Fny04wSd1PvEEzijUuDBqr2QwdDiK4EjZ2lMhw
-	ZFRTBsbDjXJ+2zfYGAOOlakNM153x+UmTcBsIs/VpJvc3PfapW6sgt53dX0QEKKb3CL7mLbY1uT
-	yqaemzanHrkHSrtVR5fsaiOeZ8stD8fYZOTCjSlT6+IC5Ok0RLzu/ISQbNBXrVeAVLkOLiy+ve+
-	qjb8j8AkDW87z/DMP45L/dRjwN8ozdNZf6voBQPw/gmOSlvA5ys9NfTkqJgUaGgBIc6+pr/WJ6W
-	zwUEIS7WYRF6iHzrVxF4znHcX5XBaspVVwJSmfCY+nHQInhrtdJlyvjZXovs7JT0OrLmAmBalBP
-	R0VGWkY1uRj4LK7KF75S2wSsvdfdQNtezlA97Nw=
-X-Received: by 2002:a05:693c:20cd:20b0:375:f846:5b3f with SMTP id 5a478bee46e88-3767fe8f34bmr696317eec.0.1794340369276;
-        Tue, 10 Nov 2026 11:52:49 -0800 (PST)
+        bh=XK0glUGtYh2qenvIp5qWYb1mVMZVDWpeT01ZIqCTHss=;
+        b=nlHed9Utp3ZeK/cH9DrRLSeqrrw1PXDE5iAh9L0jNzx/oDIwBbnYqk39jNj2uomi+2
+         yFyau4dfPEQbfU05XmmrgPr7GQle8edWvyl7ZaDfMFDP9gMTroFY6pwWoyg7XVcRBZ3/
+         Qkp7gQd8rRGoCFSfFNNmqYTBGtE0uzjXgVccfjzVXmmE4MzCnPrKNj+3fmlmfphwJmUc
+         W56RIwdHsvLZ0x3SCBKEWnemKogKsbt6cT8menVArGTwgrviVXn3+ieGOy2aHBZFBn9N
+         +TjQA3oOzfCgQVtWQvIHUXocZgHi+J7r78c4YJPSV6diEW7VYk+YSh7CJgF0bkSruyU+
+         AO5A==
+X-Forwarded-Encrypted: i=1; AL+hErGIjReq0XHHk/6LlQAEoOanOHw+nqwKYJyAJuwX4yQ5W1PHYvJ7ER/pQ7FU4fQWTF+bL1ixIFpsL8Od@vger.kernel.org
+X-Gm-Message-State: APuU4Z+LzpAc1QVgO/7oVrKPadVd6xoN2o9o2dXxvrV198NlcrRZm0XW
+	jsBbf1xRRHF6blu8PzCqWhZi9Ai+DUkPeGjo9fZMOLLjLR8D9QfEf7iC
+X-Gm-Gg: AYBFou0Dp8DtpMv4APFFpBN2rAQ5n/NBYw6mAln8cTyTdNbFKSQrts1/Ik84GYo7L4l
+	d6/jXv6lYRc3WzGun0YXJj5WIn7l2egfysPy2zI6kgFyUA5Rox41ZhjhKeP3wbnrn5W//IW6Z55
+	TLdkO8Es8pYS2s1GVuIZN1YX3bMN2BJ1mgltJYpFJRumJK8rqlHDNYRB3IFk+NyR29mLDFELECp
+	IyXx8nYWby36pKnWIr2oMMkTH46k1TxkWFCTalTQvWi/pfcsKcWx1I0t/TJckIy6qTYGMw/TV9B
+	fWQcV4zY45LuppjoGhXC5AqIEaH+daOezLgvxKTWB5Sr1aIgtn1Z3KwV53mCuFYyIUOaqGQOeBD
+	XXyZ+5YOZpXopV3iaYK/NhYNhHGUAdmlp1DOZkaZi98K+ov5tsLS8m1zmjox+SGuTR3YlkREe56
+	mQ2anO/NbPvlBrVndlJugqQS6EHF/SuMP+1/q4BmdytmThMos5YtBG5m+Tb3IuV7Q+7akUzcgV+
+	72LUwk62qX2Lkf5LZ3kkciNc16lenu8pcbnt+7Be9ofF21f9u+cFbCIvZ4hZ24cRazlFSvEuH40
+	Vbj26EJd7wcRcOU/BBCDMZTri3l1hTyeRXfduqhPMs5k5rla0G+w3hJoq6e+
+X-Received: by 2002:a05:7300:f547:b0:36a:13fd:b5c with SMTP id 5a478bee46e88-376854b73ddmr592563eec.2.1794340374097;
+        Tue, 10 Nov 2026 11:52:54 -0800 (PST)
 Received: from [192.168.1.11] ([2401:4900:881f:d9bc:11f3:620a:3333:518d])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3752060899asm8834225eec.11.2026.11.10.11.52.44
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-3752060899asm8834225eec.11.2026.11.10.11.52.49
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 10 Nov 2026 11:52:48 -0800 (PST)
+        Tue, 10 Nov 2026 11:52:53 -0800 (PST)
 From: Bhargav Joshi <j.bhargav.u@gmail.com>
-Date: Wed, 11 Nov 2026 01:22:31 +0530
-Subject: [PATCH 1/7] dt-bindings: vendor-prefixes: add eets and newflow
+Date: Wed, 11 Nov 2026 01:22:32 +0530
+Subject: [PATCH 2/7] dt-bindings: arm: omap: document missing AM33xx boards
+ and SoMs
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -94,7 +95,7 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20261111-ti-omap-dts-fix-v1-1-19022d1ff4b4@gmail.com>
+Message-Id: <20261111-ti-omap-dts-fix-v1-2-19022d1ff4b4@gmail.com>
 References: <20261111-ti-omap-dts-fix-v1-0-19022d1ff4b4@gmail.com>
 In-Reply-To: <20261111-ti-omap-dts-fix-v1-0-19022d1ff4b4@gmail.com>
 To: Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
@@ -105,45 +106,75 @@ To: Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>,
 Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, 
  linux-omap@vger.kernel.org, Bhargav Joshi <j.bhargav.u@gmail.com>
 X-Mailer: b4 0.14.3
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1794340358; l=1238;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1794340358; l=2257;
  i=j.bhargav.u@gmail.com; h=from:subject:message-id;
- bh=Rt1rSWZjPfM2baFw8ge3SHaMBlN/XHq/0c9xsidb0yE=;
- b=6v4DY+409b2gCifH+22DH92JVjmI9DIm2x/tQgiJPVFXbnbXc8PIVuxrQH2i0KtZqNevRwJMy
- 65XBxJLpJ4hCQF/vGwm7t8wMI02uMT5+FGlnsBiPmI9wxIpm1dMZzff
+ bh=ToVc+9KRI9uPv3z9Dm2qjNBtZIyu3nXqpyevUzcgwDM=;
+ b=8WjKIkFnAI1eIHACbL0SOi2MHdaM4Wq2VK76kK3l3tauEuAJpu9+2Ey1BzgL4mnC4IBQPb6fG
+ DR7VRvyxg2BC8HHrC6Q1bFOazeYDIMIVJbBfOSdKvydA/rBM5qZZyZH
 X-Developer-Key: i=j.bhargav.u@gmail.com; a=ed25519;
  pk=IqNDwUZKECEA+n8wXctFLBbYL9NhFstZNbOznm/nX1k=
 
-Add vendor prefixes for EETS GmbH ("eets") and Newflow Ltd ("newflow").
-These prefixes are needed to document the compatibles for the in-tree
-AM335x PDU001 and AM335x NanoBone boards.
+Several AM33xx devicetrees trigger dtbs_check warnings because their
+compatibles are missing from omap.yaml.
+
+Document the missing AM33xx compatibles (Bosch Guardian, Gumstix Pepper,
+Moxa UC-2101, TCL SL50, BeagleBone Blue, AM335x EVM-SK, and VScom
+OnRISC), add entries for the EETS PDU001 and Newflow NanoBone boards,
+and for boards based on the MYiR MYC-AM335X and Grinn ChiliSOM modules.
 
 Signed-off-by: Bhargav Joshi <j.bhargav.u@gmail.com>
 ---
- Documentation/devicetree/bindings/vendor-prefixes.yaml | 4 ++++
- 1 file changed, 4 insertions(+)
+ Documentation/devicetree/bindings/arm/ti/omap.yaml | 23 ++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/vendor-prefixes.yaml b/Documentation/devicetree/bindings/vendor-prefixes.yaml
-index 5471a06f93f10..447f1424bf9c8 100644
---- a/Documentation/devicetree/bindings/vendor-prefixes.yaml
-+++ b/Documentation/devicetree/bindings/vendor-prefixes.yaml
-@@ -505,6 +505,8 @@ patternProperties:
-     description: Emtop Embedded Solutions
-   "^eeti,.*":
-     description: eGalax_eMPIA Technology Inc
-+  "^eets,.*":
-+    description: EETS GmbH
-   "^efinix,.*":
-     description: Efinix, Inc.
-   "^egnite,.*":
-@@ -1198,6 +1200,8 @@ patternProperties:
-     description: Shenzhen Netxeon Technology CO., LTD
-   "^neweast,.*":
-     description: Guangdong Neweast Optoelectronics CO., LTD
-+  "^newflow,.*":
-+    description: Newflow Ltd
-   "^newhaven,.*":
-     description: Newhaven Display International
-   "^newvision,.*":
+diff --git a/Documentation/devicetree/bindings/arm/ti/omap.yaml b/Documentation/devicetree/bindings/arm/ti/omap.yaml
+index f694dcbf23486..c97eb4953ed25 100644
+--- a/Documentation/devicetree/bindings/arm/ti/omap.yaml
++++ b/Documentation/devicetree/bindings/arm/ti/omap.yaml
+@@ -104,13 +104,22 @@ properties:
+       - description: TI AM33 based platform
+         items:
+           - enum:
++              - bosch,am335x-guardian
+               - compulab,cm-t335
++              - eets,pdu001
++              - gumstix,am335x-pepper
++              - moxa,uc-2101
+               - moxa,uc-8100-me-t
++              - newflow,am335x-nanobone
+               - novatech,am335x-lxm
+               - seeed,am335x-bone-green-eco
++              - tcl,am335x-sl50
+               - ti,am335x-bone
++              - ti,am335x-bone-blue
+               - ti,am335x-evm
++              - ti,am335x-evmsk
+               - ti,am3359-icev2
++              - vscom,onrisc
+           - const: ti,am33xx
+ 
+       - description: Compulab board variants based on TI AM33
+@@ -136,6 +145,20 @@ properties:
+           - const: tq,tqma3359
+           - const: ti,am33xx
+ 
++      - description: MYiR MYC-AM335X SoM based boards
++        items:
++          - enum:
++              - myir,myd-am335x
++          - const: myir,myc-am335x
++          - const: ti,am33xx
++
++      - description: Grinn ChiliSOM based boards
++        items:
++          - enum:
++              - grinn,am335x-chiliboard
++          - const: grinn,am335x-chilisom
++          - const: ti,am33xx
++
+       - description: TI OMAP4430 SoC based platforms
+         items:
+           - enum:
 
 -- 
 2.56.0
