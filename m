@@ -1,92 +1,62 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.175.65.16
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=178.238.236.174
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794341941;
-	b=tkxiO41ArDoGZ6l1V/oqO7IW8t37GVMq1Re5NQSyMCBYkh1U56WmOY3UjIipcKl1BUnS
-	 8vtGxPueTe6Y2/48Mos5mqSdiecIfBzSk15x7o9SiHeiUofoS8VebGnIv2ohMLJy3l/vq
-	 jUWWD0Om9STKjYHjQH3gNpj64x/ZGh9R3Rl6Jo9CT5kwWI+2D1z55klo6eVxJlxBhdNnb
-	 3ekPpg+Us5eHdIsXvOMjygzieqy+CS2+qAFLaqOAWqx0d1XhWBSwuQzmJvR8lLrxRVL3a
-	 6sGVmLVJgMIq74T+khZms9s768v6RGovFI2cM8hM2oKUi1+JfAmtXHIbE9PE7Qji3bA==
+	t=1794342206;
+	b=o/Ll2GPe/TsAzRwaiJ/dyARiiSCcVFP+BDzmYJ2Vc6vVuUzQGb9qKSWUZovxs4vTLIs1
+	 00wzkdsHjCkWAon0+VHdVj8cYxCwT3P45UNCHfpUBNY/fd5OZxHYT3G3ENZ5QQKxjopxV
+	 8GaYS/7tWKVGt4gD30A56J3dx3XQXcu626lVD+PDDYWSk3lIoll8vM6BBIg9uPNh6i9mK
+	 YIePAvy/lFXZ6QW9DZy7HdooDrShI/W9UhS7FkeeLbFPXzAP3FJHu6Y0eRV/ZHpBKdNTD
+	 Ns1EyO19Yox+QqsMGWUNMSqw17temdUlJ/DOlleBP51UVP0jx+zizpCAdMiAPXVb/tA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794341941;
-	h=DMARC-Filter:DKIM-Signature:X-CSE-ConnectionGUID:X-CSE-MsgGUID:
-	 X-IronPort-AV:X-IronPort-AV:Received:X-CSE-ConnectionGUID:
-	 X-CSE-MsgGUID:X-ExtLoop1:X-IronPort-AV:Received:Received:Date:From:To:
-	 Cc:Subject:Message-ID:References:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To;
-	bh=juK68wZhByXSKADyyYfPmjuuJBwSajAS7el5mvid4ZY=;
-	b=aizZBbjJ+cdFhiVtfRw0wzUw8ee0+KSDN4ErdXXn9KhGqU/3Vs77rYJOnN6V3vTT/xWi
-	 En6nN5+KqlyEsBzufHUQ9UKCi713zrOPZkSt4BLv71FnlwimyGB4Ss5hI7fRQ33gfMDcF
-	 EtZLOFsBvLXCNef+5q/BuW0QN2hBtDt7yobCdWujEF9pDQ48JxFx8X+/Fkr3/t8MOnxGy
-	 3E69Q2jzxwHMMVTADGQrRyQqb+gjrQv3XXABjecJS69M0Jm4NXcwyr3WENpaFxp02xBMD
-	 1iLq1GEgOqvuzsmPLV/nrwAO8iMXkKGL+OkZMHwJ4vLBvn4bMmBf3HwlBO4XXRFh+Pw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794342206;
+	h=DMARC-Filter:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 In-Reply-To:References:X-Mailer:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=c7+UI0GUfDbfLEtSpboSlipdO1srQg2d508IiAHDWDw=;
+	b=ftQ1Xbo/l37ubuFs3V+b1JyPumMMX7Epd66IB3bpmA7slR8G1sjt6lFz0QGzbVbCoWqH
+	 KflPH3FjHKq9Q3/hVmpELASyx0zmYwwhrYVu9U25mlsynqy0nOquQ1SwcA99+W1FO7esj
+	 lSXxvatOzxgzAlJcVp4SSsvbsPy103piisuKLFKo1nDeCmYIP14bu6HkiiSfnqox4Zw/e
+	 assBY+JWrP9PPZn3gYJ1fCs2SthqQ72q6UFBOfxAqFLPfNWNoHi7+4bFmnxJffgRgngvF
+	 Avp1Io8GnV6MzZqV3IgLHtIwooVFaAcQ2brUm7XDKw6v3j9m2qIVgOVw6wqEWuZBIKA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=intel.com;
-	spf=pass smtp.mailfrom=intel.com;
-	dkim=pass header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=TrF6p9up;
-	arc=none smtp.remote-ip=198.175.65.16
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.16])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dmarc=pass header.from=kemnade.info;
+	spf=pass smtp.mailfrom=kemnade.info;
+	dkim=pass header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=m5n63kw2;
+	arc=none smtp.remote-ip=178.238.236.174
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4537606A31C;
-	Tue, 10 Nov 2026 20:19:00 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A4537606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22F8C606A8B8;
+	Tue, 10 Nov 2026 20:23:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 22F8C606A8B8
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.a=rsa-sha256 header.s=Intel header.b=TrF6p9up
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1794341941; x=1825877941;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=xSTSWZR6Nw1Z+uKRJrpUe5ksHZNU7RF77FI0Rq6jAFw=;
-  b=TrF6p9upz55gT8BQeYYjjNpJle9fkjhw5+HTKzUgDf9aYr3L9XemR8Wy
-   GwMC8p+Fa4XvJxWdXa/rbWr3pIXqmHOGooQjp70KTkW/FM9MXvryBDR/I
-   XGDlsfzONY9wCmdbE1BFyI2jasCVQrjyHkWDQZ9IuYe7fNnLRIKLhvWHw
-   qb0PFm9/ZlcRJUj7qQwpM+e/bmC1pz76/02VTn301IAcqpHj4SPys4Myf
-   3kLFW3ebxRSHYzIx+KPDYzQjWziP52kGRqPjKxlwCHQ7qPud4rWhZ5hnY
-   ALdUdzfw57t0n48wZa5ZW2aJZSlxCDEzAOFWQWM+NWTrozOUx0gO9TMto
-   g==;
-X-CSE-ConnectionGUID: f8w3ZVrORkGwTxhFEadvIw==
-X-CSE-MsgGUID: 1fOKeKYcQT6Ra0JxYZYWeQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11962"; a="3097340"
-X-IronPort-AV: E=Sophos;i="6.27,206,1787036400"; 
-   d="scan'208";a="3097340"
-Received: from fmviesa009.fm.intel.com ([10.60.135.149])
-  by orvoesa108.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Nov 2026 12:19:00 -0800
-X-CSE-ConnectionGUID: 19vcfB1bRk6BSkk74uN2TQ==
-X-CSE-MsgGUID: YIXuxEJYSZG7ApbTiRH9ew==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.27,206,1787036400"; 
-   d="scan'208";a="8555566"
-Received: from lkp-server01.sh.intel.com (HELO 0caa9d2d175c) ([10.239.97.150])
-  by fmviesa009.fm.intel.com with ESMTP; 10 Nov 2026 12:18:56 -0800
-Received: from kbuild by 0caa9d2d175c with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1xQsIu-00000000xRr-14R8;
-	Tue, 10 Nov 2026 20:18:52 +0000
-Date: Wed, 11 Nov 2026 04:18:49 +0800
-From: kernel test robot <lkp@intel.com>
-To: Andreas Kemnade <andreas@kemnade.info>,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
-	Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>,
-	Andi Shyti <andi.shyti@kernel.org>,
-	Thomas Richard <thomas.richard@bootlin.com>,
-	Wolfram Sang <wsa-dev@sang-engineering.com>,
-	Paul Walmsley <paul@pwsan.com>,
-	Russell King <linux@armlinux.org.uk>
-Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
-	Sicelo <absicsz@gmail.com>, linux-omap@vger.kernel.org,
-	linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	Andreas Kemnade <andreas@kemnade.info>
-Subject: Re: [PATCH 1/3] bus: ti-sysc: fix I2C quirk for OMAP3 variants
-Message-ID: <202611110448.h78DkY1D-lkp@intel.com>
-References: <20261110-i2c-sysc-v1-1-8945eb1d38f0@kemnade.info>
+	dkim=pass (2048-bit key, unprotected) header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=m5n63kw2
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=kemnade.info; s=20220719; h=References:In-Reply-To:Subject:Cc:To:From:
+	Reply-To:Content-ID:Content-Description;
+	bh=c7+UI0GUfDbfLEtSpboSlipdO1srQg2d508IiAHDWDw=; t=1794342205; x=1795551805; 
+	b=m5n63kw2aKhqfKiUlCrrWCgthNDX/7nDoantdmNh8aWF5ModxkcHhbsyLqbhWdYcC8LozKYfI2K
+	4zMmU5hkc06IBHPPOlvK111SYkPZD+c4I0dC27xnInMIv3I9foHAS/XBg7G9FwMlaEHlFRxJrKkBV
+	gd2jzy5y5toZcgf7X6Xo2mJ4woXtMVZdha5+zPoiXURiPu0qvtewaGvaAXf0SOsZvnYglc+Q7UibB
+	bm6hR/RjTtA51Y08khVathBhjKqyKT8dsWkjrEOfeVmsx2F2IT68k4ULTv4w5eZJMQCA4yxsfciw0
+	QIHbpSyRIf62vEIXegvY5wrPZFbR8uI7ue+g==;
+Date: Tue, 10 Nov 2026 21:23:06 +0100
+From: Andreas Kemnade <andreas@kemnade.info>
+To: Kevin Hilman <khilman@baylibre.com>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Roger Quadros <rogerq@kernel.org>,
+ Tony Lindgren <tony@atomide.com>, Russell King <linux@armlinux.org.uk>,
+ linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ linux-kernel@vger.kernel.org, absicsz@gmail.com
+Subject: Re: [PATCH 1/2] ARM: omap: cpuidle34xx: balance cpu_pm_enter/exit()
+Message-ID: <20261110212306.39327765@kemnade.info>
+In-Reply-To: <7ha4ngv55s.fsf@baylibre.com>
+References: <20261028-susp2-v1-0-174b52857d89@kemnade.info>
+	<20261028-susp2-v1-1-174b52857d89@kemnade.info>
+	<20261028212302.75ec622e@kemnade.info>
+	<7ha4ngv55s.fsf@baylibre.com>
+X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -96,34 +66,114 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261110-i2c-sysc-v1-1-8945eb1d38f0@kemnade.info>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Hi Andreas,
+On Tue, 10 Nov 2026 11:48:47 -0800
+Kevin Hilman <khilman@baylibre.com> wrote:
 
-kernel test robot noticed the following build warnings:
+> Andreas Kemnade <andreas@kemnade.info> writes:
+> 
+> > On Wed, 28 Oct 2026 20:15:11 +0100
+> > Andreas Kemnade <andreas@kemnade.info> wrote:
+> >  
+> >> These calls are usually done in a balanced way, so allow notifiers to
+> >> assume that these calls are balanced under all circumstances.
+> >> Seen some spurios vfp issues probably connected to this.
+> >> 
+> >> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>  
+> >
+> > Looked again at some discussions with Sicelo testing such things:
+> > He had observed a NEON off count 1 but MPU 0 in /sys/kernel/debug/pm_debug/count.
+> > Probably more involved, but lets not freak out things here.
+> > So that is definitively a real problem fixed by this. vfp_pm_resume()
+> > would not be called to restore the state without a patch like this.
+> >
+> > So this is
+> >
+> > Fixes: 1cd96478cf150 ("ARM: OMAP3xxx: CPUIdle: optimize __omap3_enter_idle()")  
+> 
+> Even with this fix, I found on OMAP3 (beagle and beagle-xm) that there
+> are still intermittent failures, and the NEON vs. MPU count mismatch was
+> a good indicator to dig a little deeper.
+> 
+There seem to be different problems, cases where MPU sticks to INA
+but does not go OFF (reported on N900), and that spurios vfp crash
+I have seen on the GTA04.
 
-[auto build test WARNING on 7475ea8b58616b33c04afb976cf0fbaad9dd63fb]
+> I think the fix here is to add the neon_clkdm -> mpu_clkdm wakeup
+> dependency before the clockdomains are allowed to idle.  Otherwise NEON
+> could idle immediately.
+> 
+sound same. I also looked at the wakeup dep, but only in the running system.
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Andreas-Kemnade/bus-ti-sysc-fix-I2C-quirk-for-OMAP3-variants/20261110-114612
-base:   7475ea8b58616b33c04afb976cf0fbaad9dd63fb
-patch link:    https://lore.kernel.org/r/20261110-i2c-sysc-v1-1-8945eb1d38f0%40kemnade.info
-patch subject: [PATCH 1/3] bus: ti-sysc: fix I2C quirk for OMAP3 variants
-config: arm64-randconfig-1000-20261110 (https://download.01.org/0day-ci/archive/20261111/202611110448.h78DkY1D-lkp@intel.com/config)
-compiler: clang version 24.0.0git (https://github.com/llvm/llvm-project e73e336290028f26553b46c9fba844c13da38c9c)
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20261111/202611110448.h78DkY1D-lkp@intel.com/reproduce)
+> With the patch below, I don't see any intermittent VFP crashes anymore
+> with early testing.
+> 
+Thanks for that patch.
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202611110448.h78DkY1D-lkp@intel.com/
+Then this ordeal comes to an end, I first thought that these are hw
+issues. But then maybe it is time to reinit my automatic testing stuff.
 
-All warnings (new ones prefixed by >>):
+> I'm still doing a few more tests, but will sent a proper patch with
+> changelog after some more testing.
+>
+I will do that too. And then time to do some bisect to catch some omapdrm
+bug. 8250_DMA also smells.
 
->> Warning: drivers/bus/ti-sysc.c:169 struct member 'revision_doubleword' not described in 'sysc'
->> Warning: drivers/bus/ti-sysc.c:169 struct member 'revision_doubleword' not described in 'sysc'
+Regards,
+Andreas
+ 
+> Kevin
+> 
+> 
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 9992549c7336..d11967c2f4bf 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -510,6 +510,20 @@ int __init omap3_pm_init(void)
+>  		goto err3;
+>  	}
+>  
+> +	neon_clkdm = clkdm_lookup("neon_clkdm");
+> +	mpu_clkdm = clkdm_lookup("mpu_clkdm");
+> +	per_clkdm = clkdm_lookup("per_clkdm");
+> +	wkup_clkdm = clkdm_lookup("wkup_clkdm");
+> +
+> +	/*
+> +	 * Add the NEON wakeup dependency on the MPU before the clockdomains
+> +	 * are allowed to idle: once pwrdms_setup() has programmed NEON's next
+> +	 * state to OFF/RET, an idle NEON clockdomain otherwise lets NEON power
+> +	 * down while the MPU keeps running, and VFP instructions then trap as
+> +	 * undefined until NEON is woken.
+> +	 */
+> +	clkdm_add_wkdep(neon_clkdm, mpu_clkdm);
+> +
+>  	(void) clkdm_for_each(omap_pm_clkdms_setup, NULL);
+>  
+>  	mpu_pwrdm = pwrdm_lookup("mpu_pwrdm");
+> @@ -523,11 +537,6 @@ int __init omap3_pm_init(void)
+>  	per_pwrdm = pwrdm_lookup("per_pwrdm");
+>  	core_pwrdm = pwrdm_lookup("core_pwrdm");
+>  
+> -	neon_clkdm = clkdm_lookup("neon_clkdm");
+> -	mpu_clkdm = clkdm_lookup("mpu_clkdm");
+> -	per_clkdm = clkdm_lookup("per_clkdm");
+> -	wkup_clkdm = clkdm_lookup("wkup_clkdm");
+> -
+>  	omap_common_suspend_init(omap3_pm_suspend);
+>  
+>  	arm_pm_idle = omap3_pm_idle;
+> @@ -562,7 +571,6 @@ int __init omap3_pm_init(void)
+>  	if (IS_PM34XX_ERRATUM(PM_PER_MEMORIES_ERRATUM_i582))
+>  		clkdm_add_wkdep(per_clkdm, wkup_clkdm);
+>  
+> -	clkdm_add_wkdep(neon_clkdm, mpu_clkdm);
+>  	if (omap_type() != OMAP2_DEVICE_TYPE_GP) {
+>  		omap3_secure_ram_storage =
+>  			kmalloc(OMAP3_SAVE_SECURE_RAM_SZ, GFP_KERNEL);
+> 
+> 
+> 
+> 
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
