@@ -1,50 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=178.238.236.174
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794307657;
-	b=sKLvbiWYl+ZWBbrQ9r7V1q0SQ2/4iKKwqbNtcCHHT2va/hymkVM7dENIGMhBZ19iCvLR
-	 aEvbIu5YI92nHWpSeL/UTLqFsd1E32vEjqV31X+oLHHbIX08uSx/q5fCYEYjmpq6oLxXV
-	 xRa4t0veaYatTXm/WgNao1BPFWAkVWNlvYt3VPlHbJQ4NdGTzDl4p2LhdZ5a49xKIrw78
-	 S4DeFmqU5g1Z4r8ehP2PW70VqGh+9pn++cmXdHwdpFDbPGT4lVWalh8P16QzdslZcaDNC
-	 kbkoOGxJ/dR1tl75ecwnTcp0mo+TGp/de64Xw5SxPdurYaJcI527my3GjjRAwzXuFuA==
+	t=1794307659;
+	b=yKdrmbcGL/5HLkplesV9at8N8lyrJHLNR0bpUsvblZA+BR45Wpb460OyWkOilCSZcdk2
+	 ELmOHXivDb+Ge9o39y6I5hSbZuX17R7kMs7Ks6VTQnQKeEgwGGlu7pzpgu+rYXyaOaOi1
+	 0nzNwg4d6iFzVOEwleafmU4icPSsTvevmeLil6DdOQom3c8f2GfY2joPCOzM/FKW0iUtS
+	 cx9aZShHIPYaTWiggDhH78W7cfS4uzTzlHXX8SsX8wb4KK6nhfby3n4C+5kqwnU3KpD5v
+	 RDvFkBv0g/fOF46XjvCYml++qPXYRrE6jxJHMKEy8N9oZQFRWNUh76+Mn7WCjzEv8cA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794307657;
-	h=DMARC-Filter:DKIM-Signature:From:Date:Subject:MIME-Version:
-	 Content-Type:Content-Transfer-Encoding:Message-Id:References:
-	 In-Reply-To:To:Cc:X-Mailer:X-Developer-Signature:X-Developer-Key;
-	bh=C10R9+FsWtdMXyeOnMpjjihgOFuMfyeb6FQIN+FCe78=;
-	b=jHK/bkHrp7dcIhJ8NIjROpFbQcYeFo4Z0Yyly8HCp4MLY2ZbraBxvkkH2ibeDRs+xomM
-	 PDEUZIYPWzkiCNm1SY/yjt+0E8LC6adSrawSl4mjSrmw5uIFLJzsA9s4ylfQT9Oq+i5d6
-	 AjvuhyoVUnm+tTNK0OE/wRnQ2TzUM8GqeGyubwVoJ8+aPJHnsFbOVNLb4JCPvqZ77rMfk
-	 e+2jGXPZ6p/q9CkH8tqPDrXMQ1jyVaa8EedPV95YrmduuWSoCNTCpx5mx052J88zU3Eo3
-	 qprpsoWYs3h0NuWBSN9c8CJZxh6NPz9h3f9rGW8TY8eY6CSPQkPSPAbh9kXZn/WCErw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794307659;
+	h=DMARC-Filter:DKIM-Signature:From:Subject:Date:Message-Id:
+	 MIME-Version:Content-Type:Content-Transfer-Encoding:X-B4-Tracking:
+	 X-Change-ID:To:Cc:X-Mailer:X-Developer-Signature:X-Developer-Key;
+	bh=ASLqw2WGbahgy28JlRBtOez+HQ1G/chLD0+bBWmi0SE=;
+	b=TfaqMmM1EvTNhoiV06bKqUd/VBrSvz2cQYXPXqZyAPCYECMb3OMNLGGN3jxMXL8W+4nm
+	 A6wGyY1FLxICyTAqtc34tnT2cVb8moIke+3rtSwB960Agns/iY1kPjhPBDaciCzDXSjFv
+	 XMgcEqgtqmh7zREKvvJKTFigxPSRklgetkVjWB+Yl9KBtWtvXTAyqoLuhdX455c6iBO6X
+	 UO+l4jc99a49mfcGNeAUH0pgh+TEerbRFDeYl2JGwCxljQ9dqJXlD2uxaDZd4NEEbdZY3
+	 kvMxtwmcFEdRD8MBBZiQwviRcJSVfRxqQyfHM5b5XvpTkvyVW6WPRd1Rg+KHnny76bg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=kemnade.info;
 	spf=pass smtp.mailfrom=kemnade.info;
-	dkim=pass header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=zokCQnjd;
+	dkim=pass header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=t38ENQwe;
 	arc=none smtp.remote-ip=178.238.236.174
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 038E1606A321;
-	Tue, 10 Nov 2026 10:47:36 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 038E1606A321
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A72B60A2602;
+	Tue, 10 Nov 2026 10:47:38 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1A72B60A2602
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=zokCQnjd
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=t38ENQwe
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=kemnade.info; s=20220719; h=Cc:To:In-Reply-To:References:Subject:From:
-	Reply-To:Content-ID:Content-Description;
-	bh=C10R9+FsWtdMXyeOnMpjjihgOFuMfyeb6FQIN+FCe78=; t=1794307656; x=1795517256; 
-	b=zokCQnjdQPWHggURwz1gyNwUNLPdEoRCVAk4bsPOeKulQXSApiZZhKOcwS/4ViVwVzYykofOTql
-	PcT8gP0ZqXcRPt3FArl1fYa6m7kXSjR/eDPA8X84UbjkIG3zxT2Gi7vJp4zSCnQXYQZC1q7065sZo
-	URCfNoudhvzCqgnNNxhgUTaJUUpyoHPcHFEy7XWEJVz262RdN8oWA0rj7arVFekGmefm6hKSFkBWW
-	Td4eQ9z3fO8g5S2mPVavYSFkaJ8ZsAwUSGa+Ydwno0jvsWoMeZfmFazn3yDbloJmGCnxxCD2HJNha
-	TNThHCMr0TYlstS8z0HtSGlr6NwVHGZO93Lw==;
+	d=kemnade.info; s=20220719; h=Cc:To:Subject:From:Reply-To:Content-ID:
+	Content-Description:In-Reply-To:References;
+	bh=ASLqw2WGbahgy28JlRBtOez+HQ1G/chLD0+bBWmi0SE=; t=1794307658; x=1795517258; 
+	b=t38ENQweXhhALL9ce6wSfPokSHj9eWy7a5Fiv4bUEVfVnr1YHD5NP4xR6KHoeWI3MVNj668s5MV
+	OcCJ7FPZPgN3pL/M776yoLq3nndCoCOW4Nzv2oylHgBXNgqL0n70kZ67PNny0FGS9HUzZCN1ks23U
+	tIaxFkKTNOar5q2nnU4XI5cPrSthPppMN/oezjBbN2CcK18zvVZ8ObY6Y3l3NoZDJVR2uy5CLjXbF
+	Dcc+F0Wgy2rEOl74r1oUoJCbjH1TyPDMLvxAjGKtptnGpswQFM3sGk2xtFjEbU5GuBpHOFnL8ei6x
+	0WkHym1yWSh5fNYcOVe8G3ucaXonJ9Tv99Gg==;
 From: Andreas Kemnade <andreas@kemnade.info>
-Date: Tue, 10 Nov 2026 11:46:12 +0100
-Subject: [PATCH 1/3] bus: ti-sysc: fix I2C quirk for OMAP3 variants
+Subject: [PATCH 0/3] ARM: OMAP2+: Convert OMAP3 I2C to ti-sysc
+Date: Tue, 10 Nov 2026 11:46:11 +0100
+Message-Id: <20261110-i2c-sysc-v1-0-8945eb1d38f0@kemnade.info>
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -56,9 +57,10 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20261110-i2c-sysc-v1-1-8945eb1d38f0@kemnade.info>
-References: <20261110-i2c-sysc-v1-0-8945eb1d38f0@kemnade.info>
-In-Reply-To: <20261110-i2c-sysc-v1-0-8945eb1d38f0@kemnade.info>
+X-B4-Tracking: v=1; b=H4sIAPP18moC/6tWKk4tykwtVrJSqFYqSi3LLM7MzwNyDHUUlJIzE
+ vPSU3UzU4B8JSMDIzNDQwNL3UyjZN3iyuJk3UQDEwsTA8vElBTzZCWg8oKi1LTMCrBR0bEQfnF
+ pUlZqcglIv1JtLQAhbNcQbAAAAA==
+X-Change-ID: 20261109-i2c-sysc-a048409add7c
 To: Aaro Koskinen <aaro.koskinen@iki.fi>, 
  Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, 
  Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, 
@@ -72,103 +74,62 @@ Cc: Sicelo <absicsz@gmail.com>, linux-omap@vger.kernel.org,
  linux-arm-kernel@lists.infradead.org, 
  Andreas Kemnade <andreas@kemnade.info>
 X-Mailer: b4 0.17-dev-e5168
-X-Developer-Signature: v=1; a=openpgp-sha256; l=3381; i=andreas@kemnade.info;
- h=from:subject:message-id; bh=t9Vuz4zKzjtP9j2cZP3ABiVFU0YuIep4VHnJSsSDv6Q=;
- b=owEBbQKS/ZANAwAKAYRhRfpAKNzxAcsmYgBq8vX4KDPD9hphPkFWgs6qwxkiFIyIP2rWdSR8Y
- ztME4q1lH2JAjMEAAEKAB0WIQTY6xCZL0TEE1XHfFiEYUX6QCjc8QUCavL1+AAKCRCEYUX6QCjc
- 8XwlD/0XGK2uWBDG8ZRUYitwjUwJNMi5aeiX/b1BUh1+ElNw2GlpojKDrHCrJzJ/f0y87xljHMC
- fTCXvMSBcUS3hXYa7Z/rpjIdg1VBBwTRz1EciGFBgARwTbMl88EG20eQUTCzqq5TUeFnyq7HmsQ
- skhnhP/h2Wc6jSjYR2EAyzuIrvblUvakpc5Gl7z/9AGnF2St3l3hDQEjyKqOua0cl7u5BN422dI
- A4UGR8E5tLIQ42or3a2LuwQ3Dhj4xdcEVoZVgEfkF8CiMfMw5wzOx2JsNHTFfxgwwXXQcgBXrKj
- DpGXcf7GkmhNj9by3nnf3ng49EExKd0srP+DAUSOMlxti0rsoE3SVJ5h1So6wJ5MxWzHGclck/w
- jpxvqKP0hM8LwUHgJqiMcwX5mkxYnnOqrinjoZ7h61+HUIBHxKmDbANWONMnP8Tk7/0FzldhdQi
- TJzw4ZR3Ag6GAPY2e/e+tF0T8JIao2SiJKSkfvIcjQLtRuRr/7OHVrV681q8uq04Ylmy8tG2IUh
- iBn0Q4WiTczXCcDgKU4NxLw/l+dyglPG/pVEEdwRzTO0XpiuWi7SN8lXbxK7XMv2rHIpGdJF3Gt
- pf1fycvSr6ca4Wn3+zBc39B1iyZyfyXZ+Lcgt/Mfdqa0tNfmh0RpDuuvxNPzMKTgDuLsUT3gFar
- QI1ee16EJfwKITQ==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1855; i=andreas@kemnade.info;
+ h=from:subject:message-id; bh=UpJFh3PoDVLDvH5ZyfVZJskuEuyBbcLwqnc8Mv+3bBU=;
+ b=owEBbQKS/ZANAwAKAYRhRfpAKNzxAcsmYgBq8vX1gYnY6WBKpOV/s0cKqWQ+BblbUs9VGyvUi
+ UXRkWqdBDeJAjMEAAEKAB0WIQTY6xCZL0TEE1XHfFiEYUX6QCjc8QUCavL19QAKCRCEYUX6QCjc
+ 8asFD/9N28I5MAn+G62R1raiCjybOhvk/9jzVVtTBSX40orXPAP3slpGKAtFJFNMOAqOymBMozO
+ bVNdQxzXev87w4+vrKANxmX4Yz/w0Gy+QxqxK615EHpGBAVZFhqvfPdkDBrlXIdqimkkXYj3tIM
+ 80FRftdpcETvd0ixPhHXSIYKllbVVdqpRoN+eMcKBxfiZ+uTCX+unjAqwagz+1xUIyBKsmpNcmr
+ D4Na4hmyh+m4waUJIaYIDV0vk8GqnDqDV0KFTCUWZliGbAxVBhX6wCZs+xnATyjT/RBgFDH5AL5
+ 0BbDowYCWnVRkDuo2FMWJFuIQ1I67VYQAyxIIWra9a3d57Edw0luOfcPXUxhIozUxDftSYpZ+Z8
+ OVs5Cx5xPpyxIiC+WVxIGvsazunnP+y5d3OH+qzTkLpYAcV3TqPbFL+XqQz3YZrAhF3g9O4mKfA
+ hvlch33UPXzavQoRWSRp7GAPaRTyG7dsgBoZYCEwFabaD5m+y5Y9Ys3B9lxQC0wZEBKjXIMA/7e
+ Th+trVdQy5aSyvDiCUs1UZ4YfNRMgDw8CS3WNu9v4ZnscdRVSe23LkM5aJtRtj+hI0NylH6LCHR
+ Nwn3Zz5gRfsAV1UgUkvOE+b2tqk2jdGu4HN12opa1plFphoJt3C0f0T3q3fJioUG7cZEiQ/Ysq3
+ u8TDixS37Lcx/Rg==
 X-Developer-Key: i=andreas@kemnade.info; a=openpgp;
  fpr=EEC0DB858E66C0DA70620AC07DBD6AC74DE29324
 
-OMAP3 has only one revision register, not split across two registers.
-Do not try to interpret the interrupt enable register but instead
-use the size of the revision register as indicator.
-Specifying a fake 8 byte range and the original quirk only works if
-u-boot has not messed around with the interrupt enable register.
+During suspend on OMAP3, I2C suspend oopses. This is a longer standing issue,
+in the past I mostly tested runtime suspendidle behaviour on that platform
+(including uart autosuspend). A change in the I2C driver fixes some corner
+cases in pm for ti-sysc based systems, but breaks systems using the deprecated
+ti,hwmods property. 
+To avoid that maintainance overhead, convert the i2c definition
+First fix the I2C quirk needed for these older chips. OMAP2 stuff
+is not touched due to its planned removal.
+After OMAP2 is removed, arch/arm/mach-omap2/i2c.c can be removed, too.
+I may try to check again if there is some safe fix in omap_device.c
+but changing things there has a very high chance of unexpected side
+effects.
 
-Fixes: 4e23be473e306 ("bus: ti-sysc: Add support for module specific reset quirks")
+Handling the commits:
+In the past (e.g. around commit
+42a79edd4a3dc1bb8e89fd2849f9e8e1e1c13977 for converting musb to ti-sys)
+these changes were handled through a separate branch to keep them in
+order.
+Here is a hard requirement of the order. Patch 3 can most easily wait
+but having patch 2 after patch 1 is a hard requirement. As the
+affected devices get their devicetree updated with the kernel,
+that should not hurt too much.
+
 Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
 ---
- drivers/bus/ti-sysc.c | 19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+Andreas Kemnade (3):
+      bus: ti-sysc: fix I2C quirk for OMAP3 variants
+      ARM: dts: ti/omap: describe omap3 i2c via ti-sysc
+      ARM: OMAP2+: remove i2c from OMAP3 hwmods list
 
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
-index 12285ad9ef51f..c07a0e1f9a878 100644
---- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -153,6 +153,7 @@ struct sysc {
- 	struct ti_sysc_cookie cookie;
- 	const char *name;
- 	u32 revision;
-+	bool revision_doubleword;
- 	u32 sysconfig;
- 	unsigned int reserved:1;
- 	unsigned int enabled:1;
-@@ -179,7 +180,8 @@ static void sysc_write(struct sysc *ddata, int offset, u32 value)
- 
- 		/* Only i2c revision has LO and HI register with stride of 4 */
- 		if (ddata->offsets[SYSC_REVISION] >= 0 &&
--		    offset == ddata->offsets[SYSC_REVISION]) {
-+		    offset == ddata->offsets[SYSC_REVISION] &&
-+		    ddata->revision_doubleword) {
- 			u16 hi = value >> 16;
- 
- 			writew_relaxed(hi, ddata->module_va + offset + 4);
-@@ -200,7 +202,8 @@ static u32 sysc_read(struct sysc *ddata, int offset)
- 
- 		/* Only i2c revision has LO and HI register with stride of 4 */
- 		if (ddata->offsets[SYSC_REVISION] >= 0 &&
--		    offset == ddata->offsets[SYSC_REVISION]) {
-+		    offset == ddata->offsets[SYSC_REVISION] &&
-+		    ddata->revision_doubleword) {
- 			u16 tmp = readw_relaxed(ddata->module_va + offset + 4);
- 
- 			val |= tmp << 16;
-@@ -761,8 +764,10 @@ static void sysc_check_children(struct sysc *ddata)
-  */
- static void sysc_check_quirk_16bit(struct sysc *ddata, struct resource *res)
- {
--	if (resource_size(res) == 8)
-+	if (resource_size(res) == 8) {
- 		ddata->cfg.quirks |= SYSC_QUIRK_16BIT | SYSC_QUIRK_USE_CLOCKACT;
-+		ddata->revision_doubleword = true;
-+	}
- }
- 
- /**
-@@ -1527,9 +1532,11 @@ static const struct sysc_revision_quirk sysc_revision_quirks[] = {
- 	SYSC_QUIRK("i2c", 0, 0, 0x20, 0x10, 0x00000036, 0x000000ff,
- 		   SYSC_MODULE_QUIRK_I2C | SYSC_MODULE_QUIRK_ENA_RESETDONE),
- 	SYSC_QUIRK("i2c", 0, 0, 0x20, 0x10, 0x0000003c, 0x000000ff,
--		   SYSC_MODULE_QUIRK_I2C | SYSC_MODULE_QUIRK_ENA_RESETDONE),
-+		   SYSC_MODULE_QUIRK_I2C | SYSC_MODULE_QUIRK_ENA_RESETDONE |
-+		   SYSC_QUIRK_16BIT | SYSC_QUIRK_USE_CLOCKACT),
- 	SYSC_QUIRK("i2c", 0, 0, 0x20, 0x10, 0x00000040, 0x000000ff,
--		   SYSC_MODULE_QUIRK_I2C | SYSC_MODULE_QUIRK_ENA_RESETDONE),
-+		   SYSC_MODULE_QUIRK_I2C | SYSC_MODULE_QUIRK_ENA_RESETDONE |
-+		   SYSC_QUIRK_16BIT | SYSC_QUIRK_USE_CLOCKACT),
- 	SYSC_QUIRK("i2c", 0, 0, 0x10, 0x90, 0x5040000a, 0xfffff0f0,
- 		   SYSC_MODULE_QUIRK_I2C | SYSC_MODULE_QUIRK_ENA_RESETDONE),
- 	SYSC_QUIRK("gpu", 0x50000000, 0x14, -ENODEV, -ENODEV, 0x00010201, 0xffffffff, 0),
-@@ -1872,7 +1879,7 @@ static void sysc_clk_quirk_i2c(struct sysc *ddata, bool enable)
- 	u16 val;
- 
- 	/* I2C_CON, omap2/3 is different from omap4 and later */
--	if ((ddata->revision & 0xffffff00) == 0x001f0000)
-+	if (!ddata->revision_doubleword)
- 		offset = 0x24;
- 	else
- 		offset = 0xa4;
+ arch/arm/boot/dts/ti/omap/omap3.dtsi       |  96 ++++++++++++++++++++-----
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | 112 -----------------------------
+ drivers/bus/ti-sysc.c                      |  19 +++--
+ 3 files changed, 91 insertions(+), 136 deletions(-)
+---
+base-commit: 7475ea8b58616b33c04afb976cf0fbaad9dd63fb
+change-id: 20261109-i2c-sysc-a048409add7c
 
--- 
-2.47.3
+Best regards,
+--  
+Andreas Kemnade <andreas@kemnade.info>
 
