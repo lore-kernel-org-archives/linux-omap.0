@@ -1,63 +1,65 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=178.238.236.174
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794275096;
-	b=W5zPuKkEMicCmdx7S58DOqdmEKYZabXLgBS8hFwct3coqE9tGMqixA+dm2ca2x4gVd0Q
-	 UrYsyHjvBed7eR+Pez84lEr5ooJAzjwn1u6IwZLX47j9TCDOAPF4fqqCi7jG0G6tlTcdR
-	 6fR0/fdRFtYsCc54RIo2Ed9rTJe0LTyHiZhM4zICuwCwy5p5M0paGOeTGZHqgs5l9ClT5
-	 BRBd6dVsnmq3GD0Waj/MrRX9xHWIHLd7Vs1Blc3lKWJo1RI8nk3r37EYjAlLgLn6ZO6Z7
-	 skMgRtyaukWE07/eoaGP1D1ZMYJBqMD6Ydw7RPUUL7n9n+0rQSkfm50pqoLV9u8zT/w==
+	t=1794291363;
+	b=bhlzUz/HxwcT6Vvoaf/T7uuotAxfk+Z05L9BByNg10IG0KIzfq5d4c6if2noPUsmR4jM
+	 AfDUTt++Hiovaf84DF6qpNqZB6pR17mUtvU/su/zdwlSjd/8/FBNJCVX39UqQwsrvr+Ih
+	 ODDQQNmEMiK87Bl2QnOwSdin00AlPLsOWoHYC9MAvu/g8243mvzjWPjq226WcfxVKYe/o
+	 CBTB/fgyVeiXzBU88U6Rg/j4khS//i0mn1rYh4+oEGMKfE36VzVUW/hGP0bBkuU5Cmgvs
+	 9xSqwyeIlQ3irbCDuovYTl+TmfG6rrbIbFj7qZzrW9UXpPNnsxMLAX6m5UKfCHGEm8Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794275096;
-	h=Received:DKIM-Signature:Received:From:To:Cc:In-Reply-To:References:
-	 Subject:Message-Id:Date:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding:X-Mailer:X-Developer-Signature:
-	 X-Developer-Key;
-	bh=z+4EY+8KKxK3cbzz2wjy14lYgyq1UFQ1PnavJMZdtnY=;
-	b=FFc5ZigVueiCFit14abjSUnY+hwG/KqdkVMzHuKcezUdm4E9dregTeFLZFsFuKYdQLNJ
-	 p9UY42JcNhdcaxyBD8PRhLtl+yLWSP7w/GeIJstn2PFXJBVJMEkP7F9Ju0pjYQVYI1t/T
-	 KKRFrEIt8FzQkvMGl06fPBoCuRLoFO/uF88MVqZV+EMlzFBQpqzNpk190IoRZrNl64G3/
-	 rLBPLCBgQr1SxydTOjZ1raBwp5xJCnaeyXyxEQ0lnaFEo4fGGoHJrJuC6s8C+cEglULpU
-	 pAC70p9soul/Ra12HQSxnzuLjANUUkayf+TAlMi3+7iFsh3WsotiC0DSewgaubYJMHQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794291363;
+	h=DMARC-Filter:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 In-Reply-To:References:X-Mailer:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=Q4Xohw5mmf9HaJmwh1HyXHKVuyq9JIpdGzwAqa+LDzE=;
+	b=uJ1m8t/jqSgilQeE1W32MjRCJvS7sM3dp8JPPFF4i/yLXJVHjfuJjSPVnbpJCrUMC/8B
+	 pIv45ZbqtDKh1kg+mrjr5AwDsVOK+wHQ+d9qXuLXW9ABnbzVUt8pNpZlY+poyZ1ARrUPI
+	 pnNujldFvcdNUByDe5Ctg0qnaKN1xi5b0FMNGPAZDpZMQDxxfX8LsAKpc3JzfCRWyBwIM
+	 j1ADYWJ+4Ok8XwjEt9e/IJ4+AiSSSHz+ciexuMO0ObyBRQHdDVNycafysnxpweFfrK3Qn
+	 LMChUNuJdft11Ij2sFEJa3spShgIHCjtPnqnPq/61xOY2ifI2mRDa5SeIhc09MhMhPg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="MPg/2vL6";
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=kemnade.info;
+	spf=pass smtp.mailfrom=kemnade.info;
+	dkim=pass header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=Ly5kvd7j;
+	arc=none smtp.remote-ip=178.238.236.174
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 622A7606A321;
-	Tue, 10 Nov 2026 01:44:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10822606A31C;
+	Tue, 10 Nov 2026 06:16:02 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 10822606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=MPg/2vL6
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B41D41F0089F;
-	Tue, 10 Nov 2026 01:44:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794275096;
-	bh=z+4EY+8KKxK3cbzz2wjy14lYgyq1UFQ1PnavJMZdtnY=;
-	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=MPg/2vL6JzdB3cjQ10UHXJVIDFvIwvy9wyubTR9zqq0p9LYJIDD4/foW9tN/+sPWK
-	 /kTLrB6X/orky8QFfBd7sp6raJdjMz9pkzFfWS3jwyTKakOw0SKRkxW8uYnLfJdyhw
-	 XXLzuLl8top8E/y4UAaZuk8IryYJJu9dLzDTySSTPlYILI1LJ0mNUZdMFn1ZXqhITV
-	 FtJjOM9GExcahyn9zeeeG+aoAD8rHCaDcz/ZlJmOPh46isthDt2jja1+m6R60wXuW4
-	 ziApxigCbHMjNxSqnKkQKZY+yUsMkLvDG/kUWl8K+IZOPeh4XIxmSkQSnw5Q9fY+8y
-	 A9+rGDE7+PxrQ==
-Received: from traversing.sirena.org.uk (localhost [IPv6:::1])
-	by traversing.sirena.org.uk (Postfix) with ESMTP id D39DD310B0D7;
-	Tue, 10 Nov 2026 01:44:52 +0000 (GMT)
-From: Mark Brown <broonie@kernel.org>
-To: Liam Girdwood <lgirdwood@gmail.com>, 
- Aaro Koskinen <aaro.koskinen@iki.fi>, 
- Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
- Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
- Brian Masney <bmasney@redhat.com>
-Cc: linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, 
- linux-omap@vger.kernel.org, 
- Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
-In-Reply-To: <20261109-regulator-subsys-v2-1-370edc01ee9c@redhat.com>
-References: <20261109-regulator-subsys-v2-1-370edc01ee9c@redhat.com>
-Subject: Re: [PATCH v2] regulator: convert to subsys_platform_driver()
-Message-Id: <179426493952.3711751.3118760089270754666.b4-ty@b4>
-Date: Mon, 09 Nov 2026 22:55:39 +0000
+	dkim=pass (2048-bit key, unprotected) header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=Ly5kvd7j
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=kemnade.info; s=20220719; h=References:In-Reply-To:Subject:Cc:To:From:
+	Reply-To:Content-ID:Content-Description;
+	bh=Q4Xohw5mmf9HaJmwh1HyXHKVuyq9JIpdGzwAqa+LDzE=; t=1794291362; x=1795500962; 
+	b=Ly5kvd7jmot6mdtBNX7gwckb297IdzU5FVESuMnvRTlH4slalkSLg6NlmptnqzChbhScMAuZONK
+	JcSmTF4/0z2ryrFIoHwPxykHSk1Y0I1zlC81wAL0JIfKzEUJjdXBiLF8me/OKHJsEq2vWdcXRUC35
+	ggrkHPSelaoVlxntcKosSiU2NW2MErMaUQlTfZ9bsAoTbH7l88i2FlXFpCtlVexnkAuc83gOqfF6h
+	EBxtXm0NDawJaIcE+8SxZ6/qqvCbrtAGG4Wcmjr8RZhFatt/lZq+ivw3nMl4zssO4NbDiGRcNKPA5
+	ZiGpq7R7wCw8eHKOOchZ2qo2VTXxoLBlm07A==;
+Date: Tue, 10 Nov 2026 07:15:38 +0100
+From: Andreas Kemnade <andreas@kemnade.info>
+To: Ettore Chimenti <ettore.chimenti@linaro.org>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, Kevin Hilman
+ <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, Tony Lindgren
+ <tony@atomide.com>, Rob Herring <robh@kernel.org>, Krzysztof Kozlowski
+ <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, Christopher
+ Obbard <chris.obbard@oss.qualcomm.com>, Andrew Goodbody
+ <andrew.goodbody@linaro.org>, Paul Walmsley <paul@pwsan.com>, Russell King
+ <linux@armlinux.org.uk>, Rouven Czerwinski <rouven.czerwinski@linaro.org>,
+ linux-omap@vger.kernel.org, devicetree@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v3 0/9] ARM: dts: omap: dm816x: fixes and peripheral
+ updates for DM8168 SoC
+Message-ID: <20261110071538.69f9cc54@kemnade.info>
+In-Reply-To: <20261102-patch-ektor5-dm8168-dts-v3-0-9bd6d1d128f2@linaro.org>
+References: <20261102-patch-ektor5-dm8168-dts-v3-0-9bd6d1d128f2@linaro.org>
+X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -67,46 +69,28 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.17-dev
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1118; i=broonie@kernel.org;
- h=from:subject:message-id; bh=Xu2NjFsborPmWZXavBEW+5G8t7Z/Jy94NrhatdekAPo=;
- b=owGbwMvMwCWm/754w+YLFp2Mp9WSGLI+lYskv/GoYHSOTw8UyX3gkP77N/PxBxu1nf6l5B2ym
- PhiqZhiRykLgxgXg6yYIktcFvfL+pLXa/gOLmyDmcPKBDKEgYtTACbycg7Df2/NuAzXt0Uz/l1d
- +qx7nWfxBG+VSVfaNiuf9G/d9PD9GQ6G/1kv3q6oqA/8MCd61oWt//4afog+tfnTn3/rOM49YWK
- 5Jc8MAA==
-X-Developer-Key: i=broonie@kernel.org; a=openpgp;
- fpr=3F2568AAC26998F9E813A1C5C3F436CA30F5D8EB
 
-On Mon, 09 Nov 2026 16:26:45 -0500, Brian Masney wrote:
-> regulator: convert to subsys_platform_driver()
+On Mon, 02 Nov 2026 20:52:46 +0100
+Ettore Chimenti <ettore.chimenti@linaro.org> wrote:
 
-Applied to
+> This patch series collects several fixes and peripheral enhancements for TI
+> DM816x SoCs and the DM8168-EVM board:
+> 
+> - Pinctrl: add correct pullup/down enable defines for DM816X SoCs, which
+>   they appear to be inverted respect to OMAP2/3.
+> - SD: explicit pullup disable in DM8168-EVM SD card pinmuxing.
+> - Storage (MMC): Update MMC node settings, dropped mmc1 hwmod.
+> - USB: Update MUSB node, enable multipoint mode, dropped usb-otg hwmod.
+> 
+> Signed-off-by: Ettore Chimenti <ettore.chimenti@linaro.org>
+> ---
+> Without upcoming Andreas's patch (not yet on the list) that silences the
+> WARN() for the missing hwmod from DT, commits in between the hwmod DT
+> and the code removal will get a harmless WARN() during boot.
+> 
+The patch is applied now.
 
-   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git for-7.5
-
-Thanks!
-
-[1/1] regulator: convert to subsys_platform_driver()
-      https://git.kernel.org/broonie/regulator/c/b526cfdf5d3b
-
-All being well this means that it will be integrated into the linux-next
-tree (usually sometime in the next 24 hours) and sent to Linus during
-the next merge window (or sooner if it is a bug fix), however if
-problems are discovered then the patch may be dropped or reverted.
-
-You may get further e-mails resulting from automated or manual testing
-and review of the tree, please engage with people reporting problems and
-send followup patches addressing any issues that are reported if needed.
-
-If any updates are required or you are submitting further changes they
-should be sent as incremental updates against current git, existing
-patches will not be replaced.
-
-Please add any relevant lists and maintainers to the CCs when replying
-to this mail.
-
-Thanks,
-Mark
-
+Regards,
+Andreas
