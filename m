@@ -1,50 +1,51 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=178.238.236.174
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
 	t=1794344238;
-	b=4Dti5+odXpknzbihthhkcNPZOmHX7yXsny+BATylTRQTU+2QJ0ymvmEJ7PafVj28RIaH
-	 hU5VO+3mB1fizABVOcwcyZoo7dx/CA2w2Op32k8KuMYSBuhtJLK8bJ79zBbmHPsbdLFtf
-	 cvanveFk3RFLvUyN8FBZ1GdrKeZBp/MdLppu66fpsBO/+9wcU2TVAxUbpCIy5s7d3eYec
-	 D1oT1iavF2QtHz66+ltT0Hz0mpDUP4ww60fxA5JexF5IV2AUfDW8nhCzCXHvwhoVzkPQ6
-	 4YKcH4RQNZHslscuWQpBnKlxrLPNPM1RPi/d20IawcIq33lghnyb0SN3pJ6YPXl52SA==
+	b=vbUAglHpqgoTEuhpSNeQRPcv5ps+NCU7lBmg5Rhl3anEGUZQdmHWkARTDxPoNe9NfVff
+	 Nl4v3uZeDXNZCEyvGbmuryFil3bGzJdU88i6lM/8fZ2WXnUhCKUwYcMUCM96IY/XIyFUb
+	 7QavnKWsKlgMmom8U7IYzJRKDY2AQpuc55PNMhkLd57480mZEsKaaf/dWPM7N9EWjMy2q
+	 S+F/qNnp/ilJHLVpIGRVSl/nfQhLeTtDGbdblL9vdlJNVSxB2bfzyBQnBDrgbJQwk0Jfc
+	 S5QR2bdNy8g56hZMsSuOxZzMuiREnAvtTPuiUcWZDhSw2Zy5ZzPCEJGTnPC3Sd+Hu1Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1794344238;
-	h=DMARC-Filter:DKIM-Signature:From:Date:Subject:MIME-Version:
-	 Content-Type:Content-Transfer-Encoding:Message-Id:References:
-	 In-Reply-To:To:Cc:X-Mailer:X-Developer-Signature:X-Developer-Key;
-	bh=wZODk0x3yqzJBCDWpOPES/A5BYp24Qrx21fQgua+nqE=;
-	b=XfeHjFuFVY1OIa4c+7v064u5GVJBZnYY5AGIpNsftQbC1B5tNJ8eaZA/sJ9d1Ay964ud
-	 CXIBFSgXQcUQ+urqM7GWHkaMTrhDBEO8AL6mgFSehGLxppEFFP+ykLwf0kUPeQF8xGfFR
-	 mAqTVh5ybMDf+dB4OefBzRRFnfMSg7j5CCM+gjxEGLp7h5B1zNuFNQanBxkSC5zXI0if6
-	 9FOBR0W48bP0L/4iuSgQaB3UDLCuiXUxhDh0P/eeKsXOu/TC/op7x43Z2n0kPXFzDyiii
-	 3wUS8tvM0ZeKKCCf1OAK4zb9OVgrTPX8ATlettKuXpvo2jqDPhR+2rWDGLuj3G11D2Q==
+	h=DMARC-Filter:DKIM-Signature:From:Subject:Date:Message-Id:
+	 MIME-Version:Content-Type:Content-Transfer-Encoding:X-B4-Tracking:
+	 X-Change-ID:To:Cc:X-Mailer:X-Developer-Signature:X-Developer-Key;
+	bh=8vkSRLV03sMiSf6kg11DqKSF3D7mLrc58A9bRe4NGqw=;
+	b=bXphYHbuQ3A4vIiFh6es/XgtsCuF+Gk49h3pEfXeW7AyDGu3TFlAif2Y10DOQSyPLqXM
+	 c4uV5PVkEw0/738yp0uaxYHhRZur6NlgenG6vzKjpAOhWXaANaHgLP8v+NiMw/p4Rji3U
+	 iKurzjaydl+3rEtiAVdaRSoyOZrXYxgvKyBrUtImhUeRR72Re4nmqOO4unC+DFWmgRbqe
+	 Ftxw8m6HkAJf+Ia9HHURTJfxcC1oMOIcHhdlbg2ZVtbmAvfbwp/N4qCdgNElmqrYHNT4N
+	 w3AT8ou0ZZmyHl6UQkEZ7TucqrSNuJmm7WRlHD6nDHlissKSTIcXLsFJ0Z8+9lAWcDw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=kemnade.info;
 	spf=pass smtp.mailfrom=kemnade.info;
-	dkim=pass header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=mmGND9i6;
+	dkim=pass header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=F2oreDAr;
 	arc=none smtp.remote-ip=178.238.236.174
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0493D606A321;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04924606A31C;
 	Tue, 10 Nov 2026 20:57:17 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 0493D606A321
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 04924606A31C
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=mmGND9i6
+	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=F2oreDAr
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=kemnade.info; s=20220719; h=Cc:To:In-Reply-To:References:Subject:From:
-	Reply-To:Content-ID:Content-Description;
-	bh=wZODk0x3yqzJBCDWpOPES/A5BYp24Qrx21fQgua+nqE=; t=1794344237; x=1795553837; 
-	b=mmGND9i6wgr25Rgt7uBrnNMxVxCmVuIfvitRdqe7nFu6RnzryBNkeq10+5nBSNgRTChR6LEsfnl
-	Xd+2AIGyAiipmuufApkfvHfoZJlvqdImGUP5o07sYhvP3/l7CnNI9qjHnkAWVSo5J+jA2emza6pi6
-	m2hYGXL/6YsKHCQndReGK2qCyRGvDtBqkDS6QHoQhWjxFhXZXynGb31tMNRcPciz/Dj071bQV8QVq
-	uSYYWdmKom5OZTohUTVW/cN3CATmaBhgCf+nBZXHMu41t7v8WzqMVQDvkQY/0TJ4+1isvlq6gsBQ9
-	3zSmBXPAJgTlwq9Ieu8h/Ju1G6bhU3MVmXJQ==;
+	d=kemnade.info; s=20220719; h=Cc:To:Subject:From:Reply-To:Content-ID:
+	Content-Description:In-Reply-To:References;
+	bh=8vkSRLV03sMiSf6kg11DqKSF3D7mLrc58A9bRe4NGqw=; t=1794344237; x=1795553837; 
+	b=F2oreDArloXLkxxkQJayFAVgov4G5PeazzSzn99/2WxPVFtf3x+SvpDRemSDghb/T11qe2i55cK
+	qqhetHSsGuZE8rZX8Wvc+m3eh9wsUEnw4J/tmCWP6mxX5kEoe61J37CYE1VcR2LU3hqiYI3AQ5y9T
+	npAZls7xgRT7Wp7vTeZAAftrIY6KbmJ/OFv867AgQcS+v2Rtbam3oPcHiLVbCua5WDjsA3L4bjwaO
+	p5s9awWwd5cttW70bcoe+3AITNTN3z9ajTRK0bcA3WxpdZm/wKUYakX12K3FaqzaFm20nILfUTK/y
+	hmk4YW2bmZF6aA8tdvF+NxlZdDKM6f8MdZaQ==;
 From: Andreas Kemnade <andreas@kemnade.info>
-Date: Tue, 10 Nov 2026 21:56:05 +0100
-Subject: [PATCH v2 3/3] ARM: OMAP2+: remove i2c from OMAP3 hwmods list
+Subject: [PATCH v2 0/3] ARM: OMAP2+: Convert OMAP3 I2C to ti-sysc
+Date: Tue, 10 Nov 2026 21:56:02 +0100
+Message-Id: <20261110-i2c-sysc-v2-0-490cda69e350@kemnade.info>
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -56,9 +57,11 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20261110-i2c-sysc-v2-3-490cda69e350@kemnade.info>
-References: <20261110-i2c-sysc-v2-0-490cda69e350@kemnade.info>
-In-Reply-To: <20261110-i2c-sysc-v2-0-490cda69e350@kemnade.info>
+X-B4-Tracking: v=1; b=H4sIAOOE82oC/0WNQQ6CMBBFr0Jmbc20ooIr72FYlHaQ0diaDhIJ4
+ e4Cmrh8yfvvjyCUmARO2QiJehaOYQazycC1NlxJsZ8ZDJqD1lgqNk7JIE5ZzIscS+v90cGsPxM
+ 1/F5Tl+rL8qpv5LplvxgtSxfTsH71evF+WY3/bK8VqqLM91RrvysaPN/pEaynLYcmQjVN0wfUk
+ IIxtQAAAA==
+X-Change-ID: 20261109-i2c-sysc-a048409add7c
 To: Aaro Koskinen <aaro.koskinen@iki.fi>, 
  Kevin Hilman <khilman@baylibre.com>, Roger Quadros <rogerq@kernel.org>, 
  Tony Lindgren <tony@atomide.com>, Rob Herring <robh@kernel.org>, 
@@ -72,182 +75,68 @@ Cc: Sicelo <absicsz@gmail.com>, linux-omap@vger.kernel.org,
  linux-arm-kernel@lists.infradead.org, 
  Andreas Kemnade <andreas@kemnade.info>
 X-Mailer: b4 0.17-dev-e5168
-X-Developer-Signature: v=1; a=openpgp-sha256; l=4470; i=andreas@kemnade.info;
- h=from:subject:message-id; bh=dJ7m5yFM4nPU3HLiIjt0TUzuu0qUiJjWRTDLZhcz+GY=;
- b=owEBbQKS/ZANAwAKAYRhRfpAKNzxAcsmYgBq84UIP8HhrdyMxF/4yM8sSKbSZgeAop7ENCA7i
- keQe06z13aJAjMEAAEKAB0WIQTY6xCZL0TEE1XHfFiEYUX6QCjc8QUCavOFCAAKCRCEYUX6QCjc
- 8dLCD/98X/tUcqTuGQJMv0QVoHfI/hFz6Y13KG3eognjaidL3WMJzZU2CPmp8b+b7bN49xJnXce
- pGn01HRM8EJyKX8mbcvulT4ZKfGy5T+tAtC6UeSdiXlcfkzVQCR4nms3m6J/DrDI0R9QVwFrQiB
- jPf1EUmMQEsHzpFNqDNOs8RfXfPrwo31lIJF2nJWhttDjA/k7JHJN7sFTsYryrJc6vlrpT33xte
- j8IkbBQ6zhI6+ZStsFdKe2E2q3QtQuBSW9GMr7w8jKvnmpgyXbbJ6AhucDAYTZmPGH/E232gQoW
- oRHomS9cgvLn0M7MBkZwhhUxs4Cgx4HI991Il7dpLNB10Qnsl+JqbppQLdP6aIp5Hh0eFGkjd9Z
- Wuv5zK4HF4qjwH5Xs67qzLK42m9c2Fs+2YhhaGL8m5ePeHG5SLku5W34hb/UWbnpHsme14byl1J
- Oycg6akZBfF8J7Jilvqiu2g7MBjkCCwRy1pWCIxq52n1AE2MKzQyQGg9gQfBeIFEWd90MKmQNgt
- iCKgoy+z8fUuG8wmu8lvtil8D5jHCrgtkxiIMfxsznK2KeW2Ms3mLA699ZbJlAEFJnTWbJAJhx/
- vUL9kE8Yhu71FhbDJsPsfFrhAeer3Hn4VhJ3RkI57/UpZOAa+wtbZ0tFSOajH57L10IKwYduL88
- JpX2omp9pdbiQPg==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2051; i=andreas@kemnade.info;
+ h=from:subject:message-id; bh=HLpL8m8DVWiEtYHCjcrWT5QMR1NV1zGxurHaq3sDY2E=;
+ b=owEBbQKS/ZANAwAKAYRhRfpAKNzxAcsmYgBq84Top3dPTjI90yNGW8S5KhnBqHG17bYixViRu
+ jq+IdCPCjaJAjMEAAEKAB0WIQTY6xCZL0TEE1XHfFiEYUX6QCjc8QUCavOE6AAKCRCEYUX6QCjc
+ 8VLGD/96/ySK5pTY9pr3coUPLe3B9TgfXFp64mgj7w2aVydch65lIy6JGjGxTr4EoCiVRwS88rn
+ 9VVsk5fnu3bd3PojWPFtZQSXXNLNiuX353LFzUv9MtOLWlGb2iu2am+RSiW0fqUsOWwWZX46/OR
+ kEMPfrKzKHKgFthv8x5R5Z2D7PpVJyLp89hShiu9nA1CdmLc9drFjkfAiiF7mOxns16S7LwO58g
+ 4I8x98yAAvd0y/ue62+AMaJAlof/Gqb0TcyZtno82nWmq2QzJlCornnuDSo+jiO/6VY7GRE5/tH
+ Qo2FKmrO8eiq11Wj/1w2NO0JyxZgQyc+UQ8KFiAAPPiqZBLnM1+fxqiYbPX7Y8iCgTg1caYNwMb
+ RXtUrT/gJQUltUiRm78TY0qs3fpExdC63Z12myPrse8XRVuXKCaot3FGEtUxit4M3VccsREWU+/
+ FdjmwH/VSfdfGX3aS9ezmKpZ9XUMCjgWWKENqAqaIDnnl7tcO/bSRGuqBwLYicwrBVcgWY6rHwX
+ rkzvQqtfn/7OmzlpTGu0Wa4zdZa7H6dB3u5HyMk7SyGVoN6k2kERwCpVEQiy9kRKMFf8+FecB/D
+ IGUked0zH4riSTO/tiFkJAlCGPpqj8Qx6Rz7mx4AYmGOBCunlDLOcHJezZdUmouSu02BR/TeaEt
+ G6c+jht5ZFZEzGg==
 X-Developer-Key: i=andreas@kemnade.info; a=openpgp;
  fpr=EEC0DB858E66C0DA70620AC07DBD6AC74DE29324
 
-Not need anymore due to ti-sysc transition, so clean up here.
+During suspend on OMAP3, I2C suspend oopses. This is a longer standing issue,
+in the past I mostly tested runtime suspendidle behaviour on that platform
+(including uart autosuspend). A change in the I2C driver fixes some corner
+cases in pm for ti-sysc based systems, but breaks systems using the deprecated
+ti,hwmods property. 
+To avoid that maintainance overhead, convert the i2c definition
+First fix the I2C quirk needed for these older chips. OMAP2 stuff
+is not touched due to its planned removal.
+After OMAP2 is removed, arch/arm/mach-omap2/i2c.c can be removed, too.
+I may try to check again if there is some safe fix in omap_device.c
+but changing things there has a very high chance of unexpected side
+effects.
+
+Handling the commits:
+In the past (e.g. around commit
+42a79edd4a3dc1bb8e89fd2849f9e8e1e1c13977 for converting musb to ti-sys)
+these changes were handled through a separate branch to keep them in
+order.
+Here is a hard requirement of the order. Patch 3 can most easily wait
+but having patch 2 after patch 1 is a hard requirement. As the
+affected devices get their devicetree updated with the kernel,
+that should not hurt too much.
 
 Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
 ---
+Changes in v2:
+- fix missing kerneldoc
+- fix typo in dtsi, which surprisingly worked quite well
+- Link to v1: https://patch.msgid.link/20261110-i2c-sysc-v1-0-8945eb1d38f0@kemnade.info
+
+---
+Andreas Kemnade (3):
+      bus: ti-sysc: fix I2C quirk for OMAP3 variants
+      ARM: dts: ti/omap: describe omap3 i2c via ti-sysc
+      ARM: OMAP2+: remove i2c from OMAP3 hwmods list
+
+ arch/arm/boot/dts/ti/omap/omap3.dtsi       |  96 ++++++++++++++++++++-----
  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | 112 -----------------------------
- 1 file changed, 112 deletions(-)
+ drivers/bus/ti-sysc.c                      |  20 ++++--
+ 3 files changed, 92 insertions(+), 136 deletions(-)
+---
+base-commit: 7475ea8b58616b33c04afb976cf0fbaad9dd63fb
+change-id: 20261109-i2c-sysc-a048409add7c
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 5cbdf58ad59f7..022019ff4a398 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -299,18 +299,6 @@ static struct omap_hwmod_class_sysconfig omap3xxx_wd_timer_sysc = {
- 	.sysc_fields    = &omap_hwmod_sysc_type1,
- };
- 
--/* I2C common */
--static struct omap_hwmod_class_sysconfig i2c_sysc = {
--	.rev_offs	= 0x00,
--	.sysc_offs	= 0x20,
--	.syss_offs	= 0x10,
--	.sysc_flags	= (SYSC_HAS_CLOCKACTIVITY | SYSC_HAS_SIDLEMODE |
--			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
--			   SYSC_HAS_AUTOIDLE | SYSS_HAS_RESET_STATUS),
--	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
--	.sysc_fields    = &omap_hwmod_sysc_type1,
--};
--
- static struct omap_hwmod_class omap3xxx_wd_timer_hwmod_class = {
- 	.name		= "wd_timer",
- 	.sysc		= &omap3xxx_wd_timer_sysc,
-@@ -431,12 +419,6 @@ static struct omap_hwmod am35xx_uart4_hwmod = {
- 	.class		= &omap2_uart_class,
- };
- 
--static struct omap_hwmod_class i2c_class = {
--	.name	= "i2c",
--	.sysc	= &i2c_sysc,
--	.reset	= &omap_i2c_reset,
--};
--
- /* dss */
- static struct omap_hwmod_opt_clk dss_opt_clks[] = {
- 	/*
-@@ -592,51 +574,6 @@ static struct omap_hwmod omap3xxx_dss_venc_hwmod = {
- 	.flags		= HWMOD_NO_IDLEST,
- };
- 
--/* I2C1 */
--static struct omap_hwmod omap3xxx_i2c1_hwmod = {
--	.name		= "i2c1",
--	.flags		= HWMOD_16BIT_REG | HWMOD_SET_DEFAULT_CLOCKACT,
--	.main_clk	= "i2c1_fck",
--	.prcm		= {
--		.omap2 = {
--			.module_offs = CORE_MOD,
--			.idlest_reg_id = 1,
--			.idlest_idle_bit = OMAP3430_ST_I2C1_SHIFT,
--		},
--	},
--	.class		= &i2c_class,
--};
--
--/* I2C2 */
--static struct omap_hwmod omap3xxx_i2c2_hwmod = {
--	.name		= "i2c2",
--	.flags		= HWMOD_16BIT_REG | HWMOD_SET_DEFAULT_CLOCKACT,
--	.main_clk	= "i2c2_fck",
--	.prcm		= {
--		.omap2 = {
--			.module_offs = CORE_MOD,
--			.idlest_reg_id = 1,
--			.idlest_idle_bit = OMAP3430_ST_I2C2_SHIFT,
--		},
--	},
--	.class		= &i2c_class,
--};
--
--/* I2C3 */
--static struct omap_hwmod omap3xxx_i2c3_hwmod = {
--	.name		= "i2c3",
--	.flags		= HWMOD_16BIT_REG | HWMOD_SET_DEFAULT_CLOCKACT,
--	.main_clk	= "i2c3_fck",
--	.prcm		= {
--		.omap2 = {
--			.module_offs = CORE_MOD,
--			.idlest_reg_id = 1,
--			.idlest_idle_bit = OMAP3430_ST_I2C3_SHIFT,
--		},
--	},
--	.class		= &i2c_class,
--};
--
- /*
-  * 'gpio' class
-  * general purpose io module
-@@ -1605,52 +1542,6 @@ static struct omap_hwmod_ocp_if am35xx_l4_core__uart4 = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
--/* L4 CORE -> I2C1 interface */
--static struct omap_hwmod_ocp_if omap3_l4_core__i2c1 = {
--	.master		= &omap3xxx_l4_core_hwmod,
--	.slave		= &omap3xxx_i2c1_hwmod,
--	.clk		= "i2c1_ick",
--	.fw = {
--		.omap2 = {
--			.l4_fw_region  = OMAP3_L4_CORE_FW_I2C1_REGION,
--			.l4_prot_group = 7,
--			.flags	= OMAP_FIREWALL_L4,
--		},
--	},
--	.user		= OCP_USER_MPU | OCP_USER_SDMA,
--};
--
--/* L4 CORE -> I2C2 interface */
--static struct omap_hwmod_ocp_if omap3_l4_core__i2c2 = {
--	.master		= &omap3xxx_l4_core_hwmod,
--	.slave		= &omap3xxx_i2c2_hwmod,
--	.clk		= "i2c2_ick",
--	.fw = {
--		.omap2 = {
--			.l4_fw_region  = OMAP3_L4_CORE_FW_I2C2_REGION,
--			.l4_prot_group = 7,
--			.flags = OMAP_FIREWALL_L4,
--		},
--	},
--	.user		= OCP_USER_MPU | OCP_USER_SDMA,
--};
--
--/* L4 CORE -> I2C3 interface */
--
--static struct omap_hwmod_ocp_if omap3_l4_core__i2c3 = {
--	.master		= &omap3xxx_l4_core_hwmod,
--	.slave		= &omap3xxx_i2c3_hwmod,
--	.clk		= "i2c3_ick",
--	.fw = {
--		.omap2 = {
--			.l4_fw_region  = OMAP3_L4_CORE_FW_I2C3_REGION,
--			.l4_prot_group = 7,
--			.flags = OMAP_FIREWALL_L4,
--		},
--	},
--	.user		= OCP_USER_MPU | OCP_USER_SDMA,
--};
--
- /* L4 CORE -> SR1 interface */
- static struct omap_hwmod_ocp_if omap34xx_l4_core__sr1 = {
- 	.master		= &omap3xxx_l4_core_hwmod,
-@@ -2300,9 +2191,6 @@ static struct omap_hwmod_ocp_if *omap3xxx_hwmod_ocp_ifs[] __initdata = {
- 	&omap3_l4_core__uart1,
- 	&omap3_l4_core__uart2,
- 	&omap3_l4_per__uart3,
--	&omap3_l4_core__i2c1,
--	&omap3_l4_core__i2c2,
--	&omap3_l4_core__i2c3,
- 	&omap3xxx_l4_wkup__l4_sec,
- 	&omap3xxx_l4_per__timer3,
- 	&omap3xxx_l4_per__timer4,
-
--- 
-2.47.3
+Best regards,
+--  
+Andreas Kemnade <andreas@kemnade.info>
 
