@@ -1,60 +1,50 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=178.238.236.174
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794382611;
-	b=cRbF+9iSBFc+FDwQanvAQL3hXPGybTeMvHO8zhxLKlXPa0DfF7oLgOOIm0Sd+J6o/v1n
-	 7L+lUuMz41d5Xnr1eIQ5EAXgpYIUh1giRlNMIWBKd/w5w5OsCSjs2YGlUewgZlHDRn9+v
-	 6ACozZ3Ij4VWlKEkwfzeIfPwe3xxgbUB2l1pMS3oGIXVRImE0lwsrHBMhYWtrGBvQSU39
-	 KwqRnHTYmhmMkSq4/VfeBf53tDwuHlLg7VS4/pNpXXQFGwy1nr472+t7Xu24JJiJsxQiN
-	 GbDyry+YYddRbSXIH+FwPQg8/kBIUHpgMTpbaFYIa2lIa2FJfbS5LoGyFV9PuI4MYGw==
+	t=1794399749;
+	b=SGA++aRpHvjASMwEToaSjM1ujuA0r2oPWD7aFvdXrbArRcP95cYfIVA5sLe+qRX31jrN
+	 NGTENNygltPxVCimvtbH3YEdKCSJn+SCi5cYqU2FDIJOFDnt+dETDy7qVPMWlMMqIhJP8
+	 yfWTRJnl07HE8jlh8UEnZ+bLqLcRb/dG8ESKkHyU4m4PKMJZ7HO2pTMHlsX1lBvVGHR5p
+	 Wh3fIaqvAVkg+7n5xamWb9S6egoNh7neq6JInkbUwgzJQqh00P7Gtdy//+N8Wl3W05oC+
+	 t5IXno1AxXz0KeMeG0+9cP1oga+lVypncBwcvhtTs/PE5cSX4iTkiDQ+lsVuRh33+ZQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794382611;
-	h=DMARC-Filter:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 In-Reply-To:References:X-Mailer:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=kj91ruAXFWtpquSVovP4UbrV+4Yba9A/2t3iM/rZHdc=;
-	b=Yo11vI6Nr5WYLxZLI8Alz8dSrIlJBlBXp1CMdh9/S2N4vj2PZMaAR9teDJnT53IlCgmR
-	 sqW8q+TFHCvTavEMYC6iKNMTrUBAUmcl/ega027/eqCXmyr3NElMyw3OJ0Q/T5KHd8vmK
-	 kCUZ51XdJp7S5BnLcqEuepQmua/24VcO4fW910LJYPedYvsActgn+Zfj7EFJBayPfxzJx
-	 kQ4W8JPPAOEts5z8XpOcYyV0Zz3yOINWNkHWh+ELJk9ye48LY99uvevQ+WdAq3RntM2N1
-	 pTJxHYeklpQ2dY4f6x92Z9ywbFOsH9GhEV/ZFfziMhprlXsv+pAXSo+3AgBVRr6cA7g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794399749;
+	h=DMARC-Filter:DKIM-Signature:From:Date:Subject:MIME-Version:
+	 Content-Type:Content-Transfer-Encoding:Message-Id:X-B4-Tracking:
+	 X-Change-ID:To:Cc:X-Mailer:X-Developer-Signature:X-Developer-Key;
+	bh=mZ+YfTL18HsVdL8YZNUUTUPVwVk+UCUNOsnK/2xOcPE=;
+	b=tK+4VOXIH+mpbM0MqZgG0dmwJouzVsS4gN/Qn3ZhA2/HGoCnkBvTN7cQsBTxznLJameS
+	 e9fzdz+0hkOQfwuGGuAUFT1lId58rlVY5y8EEEOIpzdN48KUZsnJO7JIlzLmU3vCxZ4iI
+	 F4l3ultOgqa52qfOAV8VmEGgUUO0J4YvFWqx2ybXQwu+QVXtoe5tGej0R9TjpDaRhcFtC
+	 GFJEx/s4ga2dNwDHT67naPGXL52H4tw5d3X59YFaNYF0sVSSF2lQT7Fji6PZgzXw7V+mQ
+	 2STUOA7g50LOnsmZxAAP9/f4mcPCW4pePaUJnvfdH5OrRRmarFDrAukXJiQ/xjgce5g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=kemnade.info;
 	spf=pass smtp.mailfrom=kemnade.info;
-	dkim=pass header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=qtMqotWU;
+	dkim=pass header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b="98yA7/rY";
 	arc=none smtp.remote-ip=178.238.236.174
 Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BA23606A320;
-	Wed, 11 Nov 2026 07:36:50 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1BA23606A320
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08E66606A31C;
+	Wed, 11 Nov 2026 12:22:28 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 08E66606A31C
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=qtMqotWU
+	dkim=pass (2048-bit key, unprotected) header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=98yA7/rY
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=kemnade.info; s=20220719; h=References:In-Reply-To:Subject:Cc:To:From:
-	Reply-To:Content-ID:Content-Description;
-	bh=kj91ruAXFWtpquSVovP4UbrV+4Yba9A/2t3iM/rZHdc=; t=1794382610; x=1795592210; 
-	b=qtMqotWUuW1Dq3BGDrJMhlVjpGMcwzwKhKEMMDiIZjAY9k1eyaA6iVybrAENoVJLv3eQUKkQ3kN
-	91bOCqU6IjDwbJqlxGuYfnF++6a5l5ZGpuUYcV98DuDUM5UtPGKAOgKFlF87o/XQm+JxUCGeB6cJj
-	awx23/JLA5+u8VEd37gD94NFRUKAnONU2AxFIKpiW/NXpDLqb01V+aY2v6vabS/Zb4feF98pPyzOo
-	lY8BB56PfuHWBMk6E5r8CK6uxuvZVkwxeIlxjNx/gshRvrUmt26OQS8r0pv1qOgN+jtVlxk7EMj4r
-	gDlM2ocnYsnLasqEVsU79rRMGHPF9iHrACmg==;
-Date: Wed, 11 Nov 2026 08:35:23 +0100
+	d=kemnade.info; s=20220719; h=Cc:To:Subject:From:Reply-To:Content-ID:
+	Content-Description:In-Reply-To:References;
+	bh=mZ+YfTL18HsVdL8YZNUUTUPVwVk+UCUNOsnK/2xOcPE=; t=1794399748; x=1795609348; 
+	b=98yA7/rY5tVXkL/dXyV/8rM0XOg+E+BkAypKgfd2Y2VnA6JJNMhArVshgkZaYQr5bri1WzPeoWN
+	75IhOEFVG2BYxViR5eAYxZPu6pPIgHv2u2D/emGoqL8gJT+Fu9oX7gCcb5K7pqcky4XsiyJ1B9WB5
+	nJv0Psws/eO2viTnfyvTXn1QjKb+Iv7naVwfoUFnRAHw/lxxjIzlAPhkKQyv3KZr8GtUtPuJcNGIh
+	LNQevjzDl/asn3t4YXoq4HoYmAr0dm+Fv0vk6DpmSwQ8s9RTnu0fFFSe1tFF7bDpT8Y8pKc7XHmVT
+	XQJm3JwXFnX/DTLittiHawMk6Xl6Zo78EmUg==;
 From: Andreas Kemnade <andreas@kemnade.info>
-To: Kevin Hilman <khilman@baylibre.com>
-Cc: aaro.koskinen@iki.fi, rogerq@kernel.org, tony@atomide.com,
- linux@armlinux.org.uk, andi.shyti@kernel.org, thomas.richard@bootlin.com,
- wsa+renesas@sang-engineering.com, linux-arm-kernel@lists.infradead.org,
- linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [RFC PATCH] ARM: OMAP2+: fix omap_device with noirq_suspend
-Message-ID: <20261111083523.657cb7a6@kemnade.info>
-In-Reply-To: <7hwlqktdww.fsf@baylibre.com>
-References: <20261110211531.679943-1-andreas@kemnade.info>
-	<7hwlqktdww.fsf@baylibre.com>
-X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
+Date: Wed, 11 Nov 2026 13:22:11 +0100
+Subject: [PATCH] drm/omap: dss: fix handling deferrals
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -64,41 +54,73 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <20261111-gta04-drm-regression-fix-v1-1-1de27d5ba46a@kemnade.info>
+X-B4-Tracking: v=1; b=H4sIAPJd9GoC/yWMQQrCQBAEvxLm7EA2mhX8iniIu73rCEaZiSKE/
+ N2J6Vs1VM1kUIHRqZlJ8RGT5+gQdg2l2zBWsGRn6touBh/XaWgPnPXBiqqwVeAiXy5HlD6kGJH
+ 35PpL4fc/fb5sbO/rHWlae7QsPw+508t8AAAA
+X-Change-ID: 20261111-gta04-drm-regression-fix-f7ef51c66ed3
+To: Tomi Valkeinen <tomi.valkeinen@ideasonboard.com>, 
+ Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
+ Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
+ David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>, 
+ Luca Ceresoli <luca.ceresoli@bootlin.com>
+Cc: dri-devel@lists.freedesktop.org, linux-omap@vger.kernel.org, 
+ hns@goldelico.com, linux-kernel@vger.kernel.org, 
+ Andreas Kemnade <andreas@kemnade.info>
+X-Mailer: b4 0.17-dev-e5168
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1220; i=andreas@kemnade.info;
+ h=from:subject:message-id; bh=31k+GywuKgPH1aDOshD9a7rFWejPIZkjp23zr87NNVg=;
+ b=owEBbQKS/ZANAwAKAYRhRfpAKNzxAcsmYgBq9F30t+ptQJ6jh9qwz4SprN0rYuR4nyZ+wkvG9
+ gr8MkjFxXOJAjMEAAEKAB0WIQTY6xCZL0TEE1XHfFiEYUX6QCjc8QUCavRd9AAKCRCEYUX6QCjc
+ 8QnKD/9RKTKkv0Rq2ZMvV5gBRp96kAyV2MVJVCMndbsN887x6didR2tVVzbsNalj5tO9+76jqcb
+ IiXMci1nh/1kiW4brbIEigNLHEMgOOrvdL9yPyS+HuFhxpniZF/0bMJZqv0q0MBDh4GEiBfwwVc
+ pBCygKmQQQ0X1d8LApBx202hdIRIHayWgHeJF8eLWcJxSLTj6mVknGZueT/0tcGMiNG5+YCEDy8
+ VuQWHDE8uTIcbOFTy1vwRsVQitlG3OB5oEQHSZ5MsGl/qgVrbjTwuivic4QAUIYIoe3snm45ANf
+ 8fNJkzlCYKe03SQyTsfQDq3xwoouVIaVvUZXtQ8x24QqFBBbW/ZOCaahnP2FriVFLvRdIKC122Q
+ HAz/wRlDeduGOskFJ30Aiu9xs9KZRcmUXHiAjs9E8XZHbEYYAhfYQjvBkSZhrqPOltcz7wfjD6K
+ QmM9+qC/+tB/Ep0ErbIHAZ+VIfrST7Bx6Wxnq4go+lXus3ssqNl06p9bSnYES3j1ulkr1q1/Q0i
+ qD1ojcR7q88zQQK0raxZF3wZWuwhVpok9fJ2644hpOOj7k4LLZKqOl2tkemx0f0QFhG0hLoUKo/
+ hnRRekIFO7GgZXkSQHFy07kGovv/JUeLRRvvsIteMzZxzkOSaW5naA9jC5ZwfAGR25Fr70QrGN6
+ YkKMbmZd3FqAJsA==
+X-Developer-Key: i=andreas@kemnade.info; a=openpgp;
+ fpr=EEC0DB858E66C0DA70620AC07DBD6AC74DE29324
 
-On Tue, 10 Nov 2026 16:22:39 -0800
-Kevin Hilman <khilman@baylibre.com> wrote:
+Forward the error given by of_drm_get_bridge_by_endpoint() if it is
+EPROBE_DEFER to ensure output gets initialized later when available.
 
-> Andreas Kemnade <andreas@kemnade.info> writes:
-> 
-> > Fixes cases where device runtime gets resumed in _suspend but then
-> > pm_runtime_force_suspend is used.  So the device is disabled, but runtime
-> > active in _noirq_suspend leading to duplicate runtime_suspend calls. So
-> > rather check for the device state directly to indicate if changes are
-> > needed.
-> > This relies on pm_runtime_force_resume being used in a balanced way.
-> >
-> > Fixes: 7da7fd7e66ac9 ("i2c: omap: wakeup the controller during suspend() callback")
-> > Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-> > ---
-> > This really needs intensive scrutiny but might be a less invasive patch
-> > solution better suited for stable and paves the way to get out of the
-> > omap_device theatre without too much hurry.  
-> 
-> This looks & feels correct to me.
-> 
-> I also tested this (along with my WIP patch for that NEON count
-> mismatch) and I have a very stable suspend/resume on OMAP3.
-> 
-> I tested on omap3-beagle (retention) and omap3-beagle-xm (off-mode) and
-> both are now reliable across multiple suspend/resume sequences with
-> these two patches.
-> 
-> Reviewed-by: Kevin Hilman <khilman@baylibre.com>
-> Tested-by: Kevin Hilman <khilman@baylibre.com>
-> 
-Then feel free to ignore the RFC and apply this one.
+On GTA04/OMAP3 no display was found, but it appeared after doing
+rmmod omapdrm ; modprobe omapdrm
 
-Regards,
-Andreas
+Fixes: b7e9b93fc8ecf ("drm/omap: dss: don't create a panel_bridge")
+Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
+---
+ drivers/gpu/drm/omapdrm/dss/output.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/drivers/gpu/drm/omapdrm/dss/output.c b/drivers/gpu/drm/omapdrm/dss/output.c
+index 36d37deac8026..220ed7e003080 100644
+--- a/drivers/gpu/drm/omapdrm/dss/output.c
++++ b/drivers/gpu/drm/omapdrm/dss/output.c
+@@ -24,6 +24,11 @@ int omapdss_device_init_output(struct omap_dss_device *out,
+ 
+ 	bridge = of_drm_get_bridge_by_endpoint(out->dev->of_node, out->of_port, 0);
+ 	if (IS_ERR(bridge)) {
++		if (PTR_ERR(bridge) == -EPROBE_DEFER) {
++			ret = PTR_ERR(bridge);
++			goto error;
++		}
++
+ 		dev_dbg(out->dev, "failed to find video sink\n");
+ 		return 0;
+ 	}
+
+---
+base-commit: 7475ea8b58616b33c04afb976cf0fbaad9dd63fb
+change-id: 20261111-gta04-drm-regression-fix-f7ef51c66ed3
+
+Best regards,
+--  
+Andreas Kemnade <andreas@kemnade.info>
+
