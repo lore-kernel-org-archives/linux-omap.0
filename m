@@ -1,88 +1,88 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.176
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.82.180
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794509675;
-	b=KMVjXaYt+FkOCY1769oSN1a2r+M8V421KvvvACKypP7tPaoj5JWtK7S8G7tkcjDxDwXI
-	 CxjVR4576HS6IehJhe1VPKcKr2jJfHSId1LIj4pFHFGhOqSlgrNlFu3U79WDjRLotcKlt
-	 oCxTxPM0U6+TJX4KLhyfMdP5tmodtOR/4/3gLVccMNHW14rRo7yK0F4/vvaLImW1n6iOG
-	 8iW52JaeEU2NfLWilU29jiXJ9r2Dpxainmwp+qkW5VUHuKlxj0yIxx8S911lozjEtRCY7
-	 QEGhqqPd7LEtuDQtxa1RBZYKPTMvNt+NBL3WQqjqevOduo+UDnnEPm3HD0cXVlw/2YQ==
+	t=1794509681;
+	b=vlvapoRZWHkdNE19q50HHU6OYHcPpNZB/HnAIHNBnq3inLVVKB62UpjzDYD2G2c/CvbD
+	 JC7y3V5dsAvFS3VR7kRpkYGPYzZEnbMIkqPjzWP6J0VuZB7F4A01WUNWIfn5OpUqSnz5a
+	 FimSS29gvhp/BRNzcDxW9jbZQpDDQ3edXyxvSNqZkyUOVF4xUQwk+WwRPjMdlod29AKb3
+	 /OYWoa6NmJoHwu4AwYiZr7m3lsVxm1mkK73b4zSsp5KLtCe8ht6fx2qgWGWZlQ4oUNX6K
+	 rYA1Kxjqq5837Ra0/W9oD934c0UV0WJvYACqQS6p4spbk0iUHMEMTKf8XZFNrcIDlPg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794509675;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794509681;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
 	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
 	 From:Date:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:
 	 Message-Id:References:In-Reply-To:To:Cc:X-Mailer:
 	 X-Developer-Signature:X-Developer-Key;
-	bh=jeIbt2k2gIGUcVGK5YRi1yFkDF0bqtPi9E7+l8WvSWw=;
-	b=nT/Lu1O4L5fV5vuT31t+kTwhZNyvO1FABTesIB7jGHlcQgdq1HQrrEyp54CbTlE2vkXP
-	 dZUYOuys10JzADxhIZPYbuOvCQk37c1p3BGea0UPBNiJCSv88efrSXdJN/8JEUJO8a2jh
-	 AySQIdimP2ggXi4/ODCnkcxYS/nET+Tf0UI5QxFMc5tDaSueIMmneyf21sKO79hvs78XQ
-	 +q7ZQo2cKNXUs3S19O0pfecaqj3eDq6aee4K/cVxBu6Sc9chuiY7tOowPh1bg8/b8wBNy
-	 cMjBwrN1IesldrOafptMXNxbg7lFMEG6vTfa9OuIVXscgYU7YcVpf1HY/nvmVQRrhjA==
+	bh=fWLnRTHzq44+Vxh7KKtStPCPVQVw0PPt5S1VYLelmew=;
+	b=2OnAJSF4uJ6x43vvc6scyrG4o40gVtJ7+C229DH6bhEtKrDFKKBRtFKPBKSZav9LICjh
+	 BBGUYQtAJl1UckyxB7VU3FIPxRgZlAq/omWHOUNRzC631K9sR9lov5QtgqftFgOpkBfc0
+	 /pGiPwVhxwkRjyBpPXzE6sJs6IQ3T02RVv4gGurvU4PPsNDZwdFyr1UhGHSF3DqS7BweL
+	 8iQAUHNSfQEKIr2p/OrUZgPz4bmdsydfPCVQzuQKbEgCF5AxSkcHbp2xBBCuChq6OaVZ7
+	 A9dyqgYzzMxyDeNEbE9XiDeSwxLSmCs3zcWaOUkXrr0w/UvDwpjOXVGPE5QV+m6nXQg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=gmail.com;
 	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=EVjHZ6fN;
-	arc=none smtp.remote-ip=74.125.82.176
-Received: from mail-dy1-f176.google.com (mail-dy1-f176.google.com [74.125.82.176])
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=iSSuklZK;
+	arc=none smtp.remote-ip=74.125.82.180
+Received: from mail-dy1-f180.google.com (mail-dy1-f180.google.com [74.125.82.180])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5254606A321
-	for <linux-omap@vger.kernel.org>; Thu, 12 Nov 2026 18:54:34 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A5254606A321
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BF25606A332
+	for <linux-omap@vger.kernel.org>; Thu, 12 Nov 2026 18:54:40 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 8BF25606A332
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=EVjHZ6fN
-Received: by mail-dy1-f176.google.com with SMTP id 5a478bee46e88-3719e3cb82bso24754eec.3
-        for <linux-omap@vger.kernel.org>; Thu, 12 Nov 2026 10:54:34 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=iSSuklZK
+Received: by mail-dy1-f180.google.com with SMTP id 5a478bee46e88-378915168c7so28408eec.3
+        for <linux-omap@vger.kernel.org>; Thu, 12 Nov 2026 10:54:40 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794509674; x=1795114474; darn=vger.kernel.org;
+        d=gmail.com; s=20260707; t=1794509680; x=1795114480; darn=vger.kernel.org;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :content-type:mime-version:subject:date:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=jeIbt2k2gIGUcVGK5YRi1yFkDF0bqtPi9E7+l8WvSWw=;
-        b=EVjHZ6fNXPaLODG6sUnP9vMWLY/UNtlt1EcihhyvGRME3dlPKU8PFigIin1smL+oVC
-         w+M9PGYePcmJg3Bph8LjByEcrDSuFLpPiW9JEnnHndpHl0QgzGhZunY87WhK38dWpbLE
-         liGVCQWy1iNTbN+VOxKdsisyWBk+m777tOAm6Dy/sKDAOALpEkMq+DL9JbeXY09Yl5jX
-         R/MTcz9+KPqhmBi1k32OpPUGIUNKZ4C/WLSbtp4wYsuBAnQAeHJa+cAcKkfgQ3x3Cif6
-         ePqQI4qEIzNbC9Yyn5WCqtqrCSLImfJvDPv3y4Iao4v6EtAgTI09m2+G/IIZxdZlY6Cn
-         egSA==
+        bh=fWLnRTHzq44+Vxh7KKtStPCPVQVw0PPt5S1VYLelmew=;
+        b=iSSuklZKuBtT8njwpKc001LaXfFN+vhWrgJUEUcHcG/nJIYuWQaqz3eNp/YZcosj/u
+         WYs5H+eJFwsZ7t3OraTGERkr/UOUGJXWAq3Mibl1GuKOjhjOs/MgViuKiDovLKt/kSD/
+         tJSSKQ3dDjAyfVpzryYrPk9Ry3mXpgcZGEV5twYfZhPn7YM8l1/fDgftEg+0DL22iuTX
+         tQbG7MnEI/ZkM+E8LATUfwg72KnahVu/UeojFPXf0++g3zb4uZnC6GQAquc+eAY/c6kO
+         bWcFg0WJdI62l63QTUmomSHkDKE/GcAgb2tMSc6mMi99uXjEkseM3ZtpAvT1iXk/P56P
+         dc3g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794509674; x=1795114474;
+        d=1e100.net; s=20260707; t=1794509680; x=1795114480;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :content-type:mime-version:subject:date:from:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=jeIbt2k2gIGUcVGK5YRi1yFkDF0bqtPi9E7+l8WvSWw=;
-        b=DF8hZpteSHEt0XP+VoIrvLuDT0LxhwrjDABvIdAaie9+l+rPmEpMA9byJMOVBeTErh
-         N/6O89kNXS0FOIuy/ILYp6VD8EsF9Tn/scbMLdlf4i4Q+piX7hviuTU93XpmEvsFIDfU
-         pcHxHS/twfBkTUAhBX/BPejveyWlor1VoJx8uIBCLdqviMetPZ1Pe5dfoW+IYO/UakUb
-         v8gE4K0H92YY0Wjul8jntiK8WA1D+vc3TaSQidGMGLReVw5qxAbWgUDbadMj/US9hxIo
-         y6HkPR94usAm4tOMRyEmdzTdAtXtvMrGC93yu/IuV1pJJJIUofm7xYUl7tSWdOzqgM2L
-         ZikA==
-X-Forwarded-Encrypted: i=1; AL+hErH54Tpe/Q8qOoxNhwhwgcosSx0fLiDuzMr50bU1yuWk/RxZWiBBEZIWH9H6Kcp3BqlBze0qFfMf92t8@vger.kernel.org
-X-Gm-Message-State: APuU4Z8ELvxEl5VKvyOeX7JLOJBbbc8yTHuJIGLws7N2gj6NaNF3YZEN
-	+pcblojNFVOp97wcuXl35AYRmqHrGciOwNPLN79q6YMFfAMCsmOLd4Gb9CalZQ==
-X-Gm-Gg: AYBFou3upoFVLCengH5JyYRQWYbfXPxg1W5L5nLjpUtWDT6XKRAuUmMJ/QQQyuO4reH
-	Gmh/tcw43roU4IsEsaxnY5BnBKSWSVN3BGhgB4gAvKJr3YHCtM2oJssVcdCFqQy7EV2BIqEjOyf
-	LS3T/Qid5GaatagKgJYsEEKtXPdf4csB54h18auyBVls8RPOalKxhf2gFNiQzfeyCU2LqCNGjUi
-	8ZJRmnVRI6lmCv77nnObQAjQnBtDA1tqgBp+9K8mKlVBUdwzxS1EG7qAFPfvvm/l457uvYINQsN
-	psqGz1q5IP6YBgnjQbkXbpT8ECKmGrNRrW4U/vZ5fUfaFMWaJbDNHkmS7N0JjZSv53mcc5vJhaH
-	HmmLbNjSYamRadKDjEQ1TRIoP+OvjFDe+TnplZsfsmgcEAuHsyUS2w6e55dls7bWk/DyGYUy9IJ
-	h544r6j0UJgdq9Y6MHBV/IpJV+/b7WilAfduhHFKVlGlUi2XpcZBIOjw91c7lmBHBdHVGorQMLb
-	0n5+MBWmIgiw+QS30ZisaMKVcbRL3Igotube1MYMTfgesmHThet+5X2X+r49z+4vf8J3ClHyNG1
-	dwUMeIBXhleukdRUH34Gw9vrbcXO87SCS0ZYZA==
-X-Received: by 2002:a05:7300:c00e:20b0:35e:d21c:f33e with SMTP id 5a478bee46e88-379651ecb3emr98122eec.1.1794509673785;
-        Thu, 12 Nov 2026 10:54:33 -0800 (PST)
+        bh=fWLnRTHzq44+Vxh7KKtStPCPVQVw0PPt5S1VYLelmew=;
+        b=2vzoK4fA93waJpo5YjzFDIB90nU6pKMQrz0BIeklpjlxTzGC5wNqOXefMWXIc7AV8D
+         apmDtjvdiE9RZSXDZgZ4GUVXnBTAD4A9Jft5mBlkCLCIlY7N80vUhBZsVgVCj/3s61/z
+         OZd37WwaZWUu0jr2r9yiI42nuCt2ePakhGJXZ2vrNs74ObhBD3BhbBH+HKNhsAVj7row
+         T5e8EJ1Zz9qr81DxSzGrz3ub7CJ3BAB2/Cml5/MWON958aAqKZrMGjvtSG1BJMxDOL2Z
+         17xGRDzWIVuL0ZwTTW9+tByCCF8BVqaGSNixPPUs84kC3MivdwwrwD6p8FTCKT3cusgV
+         8wbA==
+X-Forwarded-Encrypted: i=1; AL+hErHsDmRJEAT/GRQpPUWdG81WqcvLVsG+tptH8Si3VLCX+0QELaechAhpoPdNe21G3piL33NmHxwyPxYJ@vger.kernel.org
+X-Gm-Message-State: APuU4Z8oS2Vr8BE7evI4I7a2LsJaX7T2ivzixjXN8PLnHg9MZgrRWGr8
+	SS5TgSpRukEDdngC1xCWB+7ipBC8rn/gWl9JwKT5p6Cyb6yI8SMHo+j6U5U0LA==
+X-Gm-Gg: AYBFou2HhEkxmly9rO0zO3xEkvWVDvY4rW9a73JSet0nIR6fmYt1z5/0aPKLHQ14iRX
+	cGMpOhC6mDZ5js8nbJBMzYTFam+lZHMukBAiV+4O75bAVOkcVgcvHFM6Lcdws9Wqv7PRURu874F
+	V1WKQwpduU+FwW5BuUfD0v68jBNsjQNCi/5m8H4eK/VBDtFx6bMOCUNhz0BR6IcPiOsedlZkJYS
+	GTJ93OCO9kMWkEyFORQb0gLxT1/FaEpZEJoXyPIGV04ManSn3aGS42YmoObimEtz8mqolWvklp0
+	duEERfJdCTmLuUO5d33MkdZoa2vGHbG+5XvcnEP2MxzYooCw520rgNT/A+uiEWyNbTivzyPRno4
+	ysHftgj6fFZsGvOEZUltOp1evBSZkOYn2m9NLQxXmYfozeF9oAHWKulOpH2CqakuqZDRvD5AM/2
+	hE7zWfQrMiL0CwSoLWmQqHM4oe7agllv2HmwYFytlouOBOSvU/6nTq9BTa0O/BkqLuvRvgCinRE
+	AqIp7kAyEX4se82hjCp+BMZv2DlwahaZMybYqnoGu0QJSVizw3wNGadWz3SzgyDm/Sb0pCz8l9O
+	/nWIDu3zwbn33+bOTNJzU6IO+05pugnsw/fE/w==
+X-Received: by 2002:a05:7300:6da8:b0:36a:e7a:e89 with SMTP id 5a478bee46e88-379659c6815mr96217eec.2.1794509679625;
+        Thu, 12 Nov 2026 10:54:39 -0800 (PST)
 Received: from [192.168.1.4] ([2401:4900:881d:321d:eb39:71d3:15f6:5fe0])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-379565d07b3sm339008eec.22.2026.11.12.10.54.28
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-379565d07b3sm339008eec.22.2026.11.12.10.54.34
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 12 Nov 2026 10:54:33 -0800 (PST)
+        Thu, 12 Nov 2026 10:54:39 -0800 (PST)
 From: Bhargav Joshi <j.bhargav.u@gmail.com>
-Date: Fri, 13 Nov 2026 00:24:03 +0530
-Subject: [PATCH v4 2/3] dt-bindings: bus: ti,omap3-l3-smx: Convert to DT
+Date: Fri, 13 Nov 2026 00:24:04 +0530
+Subject: [PATCH v4 3/3] dt-bindings: bus: ti,omap-l3-noc: Convert to DT
  schema
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
@@ -95,7 +95,7 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20261113-ti-l3-noc-v4-2-5084dcf4ffb4@gmail.com>
+Message-Id: <20261113-ti-l3-noc-v4-3-5084dcf4ffb4@gmail.com>
 References: <20261113-ti-l3-noc-v4-0-5084dcf4ffb4@gmail.com>
 In-Reply-To: <20261113-ti-l3-noc-v4-0-5084dcf4ffb4@gmail.com>
 To: Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
@@ -108,114 +108,127 @@ Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
  goledhruva@gmail.com, m-chawdhry@ti.com, daniel.baluta@gmail.com, 
  simona.toaca@nxp.com, j.bhargav.u@gmail.com, linux-omap@vger.kernel.org
 X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1794509656; l=3174;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1794509656; l=3333;
  i=j.bhargav.u@gmail.com; h=from:subject:message-id;
- bh=MxSg2MkwbXN7myq3Mkcqj4G5zZktmzhof0tcCBB1PGg=;
- b=JRt6nSNlb85XdtArL63nkiepL6Da+0yUqR3qJt2OdDLJM3jkrZYyrTTd7rrZO5cFiV3mwRxpa
- Fa83lVMojAZDke/lQ0rNOFaKrQETDdRJcIZeZmc0ooQ1BffJzLCATav
+ bh=WKKUN2jQjfC7QZp1fenPy2OkomRsdptL4bsEgub5sUs=;
+ b=5D5VKA3cRIKqxXzxuLlHYsOud0dxvXQ0hWDcOveXaGCvjS6IyWuXgLxqo1dqKWAi+5aEr7rmP
+ Dq9LpAQ013uAi4wmvJUv4KNEQd0w8X5IOd9ef4WNucRWkYReGyt2fQE
 X-Developer-Key: i=j.bhargav.u@gmail.com; a=ed25519;
  pk=IqNDwUZKECEA+n8wXctFLBbYL9NhFstZNbOznm/nX1k=
 
-Convert TI OMAP3 L3 interconnect from text to DT schema. In text binding
-this was grouped with omap4+ L3 noc interconnect but since it uses
-different hardware IP (SMX). Add SMX variant in new schema.
+Convert the TI OMAP L3 NoC binding from text to DT schema. Drop
+deprecated ti,hwmods as it is not used anymore.
 
 Signed-off-by: Bhargav Joshi <j.bhargav.u@gmail.com>
 ---
- .../devicetree/bindings/arm/omap/l3-noc.txt        |  5 +-
- .../devicetree/bindings/bus/ti,omap3-l3-smx.yaml   | 68 ++++++++++++++++++++++
- 2 files changed, 70 insertions(+), 3 deletions(-)
+ .../devicetree/bindings/arm/omap/l3-noc.txt        | 22 -------
+ .../devicetree/bindings/bus/ti,omap-l3-noc.yaml    | 71 ++++++++++++++++++++++
+ 2 files changed, 71 insertions(+), 22 deletions(-)
 
 diff --git a/Documentation/devicetree/bindings/arm/omap/l3-noc.txt b/Documentation/devicetree/bindings/arm/omap/l3-noc.txt
-index 161448da959d2..66548395fbdeb 100644
+deleted file mode 100644
+index 66548395fbdeb..0000000000000
 --- a/Documentation/devicetree/bindings/arm/omap/l3-noc.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/l3-noc.txt
-@@ -4,10 +4,9 @@ This version is an implementation of the generic NoC IP
- provided by Arteris.
- 
- Required properties:
--- compatible : Should be "ti,omap3-l3-smx" for OMAP3 family
--               Should be "ti,omap4-l3-noc" for OMAP4 family
-+- compatible : Should be "ti,omap4-l3-noc" for OMAP4 family
-                Should be "ti,omap5-l3-noc" for OMAP5 family
--	       Should be "ti,dra7-l3-noc" for DRA7 family
-+	           Should be "ti,dra7-l3-noc" for DRA7 family
-                Should be "ti,am4372-l3-noc" for AM43 family
- - reg:	Contains L3 register address range for each noc domain.
- - ti,hwmods: "l3_main_1", ... One hwmod for each noc domain.
-diff --git a/Documentation/devicetree/bindings/bus/ti,omap3-l3-smx.yaml b/Documentation/devicetree/bindings/bus/ti,omap3-l3-smx.yaml
++++ /dev/null
+@@ -1,22 +0,0 @@
+-* TI - L3 Network On Chip (NoC)
+-
+-This version is an implementation of the generic NoC IP
+-provided by Arteris.
+-
+-Required properties:
+-- compatible : Should be "ti,omap4-l3-noc" for OMAP4 family
+-               Should be "ti,omap5-l3-noc" for OMAP5 family
+-	           Should be "ti,dra7-l3-noc" for DRA7 family
+-               Should be "ti,am4372-l3-noc" for AM43 family
+-- reg:	Contains L3 register address range for each noc domain.
+-- ti,hwmods: "l3_main_1", ... One hwmod for each noc domain.
+-
+-Examples:
+-
+-ocp {
+-	compatible = "ti,omap4-l3-noc", "simple-bus";
+-	#address-cells = <1>;
+-	#size-cells = <1>;
+-	ranges;
+-	ti,hwmods = "l3_main_1", "l3_main_2", "l3_main_3";
+-};
+diff --git a/Documentation/devicetree/bindings/bus/ti,omap-l3-noc.yaml b/Documentation/devicetree/bindings/bus/ti,omap-l3-noc.yaml
 new file mode 100644
-index 0000000000000..3fc5fae7b37ba
+index 0000000000000..85f314f177379
 --- /dev/null
-+++ b/Documentation/devicetree/bindings/bus/ti,omap3-l3-smx.yaml
-@@ -0,0 +1,68 @@
++++ b/Documentation/devicetree/bindings/bus/ti,omap-l3-noc.yaml
+@@ -0,0 +1,71 @@
 +# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
 +%YAML 1.2
 +---
-+$id: http://devicetree.org/schemas/bus/ti,omap3-l3-smx.yaml#
++$id: http://devicetree.org/schemas/bus/ti,omap-l3-noc.yaml#
 +$schema: http://devicetree.org/meta-schemas/core.yaml#
 +
-+title: TI OMAP3 L3 (SMX) Interconnect
++title: TI OMAP L3 Network On Chip (NoC) Interconnect
 +
 +maintainers:
 +  - Santosh Shilimkar <santosh.shilimkar@ti.com>
 +  - Sricharan R <r.sricharan@ti.com>
 +
 +description:
-+  The L3 interconnect for OMAP3 is based on the SonicsMX (SMX) architecture.
++  The L3 interconnect is an implementation of the generic NoC IP provided by
++  Arteris.
 +
 +properties:
 +  compatible:
-+    items:
-+      - const: ti,omap3-l3-smx
-+      - const: simple-bus
++    enum:
++      - ti,omap4-l3-noc
++      - ti,omap5-l3-noc
++      - ti,dra7-l3-noc
++      - ti,am4372-l3-noc
 +
 +  reg:
-+    maxItems: 1
++    minItems: 2
++    items:
++      - description: L3_MAIN_1 / L3F
++      - description: L3_MAIN_2 / L3S
++      - description: L3_MAIN_3
 +
 +  interrupts:
 +    items:
 +      - description: l3-dbg-irq
 +      - description: l3-app-irq
 +
-+  ti,hwmods:
-+    description: hwmod names for each domain.
-+    $ref: /schemas/types.yaml#/definitions/string
-+    const: l3_main
-+    deprecated: true
-+
-+  "#address-cells":
-+    const: 1
-+
-+  "#size-cells":
-+    const: 1
-+
-+  ranges: true
-+
-+patternProperties:
-+  "^.*@[0-9a-f]+$":
-+    type: object
-+
 +required:
 +  - compatible
 +  - reg
 +  - interrupts
-+  - "#address-cells"
-+  - "#size-cells"
-+  - ranges
++
++allOf:
++  - if:
++      properties:
++        compatible:
++          contains:
++            enum:
++              - ti,omap4-l3-noc
++              - ti,omap5-l3-noc
++    then:
++      properties:
++        reg:
++          minItems: 3
++    else:
++      properties:
++        reg:
++          maxItems: 2
 +
 +additionalProperties: false
 +
 +examples:
 +  - |
-+    bus@68000000 {
-+        compatible = "ti,omap3-l3-smx", "simple-bus";
-+        reg = <0x68000000 0x10000>;
-+        ranges;
-+        #address-cells = <1>;
-+        #size-cells = <1>;
-+        interrupts = <9>, <10>;
-+        ti,hwmods = "l3_main";
++    #include <dt-bindings/interrupt-controller/arm-gic.h>
++    l3-noc@44000000 {
++        compatible = "ti,omap4-l3-noc";
++        reg = <0x44000000 0x1000>,
++              <0x44800000 0x2000>,
++              <0x45000000 0x1000>;
++        interrupts = <GIC_SPI 9 IRQ_TYPE_LEVEL_HIGH>,
++                     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>;
 +    };
 
 -- 
