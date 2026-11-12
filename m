@@ -1,63 +1,89 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=178.238.236.174
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.46
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794484314;
-	b=oUyI7AV/0sbhqnkRESzHlU68K4GVeN6c6CkGoC+snpKjpmEu+3OBJ8smt8s+mQDxMs/w
-	 l3UungVFufExQyR8gsKgCAfJd444cddW+HtCY87iTSVCelpSRSgaa/h46T9sWXP1ZrRgg
-	 NdVZ9k0g250knXVW5jYjhWJXcH7kmA8OTeNNBQ33pyfpYXU2fYqzwsCpqwVjqrwPm/72V
-	 Ye+YNR9lZyHXGzoY9B7q426tUbhkT/lFXKkqCTg/6iBFjGvKlipPE7fG9CfwgyoUYLaxi
-	 7+jk9yAEXYIufwPTA1T2EPJXX7uMgxtHhavDzcOGhobw0hgzEIJL1WtxiExMVYFGlUA==
+	t=1794504285;
+	b=dAAn9HX4WKV32CN4yRkAnLrp3gEr1U0jw4WH90ouvD1v+yJDRcIX5fBzOFy5og2VVGZI
+	 LTXCoQNwqEugg5lfmJFMc8CpajjDAtd0ariimCYvx3i8F7Cf+zO12ixaBSXP9urEj6/kn
+	 b1fX4fAeQPtCZIGwcqidMnwCF6Sr8SjTAD8BlGp4K5kWqsuCsR0JNCkLU0fj6ADszOA1V
+	 ODrhjaBaFi8B0M0bbgS87YSdU7JJHk1ZjcX0YlPtC7GjVrTps6dDV864R4QM+0/BAO7MB
+	 KjXw3Q3m58LAIJAO+FxcQVryVfxnU6HZ4M9XEwGxGwwK3gNCQG/9FJsxr6YNQ4QS/mA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794484314;
-	h=DMARC-Filter:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 In-Reply-To:References:X-Mailer:MIME-Version:Content-Type:
+	a=rsa-sha256; c=relaxed/relaxed; t=1794504285;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Message-ID:Date:MIME-Version:User-Agent:Subject:To:Cc:References:
+	 Content-Language:From:In-Reply-To:Content-Type:
 	 Content-Transfer-Encoding;
-	bh=6R6toNBIUivUY49SbPVzsOWR13YYc6Q05DyfYkrwtKU=;
-	b=WNbqrB+rnZj0z1sr88uYhEM2x7Vl6d/kkj1nlSselBPc+0C9TY/PP7ApW8tVrNSo2t1Y
-	 9TJOTQLXMqvkG5R4pkhBvDYQhWQwpTx1pOcTrorO/1smp6yJiRz0C35rPfIiHGHHt/FE2
-	 tbbpynKZ9pc3rTmOflEe2EZu+aXwNJHKl16MIeMmVtBuhnIQfwXy5vaomqnvrC5WfLO/k
-	 6UXuspguBwqNk9eyGEDor+z00fbPuT5DbNDWWfb9wfOKD5jmGXTsfpqXjY+Ss7MxwdfLr
-	 uOAT+hzcSUIWjEex+dvvPpTYK/kjRSU6mrAp02rxuUhr7sNfGgNoBZREErTENrnI7Ng==
+	bh=63GqtMOoRCSgTES87IYM99FUWTFMCt/NCzNwfnUy7NQ=;
+	b=PFZXPHfSllGRWN4wIYN0JG+C4ukAFXHETjxxMQIA5nz3fECxPgRu5y9A15vd3MCT3tXH
+	 8QE2L8ZBh1dgFgdDJ2A1/ZwEngQXitgFU3AuNtTJHZ/aTkGKYY2mjUI0do4twUH+WjFGZ
+	 rwcyX3no24vekBqpvrbmawSfhjv2TWZ1gbl4z0n/2qhCLM3z23h6cupRWdJF1ghttLrcu
+	 KOKPxvGbDb1ABrYwNofGbeeztKUBoW8shiIY4JclgdYOgKs0IAgveiq1RqfTPZTgB3VtR
+	 le5Vglb+Omo2ChfZ/IEfeyLJ2PIuzI0bWyi45Ir9PDz25b9VfSdMzBRpLigLSUspvMQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=kemnade.info;
-	spf=pass smtp.mailfrom=kemnade.info;
-	dkim=pass header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=TtVbtc7c;
-	arc=none smtp.remote-ip=178.238.236.174
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	dmarc=pass header.from=linaro.org;
+	spf=pass smtp.mailfrom=linaro.org;
+	dkim=pass header.d=linaro.org header.i=@linaro.org header.a=rsa-sha256 header.s=google header.b=Jkq4Sq6O;
+	arc=none smtp.remote-ip=209.85.128.46
+Received: from mail-wm1-f46.google.com (mail-wm1-f46.google.com [209.85.128.46])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 567D3606A321;
-	Thu, 12 Nov 2026 11:51:54 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 567D3606A321
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97F69606A32A
+	for <linux-omap@vger.kernel.org>; Thu, 12 Nov 2026 17:24:44 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 97F69606A32A
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=TtVbtc7c
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=kemnade.info; s=20220719; h=References:In-Reply-To:Subject:Cc:To:From:
-	Reply-To:Content-ID:Content-Description;
-	bh=6R6toNBIUivUY49SbPVzsOWR13YYc6Q05DyfYkrwtKU=; t=1794484314; x=1795693914; 
-	b=TtVbtc7ceYK43A0qJYJPRllpoZEHlClOLnU1qDM+3OKrKNiEqLQfJ5ItSD2GjEdgg/e5j4mjGDW
-	9taxb613RS3QK05Z0lLzeGCvTxcBxNAlGe+6Phmty7W9InoWZbVyLp/xSjExaAPKPqzVS0w94Vw9K
-	edc4+/mwrKfPyCMIrYY//bJt4ZJNW7GFCWgt0hcdaekwuKi7UIHBqgV6cUmzYjBFNn7s1qHEqUnSM
-	WJUGrWUftUqu+b9VonZsf6+dh974YNp4yEQC7KqYHK0eLAfXbkJpR7LofIJfgFYGsjWSbFIVcCPzC
-	yb23yKCinffAXtEpd34PMIZ71oQfPJ5JUenQ==;
-Date: Thu, 12 Nov 2026 12:51:48 +0100
-From: Andreas Kemnade <andreas@kemnade.info>
-To: "Luca Ceresoli" <luca.ceresoli@bootlin.com>
-Cc: "Tomi Valkeinen" <tomi.valkeinen@ideasonboard.com>,
- <dri-devel@lists.freedesktop.org>, <linux-omap@vger.kernel.org>,
- <hns@goldelico.com>, <linux-kernel@vger.kernel.org>, "Maarten Lankhorst"
- <maarten.lankhorst@linux.intel.com>, "Maxime Ripard" <mripard@kernel.org>,
- "Thomas Zimmermann" <tzimmermann@suse.de>, "David Airlie"
- <airlied@gmail.com>, "Simona Vetter" <simona@ffwll.ch>
-Subject: Re: [PATCH] drm/omap: dss: fix handling deferrals
-Message-ID: <20261112125148.23235dec@kemnade.info>
-In-Reply-To: <DMSHYXQ01R6O.3F13LZ51TUPCP@bootlin.com>
-References: <20261111-gta04-drm-regression-fix-v1-1-1de27d5ba46a@kemnade.info>
-	<33f63eaf-42a0-4b3f-a21c-3752436d07b4@ideasonboard.com>
-	<DMSHYXQ01R6O.3F13LZ51TUPCP@bootlin.com>
-X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
+	dkim=pass (2048-bit key, unprotected) header.d=linaro.org header.i=@linaro.org header.a=rsa-sha256 header.s=google header.b=Jkq4Sq6O
+Received: by mail-wm1-f46.google.com with SMTP id 5b1f17b1804b1-4a1b07c3c5fso384505e9.1
+        for <linux-omap@vger.kernel.org>; Thu, 12 Nov 2026 09:24:44 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1794504283; x=1795109083; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=63GqtMOoRCSgTES87IYM99FUWTFMCt/NCzNwfnUy7NQ=;
+        b=Jkq4Sq6OAnX2Pn8crvoZY/dPHwNqhLbPwejc697m552ymFXmCwb8mgSJDNjoHBJSfW
+         tIFzq9E9UMQ6Zrz5YL6hqU4SGwxC9vY4m2Q9YTa1cMiceV1fi27oJIy2zDMhS9AXHfr3
+         PCUGfo6dENOKRHACcC/dhXJw6byn0SPI3uAmx+PVYV10g3Ht093LpdeyDCRKpKdML7L1
+         H49jcbL+vdUyoDN5a5X0cMQMvvSsH42atYkcQekL9cRQf8o03fJXv0bPYUM81xlIFenN
+         LILZhm8+RVEO5xBVnA1JR379R1QuIflz96BYL+YRxcfupaJQlf8SQ1pQQe91Nhb42iAQ
+         iKXA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794504283; x=1795109083;
+        h=content-transfer-encoding:content-type:in-reply-to:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=63GqtMOoRCSgTES87IYM99FUWTFMCt/NCzNwfnUy7NQ=;
+        b=suu7GC0oaSj9xWJ7wySAItw2M3TYh+Q6A68MIvaxWq27yyiKNalmcHcPh+X8Di5Jor
+         njgMKEtHGy8UqooRaekvxzP1j97BuPX24NBSz57bipMTOZPbfDR/9eNFm/FTZhrkberT
+         vZ4Nb1pxEtKLRbJAIggCphiT0XDYPKGsAQvaI8L5hNW7oh2YwvaVWEuJ3J9uBmF/mnML
+         M/FtyQjwFDTfvHItxxHdcdOa09ZyF5joknViy3TJle0jLe6Sxnj2oV2SE5naugNTjPAS
+         iIHEyxa1sJ50Kz2u2wshi8g16TQZk97YIydJon9xRzknXWTjQepNjj9qAg4qJ1cvEhMV
+         /XrA==
+X-Forwarded-Encrypted: i=1; AL+hErHHifLi5lrAp2IyzGLFbHsuowRsmGSIS7cd86Y4Ul29f99I/BRq3SMTDy5SDHyXTScA2u182i+VvOHe@vger.kernel.org
+X-Gm-Message-State: APuU4Z+79zSvnzwNERkR+ECcPwvOJ9Ptva07MYF26v+d4+3s0nR6QuAA
+	WDisUmaoi7OdU93cvVNjqDtDVCc1dFnTaH/Fpyy0e0VFNEu8ZGXOGI767dPDunftUZw=
+X-Gm-Gg: AYBFou2MrGFLTYaWu+n76LM+SUxHYHAxtKTPyxjsG0XQrcQzwSGq42uwpBfm280m3Br
+	3o6TqpZe/0IsRpGcZTGI4yviEjy8/P9SqmZukV5S6/HaQM5bk5OhIFrngO+uvb73JYz/MKztJn0
+	jk12eQ2Nghk6QGF4GoROdQ5vC1PIPRcUUk5r6XC7axvS79+zIopNExDd8DJVTz1rl5II5mEP0cP
+	OA/u2RmaOSaD3gescdFBqtOv8ybSyFrItIUPRVnryQ33BZ/cv73OBJ1rW0qS3Xy86gu5O4VkzbV
+	nBmSkAQVptL470rm5S6tF/pK/STxfBxD3fJ8FHanm7TltuGQFKqYoyhSkzLbMlbiLnaSeJHUeBS
+	dKdodbuRDmJ7pHHbJGSckg/2iZSD/qMSuyJpSG5Np7CFbdCbTWkOmRbunoRbp0mWNRm9kqQXJ1d
+	2Pba2emfJRuuZ2mcYR5Y2AHqA8I/E7wX+blDR36Bh5lL5RA6mRaOP7PPYK31w5tskHrfnHaSDkj
+	/o57hAkPG3Jo7lvPWXH97aM9mkWuEx4UiBHSpS3v5nXV0uy+jaYkTlHpeZhq0yMpI/WmoptkSii
+	TRwoK27PZBeQwATynecvS+Vc5L90+4pP2KuDDav04zCh2yYpQ6v/Z7CQw7m2A5gxHfKTbYiSwZ+
+	bpM3UedPh
+X-Received: by 2002:a05:600c:a46:b0:4a1:f625:2108 with SMTP id 5b1f17b1804b1-4ba093940c2mr116502295e9.33.1794504282924;
+        Thu, 12 Nov 2026 09:24:42 -0800 (PST)
+Received: from ?IPV6:2a0a:ef40:e16:1f01:b442:1e4f:d5a4:2a21? ([2a0a:ef40:e16:1f01:b442:1e4f:d5a4:2a21])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-49c60d9fff8sm345018f8f.52.2026.11.12.09.24.41
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 12 Nov 2026 09:24:42 -0800 (PST)
+Message-ID: <38a09248-032a-4144-9e56-6d52eef8c077@linaro.org>
+Date: Thu, 12 Nov 2026 17:24:41 +0000
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -67,75 +93,73 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 2/4] clk: ti: fapll: Fix clock speed calculation
+To: Brian Masney <masneyb@kernel.org>,
+ Ettore Chimenti <ettore.chimenti@linaro.org>
+Cc: Tero Kristo <kristo@kernel.org>, Stephen Boyd <sboyd@kernel.org>,
+ Brian Masney <bmasney+clk@redhat.com>,
+ Jerome Brunet <jbrunet+clk@baylibre.com>, Tony Lindgren <tony@atomide.com>,
+ Michael Turquette <mturquette@linaro.org>,
+ Rouven Czerwinski <rouven.czerwinski@linaro.org>,
+ linux-omap@vger.kernel.org, linux-clk@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+References: <20261028-patch-ektor5-dm8168-clk-v2-0-dc6bf0fabae4@linaro.org>
+ <20261028-patch-ektor5-dm8168-clk-v2-2-dc6bf0fabae4@linaro.org>
+ <179444595968.1126566.8596406047613157255.b4-review@b4>
+Content-Language: en-GB
+From: Andrew Goodbody <andrew.goodbody@linaro.org>
+In-Reply-To: <179444595968.1126566.8596406047613157255.b4-review@b4>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On Wed, 11 Nov 2026 16:46:51 +0100
-"Luca Ceresoli" <luca.ceresoli@bootlin.com> wrote:
+On 12/11/2026 01:12, Brian Masney wrote:
+> Hi Ettore,
+> 
+>> The fractional part of the divider was being treated as 1/10000000
+>> whereas it is in fact 1/2^24 (1/16777216). This led to incorrect clock
+>> speeds being reported when a fractional divider was in use. Correct it.
+>> As well as fixing the clock speed calculation when read, also update the
+>> calculation on set in a similar manner.
+>>
+>> Fixes: 163152cbbe32 ("clk: ti: Add support for FAPLL on dm816x")
+>> Signed-off-by: Andrew Goodbody <andrew.goodbody@linaro.org>
+> 
+> Should there be a Co-Developed-By here and on the other patches?
 
-> Hello Andreas,
-> 
-> On Wed Nov 11, 2026 at 3:56 PM CET, Tomi Valkeinen wrote:
-> > Hi,
-> >
-> > On 11/11/2026 14:22, Andreas Kemnade wrote:  
-> >> Forward the error given by of_drm_get_bridge_by_endpoint() if it is
-> >> EPROBE_DEFER to ensure output gets initialized later when available.
-> >>
-> >> On GTA04/OMAP3 no display was found, but it appeared after doing
-> >> rmmod omapdrm ; modprobe omapdrm
-> >>
-> >> Fixes: b7e9b93fc8ecf ("drm/omap: dss: don't create a panel_bridge")  
-> 
-> Ouch, sorry about breaking this driver. To my excuse the old code removed
-> by b7e9b93fc8ecf was (ans still is) pretty obscure.
-> 
-> >> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
-> >> ---
-> >>   drivers/gpu/drm/omapdrm/dss/output.c | 5 +++++
-> >>   1 file changed, 5 insertions(+)
-> >>
-> >> diff --git a/drivers/gpu/drm/omapdrm/dss/output.c b/drivers/gpu/drm/omapdrm/dss/output.c
-> >> index 36d37deac8026..220ed7e003080 100644
-> >> --- a/drivers/gpu/drm/omapdrm/dss/output.c
-> >> +++ b/drivers/gpu/drm/omapdrm/dss/output.c
-> >> @@ -24,6 +24,11 @@ int omapdss_device_init_output(struct omap_dss_device *out,
-> >>
-> >>   	bridge = of_drm_get_bridge_by_endpoint(out->dev->of_node, out->of_port, 0);
-> >>   	if (IS_ERR(bridge)) {
-> >> +		if (PTR_ERR(bridge) == -EPROBE_DEFER) {
-> >> +			ret = PTR_ERR(bridge);
-> >> +			goto error;
-> >> +		}
-> >> +  
-> > Shouldn't we just return PTR_ERR(bridge) here? The error label will call
-> > omapdss_device_cleanup_output(), which cleans up things set up later in
-> > this function.  
-> 
-> Indeed.
-> 
-> 
-> Additionally, by looking at the omapdss_device_init_output() code right
-> now, the goto-based error management appears:
-> 
->  1. unnecessarily complicated: only one goto for only one line of rollback
->     code
-> 
->  2. potentially wrong, or at least doing too much, because
->     omapdss_device_cleanup_output() does two things:
-> 
->       a. drm_bridge_put(out->next_bridge): but when goto is invoked the
->          out->next_bridge pointer has not been touched yet
->          (I assume we should not touch the refcount in this case)
-> 
->       b. drm_bridge_put(out->bridge): unneeded because the goto is inside
->          an 'if (!out->bridge)', thus there is no reference at all to put
-> 
-> Do you agree with these findings?
-> 
-of_drm_get_bridge_by_endpoint never returns NULL (indicated by Sashiko).
-So we have dead code there anyways. So the patch is dead code elimination
-and not fixing bugs.
+Not sure about that. This is my patch but is being submitted by Ettore 
+in a series of patches that affect the clk system. We were working 
+together on a project and at times each produced patches. Ettore has 
+collected together this series for submission.
 
-Regards,
-Andreas
+>> Signed-off-by: Ettore Chimenti <ettore.chimenti@linaro.org>
+>> ---
+>>   drivers/clk/ti/fapll.c | 10 +++++-----
+>>   1 file changed, 5 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/drivers/clk/ti/fapll.c b/drivers/clk/ti/fapll.c
+>> index ae2f6fed10f6..8ab9acd57b60 100644
+>> --- a/drivers/clk/ti/fapll.c
+>> +++ b/drivers/clk/ti/fapll.c
+>> @@ -336,8 +336,8 @@ static unsigned long ti_fapll_synth_recalc_rate(struct clk_hw *hw,
+>>   		v = readl_relaxed(synth->freq);
+>>   		synth_int_div = (v >> 24) & 0xf;
+>>   		synth_frac_div = v & 0xffffff;
+>> -		synth_div_freq = (synth_int_div * 10000000) + synth_frac_div;
+>> -		rate *= 10000000;
+>> +		synth_div_freq = (synth_int_div * 16777216) + synth_frac_div;
+>> +		rate *= 16777216;
+> 
+> The 16777216 magic number appears multiple times. Plugging this into my
+> calculator, I see it's 1 << 24. How about adding some defines:
+> 
+> #define SYNTH_FRAC_DIV_BITS	24
+> #define SYNTH_FRAC_DIV_SCALE	BIT(SYNTH_FRAC_DIV_BITS)
+
+Sure, can do.
+
+Andrew
+
+> Brian
+> 
+
