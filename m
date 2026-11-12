@@ -1,62 +1,62 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794524675;
-	b=imBiKsigLdfH3qMtHzhik2ZoV0WrtUFbjBUZqp59TJJvbtjTzZWETDzxxUfw2KIM618Y
-	 JNn7zQctnemNliyVkaiKwuYBoJpOBX/Zp7+zEeFnMDz52Zi7i2Sdsw2POXe7xDslBnHF+
-	 8u0+ar7Wl4WDTjiYPYhct7gI7b35wbyg/po61QsFEkHeLphTF+jpRsnBlEWsm46nzqLmA
-	 EBrIWWgEe3mfpe0XDnMXorX2XvmI3/fmnSIiVZppiv7fgAlLRkV2t+mbEwDPvBrVkmb8D
-	 znSPIS/ynBsFwa4F13aOwUWC7G7e+NKcEjknyARDQRtiOsfuFAJa7Ewtzyq7OJkxD5g==
+	t=1794524684;
+	b=Rm3mm5qYnnsDfGUuJX0Yt8jbt5Qz6Pkh29lWB5xWFmuSO1XDIwovUqd7l+k4D2jqu7tc
+	 rpTp2Ev5/z48JRGlHiRxSiFYImX0y+cqvvHVKdiGxXXmRX3bzkPh2eI2nzIm6mkbKTuti
+	 7bPQalJzHs4LhJicsFtvyQjvAdCLQYqC55OTcDTj8RQB1w5Q8NknRwH5pVcjinG5Zbklm
+	 OwQzGDCz3PWJuLO9V+OstfPPWANIQeBIsdn0lWx/qgy+VKhFrxlFnoE0Bfok/Y3x/3YJC
+	 Yny342TBl3DI44X/RyLjIJJUJuragVacGGN+sAB64zYvvMPVz3fahGx47eCOEPZu8EQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794524675;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794524684;
 	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
 	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=WiySqy+HzwtvwN8C0PE2DyxhN1KGJ2XBtjlY5ImikYY=;
-	b=A+frgFxAduFDHASRKggjC/Qayb3I6jGVfYJmyYatmIZwwebj4G4KNvfdFxV59VIR+3YK
-	 rDBZjiK7rM2qSd7EVqIiDY410vntwnDR0lAwfhe/YMjMbILdVyRKe8VkTQaXf6D42ifAG
-	 owFSfvWXJTXQTSo01mcXIqAxVShms10BLLYZgh+GNRthUj6RQe37jJl1pf8un/X+b5ew6
-	 jFMtsd673NkQEEgM5ZWU2lLXJ6SMVCvWZ/c76hC/LA6EMhZWnffvYWV/Z/NxA8S2H32In
-	 MtVhhwXfu7uJgHVd+F9G/1J76l92GQNYLJTUzkM6INkfQPmTauQ7g2VNNeuRpf3YWnQ==
+	bh=o4aNYTMptGQMBl7Yiutpd7PzxfU9v0zqLqzMKVQ6frQ=;
+	b=40v+2WloUuMSPzrKfoMPHFy2Oxlt5e573jaRq2zUYRxmN07dF3dycwdpcSOrJjyU9jvF
+	 Q97yIEzRCsgsYydJLUEOBCWYSOcLOtHpwW2X0LhMIHKo304tHpXCs9ugmjd3eUr5U9Gnb
+	 ph0YNhaLqOgOgS+MrXt7w/MrYkPjQihss8TaSHvdfS4hc7qMSRGPzJjx094FliOCbbfP/
+	 oV+FF8S1sbO3tdt63N20wcTHeP9Nq7dGTdJjW34IZhtbMDulQFZoqWFASWodCqTEqymLD
+	 rGtC2P6pfCvoPHUFJcMtW6lYFKpwWM6BzX8GLnRlzjhNTztF3wO9m38LA4QrSAQJxMA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=StuQZnkp;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Dp0nzvxh;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4022606A31C;
-	Thu, 12 Nov 2026 23:04:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBA11606A8B5;
+	Thu, 12 Nov 2026 23:04:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=StuQZnkp
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4491C1F000C4;
-	Thu, 12 Nov 2026 23:04:34 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Dp0nzvxh
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35DCE1F000C4;
+	Thu, 12 Nov 2026 23:04:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794524674;
-	bh=WiySqy+HzwtvwN8C0PE2DyxhN1KGJ2XBtjlY5ImikYY=;
+	s=k20260515; t=1794524684;
+	bh=o4aNYTMptGQMBl7Yiutpd7PzxfU9v0zqLqzMKVQ6frQ=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=StuQZnkp5AotdCaLUNpd2Uq8IwnT5aqat1BYQqWLzL0PFdZyipRS9IrHjRarf5iyh
-	 cnnvLZt7WX93B8ca5bLqNzWSoptVSMyYA5mB11SqVBBGV0bugXGqaFAEk7vuX/yjDj
-	 5wMcWaNUzaUxxrHCqT9696nOfyAdhL6FcSzymXWx8q00rt6s43R4g/fqkgBEQzAYr3
-	 kO2U0xNNnivgx3Kn8ZtBZvo5qm6QsUoKbtOWwY+JD1KhyNOZJ6TnTOJ+k5m5xgfHjU
-	 cgAAynZl1V+H8BmYszKTZVjA4yPnTbzZXioY7w+/moXjEdUfiE1oZPsp00BvadxdMN
-	 9FXW/+ZPVYmJw==
-Date: Thu, 12 Nov 2026 17:04:32 -0600
+	b=Dp0nzvxhEIjDNB/l7Cj5UjgjZ7xRCsZGxHLYre5B0JjA7qBQEI0ziUZvBKzA8YweW
+	 vedF4k+dRdxkiGT/xs8XR/8OZEC5TXnkM9bTk8oNaKpTn7UVQ4w4R4X3ndIj8tY/jl
+	 VpX93r5ZXSbDjTeb3+QmPsPI0wUCjze12NtMy2cCpYHt9zbYeaDodo1gq5bs7Jhs6s
+	 iYu+HSxOtWJqqMRTLEGw9MCrCvK5DIQJc7abFyfSAjphD3O+UHUdN0noAxE5oI4Odc
+	 YCg0qarG/cx2s6V5WsGgZ0VeQyZe3vaHpxDXX+2qFhQMwfwJmPxeSFP8BkbRJLLWty
+	 9/KZdqkDd1CUg==
+Date: Thu, 12 Nov 2026 17:04:42 -0600
 From: "Rob Herring (Arm)" <robh@kernel.org>
 To: Bhargav Joshi <j.bhargav.u@gmail.com>
-Cc: Roger Quadros <rogerq@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>,
-	daniel.baluta@gmail.com, Sricharan R <r.sricharan@ti.com>,
+Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org,
+	devicetree@vger.kernel.org, daniel.baluta@gmail.com,
+	linux-omap@vger.kernel.org, Sricharan R <r.sricharan@ti.com>,
 	Andreas Kemnade <andreas@kemnade.info>, simona.toaca@nxp.com,
-	Kevin Hilman <khilman@baylibre.com>, m-chawdhry@ti.com,
-	linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Santosh Shilimkar <santosh.shilimkar@ti.com>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>, goledhruva@gmail.com,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
 	Conor Dooley <conor+dt@kernel.org>,
-	Tony Lindgren <tony@atomide.com>,
 	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	devicetree@vger.kernel.org, goledhruva@gmail.com
-Subject: Re: [PATCH v4 2/3] dt-bindings: bus: ti,omap3-l3-smx: Convert to DT
+	Santosh Shilimkar <santosh.shilimkar@ti.com>, m-chawdhry@ti.com
+Subject: Re: [PATCH v4 3/3] dt-bindings: bus: ti,omap-l3-noc: Convert to DT
  schema
-Message-ID: <179452467187.1933535.7588827800062161687.robh@kernel.org>
+Message-ID: <179452468163.1934371.9660861014638910090.robh@kernel.org>
 References: <20261113-ti-l3-noc-v4-0-5084dcf4ffb4@gmail.com>
- <20261113-ti-l3-noc-v4-2-5084dcf4ffb4@gmail.com>
+ <20261113-ti-l3-noc-v4-3-5084dcf4ffb4@gmail.com>
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -68,19 +68,18 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261113-ti-l3-noc-v4-2-5084dcf4ffb4@gmail.com>
+In-Reply-To: <20261113-ti-l3-noc-v4-3-5084dcf4ffb4@gmail.com>
 
 
-On Fri, 13 Nov 2026 00:24:03 +0530, Bhargav Joshi wrote:
-> Convert TI OMAP3 L3 interconnect from text to DT schema. In text binding
-> this was grouped with omap4+ L3 noc interconnect but since it uses
-> different hardware IP (SMX). Add SMX variant in new schema.
+On Fri, 13 Nov 2026 00:24:04 +0530, Bhargav Joshi wrote:
+> Convert the TI OMAP L3 NoC binding from text to DT schema. Drop
+> deprecated ti,hwmods as it is not used anymore.
 > 
 > Signed-off-by: Bhargav Joshi <j.bhargav.u@gmail.com>
 > ---
->  .../devicetree/bindings/arm/omap/l3-noc.txt        |  5 +-
->  .../devicetree/bindings/bus/ti,omap3-l3-smx.yaml   | 68 ++++++++++++++++++++++
->  2 files changed, 70 insertions(+), 3 deletions(-)
+>  .../devicetree/bindings/arm/omap/l3-noc.txt        | 22 -------
+>  .../devicetree/bindings/bus/ti,omap-l3-noc.yaml    | 71 ++++++++++++++++++++++
+>  2 files changed, 71 insertions(+), 22 deletions(-)
 > 
 
 Reviewed-by: Rob Herring (Arm) <robh@kernel.org>
