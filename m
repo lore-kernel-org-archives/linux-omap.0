@@ -1,68 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=111.22.67.139
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.246.84.56
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794467815;
-	b=yEYTK3PowDltvHvpARwHsnzDyUdqtSwG3GZximz4w9Wm2iNo39AK1paOTbnShSVHDb7O
-	 cbE1FV9BG1PeKyE4dG8/A6xr7FvZmnGFCrC1fHR+UyGC8Ku3hqxwT5OoQwVPF4wgq+zbu
-	 tI6+xjJyS7bfufSoNgxQ15r79Hel2/TiFpJINslW5LxVxvM5QK5FYXs36zwCeCu8GRHVV
-	 SR1lrvXEhebkLphxMNHD4sown+/sInvwOmvcWKcDQDk3qIfZffHta2v+SJoqt9BuGe3k4
-	 53oIpwr7oTjj2tdfZ5d0r84dl0pyKbdk0OyijQpUPsCz0vKadOqSoG0mqOcLeqtt8pQ==
+	t=1794469447;
+	b=lr0YQpcWHqV6Qccs2PA8p13jP5L3q3UR+UAD+pSdg0K7vU99jBVeIDUJS/qVrAeLAS2L
+	 GMtTCGiR+FYuSceFygRk0HC0pCK8QB/z4ycvBV1HKbzGG4NT8B6llrG1Le7spt+sBNa9l
+	 Whs8KeNkfMZoh9qk/XkY4OvWqn3ajYvUmXr68lP4vLiqZNRXlEACc9lmW0gqM+ux6UUor
+	 BYOipQnuNkTE3WHXvHOZ2+unIBhANeUJvsMWnLUs9McA9bU1ELTvYaJF++F3xvR68DGMF
+	 vPWwG0CfEQmxLG7mj0Tyd5qS2MlPAlXAlbn8FVQYZxNal9c039rRzKYHdgzrw0SJK0A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794467815;
-	h=DMARC-Filter:DKIM-Signature:X-RM-TagInfo:X-RM-SPAM-FLAG:Received:
-	 X-RM-TRANSID:X-RM-TagInfo:X-RM-SPAM-FLAG:Received:X-RM-TRANSID:From:
-	 To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=WcRV36NFkCjxfLCPISz2CD6YEZ2b8XviU1c6pmYrMKs=;
-	b=ltdC4WPN/RZNONi571Mgpzh+6+/DaTxLYcP1t2oQUfD1c/CoNdH4um/IheEdZ2SJfJTD
-	 35JUdXqI2KYjX4NX+tWefXtbFfTLmi8aGqY3CdvA5ouXqocrCwcTvZY0Yyxk/CbVtqGIW
-	 1QIjveapgUOjLGEFRGCX4JrqTYh1c/rUzvnDQB2Q9GDYoVBAn9P6x6y9Cwq3Lor0bAqfo
-	 mh1VkGfWYaI2ZMXarr4RLAZDWdDxMRnGInT17lNGFhQmIlTtTI2QGXUOeaCITsM8BGx7b
-	 TPc6tSVav695WXlMmPuZpN46WFSmLRW87pxHRpENc3HFxrlAzKZixpW1gyqEMMl5yHA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794469447;
+	h=DMARC-Filter:Received:Received:Received:DKIM-Signature:Mime-Version:
+	 Content-Transfer-Encoding:Content-Type:Date:Message-Id:From:Subject:
+	 Cc:To:X-Mailer:References:In-Reply-To:X-Last-TLS-Session-Version;
+	bh=kmQ9tCdfHJvODaaQiJY8VbOIwr70LOZMLlckjTphBqE=;
+	b=5H3o0vXoNIWIwV9eiGlmPw/tDoZlf+2y4J9OxT4z/Yb25WRFSe//aNR6ieif1BSfpRpA
+	 d+d0ZHZrbF7gX7qS4lqHcSXUO+VgwzigFRm5IPPFCRCF02y5MDmg+GYcUpr2gttMdzGvr
+	 8CDMNJCP/JnHPdb1jitSmH/uktsLyiytD9hxQyhtgFHFXTfEdMnOayMTc9xsk2LKOxaxM
+	 Z2i203hQxQ1YDJUpWQ+DHr/4MShPsNDmRH6wMq53pZuII2aLqh0n5mgxrY1oKhcEGJxIc
+	 flytKBrwKuGyd7ZSgnbdYQI5Q7JIdqofbJSkhR4RXgpK4BFFjOgxqKDDwcW11g7WZjg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=cmss.chinamobile.com;
-	spf=pass smtp.mailfrom=cmss.chinamobile.com;
-	dkim=pass header.d=cmss.chinamobile.com header.i=@cmss.chinamobile.com header.a=rsa-sha256 header.s=default header.b=PsbOPF9n;
-	arc=none smtp.remote-ip=111.22.67.139
-Received: from cmccmta6.chinamobile.com (cmccmta6.chinamobile.com [111.22.67.139])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 134EB606A8A6;
-	Thu, 12 Nov 2026 07:16:53 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 134EB606A8A6
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cmss.chinamobile.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cmss.chinamobile.com
+	dmarc=pass header.from=bootlin.com;
+	spf=pass smtp.mailfrom=bootlin.com;
+	dkim=pass header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=qxWBGn5U;
+	arc=none smtp.remote-ip=185.246.84.56
+Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B4B7606A31C;
+	Thu, 12 Nov 2026 07:44:04 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6B4B7606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=cmss.chinamobile.com header.i=@cmss.chinamobile.com header.a=rsa-sha256 header.s=default header.b=PsbOPF9n
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=cmss.chinamobile.com; s=default; l=0;
-	h=from:subject:message-id:to:cc:mime-version;
-	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
-	b=PsbOPF9n3Rax8Pc5vexTXd/P4qqoh+quhndKZClCNgt0dJ8InN2CbtOtsH/Qah0h7l9n8Vlczr2nG
-	 ENVHQuuqjhVm9AAw3N6HP2eKhVN1G/hyvOl5/G3621xtMWmENUFdXCRTuwrOg+tvCXbqiI1LzslSR1
-	 9DqfDqTigAm7VRk4=
-X-RM-TagInfo: emlType=0                                       
-X-RM-SPAM-FLAG:00000000
-Received:from spf.mail.chinamobile.com (unknown[10.188.0.87])
-	by rmmx-syy-dmz-app09-12009 (RichMail) with SMTP id 2ee96af567e4373-e47cf;
-	Thu, 12 Nov 2026 15:16:52 +0800 (CST)
-X-RM-TRANSID:2ee96af567e4373-e47cf
-X-RM-TagInfo: emlType=0                                       
-X-RM-SPAM-FLAG:00000000
-Received:from devin-VMware-Virtual-Platform.localdomain (unknown[10.55.1.72])
-	by rmsmtp-syy-appsvr10-12010 (RichMail) with SMTP id 2eea6af567e32b7-f6819;
-	Thu, 12 Nov 2026 15:16:52 +0800 (CST)
-X-RM-TRANSID:2eea6af567e32b7-f6819
-From: Zhu Jun <zhujun2@cmss.chinamobile.com>
-To: aaro.koskinen@iki.fi
-Cc: andreas@kemnade.info,
-	khilman@baylibre.com,
-	rogerq@kernel.org,
-	tony@atomide.com,
-	linux-omap@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Zhu Jun <zhujun2@cmss.chinamobile.com>
-Subject: [PATCH] bus: ti-sysc: Put the OCP node after checking compatibility
-Date: Thu, 12 Nov 2026 15:16:51 +0800
-Message-ID: <20261112071651.154465-1-zhujun2@cmss.chinamobile.com>
-X-Mailer: git-send-email 2.51.0
+	dkim=pass (2048-bit key, unprotected) header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=qxWBGn5U
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-02.galae.net (Postfix) with ESMTPS id 6B8F91A162A;
+	Thu, 12 Nov 2026 07:43:57 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 394845FF85;
+	Thu, 12 Nov 2026 07:43:57 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id A761B11BC05A9;
+	Thu, 12 Nov 2026 08:43:52 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1794469436; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding:in-reply-to:references;
+	bh=kmQ9tCdfHJvODaaQiJY8VbOIwr70LOZMLlckjTphBqE=;
+	b=qxWBGn5U7P1yTzXNaHcOOzcQZq/cFIGm7krSI+3Bi66X7rsB7bQq1hsuuju80p+MgL5JBm
+	/r2GnHwH2uOCNh0G+cZq9ucouQ1Lq7gWIOSKnf5Zgs//geAQg8sGL+Yn/J0XsoBSP+wy9X
+	rlaMgtg14HY7xLBBcCnBeZdrQr6ZwVbrI6/uOYtntDPksJbf2UuLNQevRxR3RjWGjli7Za
+	4XeyRzOn804jwucyIf54TvFMmkm/PPSyZbJwcedjRnjoLT+DOt8j3soYsdVmTFaSDg+XlL
+	OXvNJ2412KL1/8vQVlpQofV8u9fcLC4mnXzCXmzv8L56R0aByuvpqzHNfswM1g==
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -71,35 +58,39 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Date: Thu, 12 Nov 2026 08:43:50 +0100
+Message-Id: <DMT2BO0OMZAC.3IJ7D9NC2GQ0W@bootlin.com>
+From: "Luca Ceresoli" <luca.ceresoli@bootlin.com>
+Subject: Re: [PATCH v2] drm/omap: dss: fix handling deferrals
+Cc: <dri-devel@lists.freedesktop.org>, <linux-omap@vger.kernel.org>,
+ <hns@goldelico.com>, <linux-kernel@vger.kernel.org>
+To: "Andreas Kemnade" <andreas@kemnade.info>, "Tomi Valkeinen"
+ <tomi.valkeinen@ideasonboard.com>, "Maarten Lankhorst"
+ <maarten.lankhorst@linux.intel.com>, "Maxime Ripard" <mripard@kernel.org>,
+ "Thomas Zimmermann" <tzimmermann@suse.de>, "David Airlie"
+ <airlied@gmail.com>, "Simona Vetter" <simona@ffwll.ch>, "Luca Ceresoli"
+ <luca.ceresoli@bootlin.com>
+X-Mailer: aerc 0.22.0
+References: <20261111-gta04-drm-regression-fix-v2-1-010caf3b08bd@kemnade.info>
+In-Reply-To: <20261111-gta04-drm-regression-fix-v2-1-010caf3b08bd@kemnade.info>
+X-Last-TLS-Session-Version: TLSv1.3
 
-sysc_init_static_data() looks up the /ocp node to warn about an old
-device tree, but does not release the lookup reference. The node is
-not retained in the driver state.
+On Wed Nov 11, 2026 at 10:14 PM CET, Andreas Kemnade wrote:
+> Forward the error given by of_drm_get_bridge_by_endpoint() if it is
+> EPROBE_DEFER to ensure output gets initialized later when available.
+>
+> On GTA04/OMAP3 no display was found, but it appeared after doing
+> rmmod omapdrm ; modprobe omapdrm
+>
+> Fixes: b7e9b93fc8ecf ("drm/omap: dss: don't create a panel_bridge")
+> Signed-off-by: Andreas Kemnade <andreas@kemnade.info>
 
-Put the node after the compatibility check.
+Reviewed-by: Luca Ceresoli <luca.ceresoli@bootlin.com>
 
-Fixes: 5f7259a578e9 ("bus: ti-sysc: Check for old incomplete dtb")
-Signed-off-by: Zhu Jun <zhujun2@cmss.chinamobile.com>
----
- drivers/bus/ti-sysc.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/bus/ti-sysc.c b/drivers/bus/ti-sysc.c
-index 12285ad9ef51..b3740f36173b 100644
---- a/drivers/bus/ti-sysc.c
-+++ b/drivers/bus/ti-sysc.c
-@@ -3015,6 +3015,7 @@ static int sysc_init_static_data(struct sysc *ddata)
- 		np = of_find_node_by_path("/ocp");
- 		WARN_ONCE(np && of_device_is_compatible(np, "simple-bus"),
- 			  "ti-sysc: Incomplete old dtb, please update\n");
-+		of_node_put(np);
- 		break;
- 	default:
- 		break;
--- 
-2.51.0
-
-
-
+--
+Luca Ceresoli, Bootlin
+Embedded Linux and Kernel engineering
+https://bootlin.com
