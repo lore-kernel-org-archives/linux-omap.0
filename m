@@ -1,89 +1,100 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.221.48
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794605481;
-	b=vGBZlJJFFEA3ZCQPQt6SDy/RB8c6TI/1eVgd3p5PD4UC9KdWuypkdh6zgdescuNbwRqm
-	 fxJ/ORxQunQMQkoqnWscY/CuauNsyNTl9XPUFG2W2hQRaoou4aAnyLGPrscxf56a02zHy
-	 EJi1Y8JK6wOqKUGiNASlSDvVvnuP9bIHqueX6eOoIIRgK4VgsCd7kJW2NxYoY8br+opPg
-	 8yioApElzoWxdB1BctH1vhszlXC/KzY/lWqQxqQArOh6+FB0QuTITC6pDPBePFBPwS+gn
-	 Sml+B9bkLfo3Lx1cBZN62+4YSpVmBz6CElyk8kJyA482tObY7iZrLvvKgNGJ64QBYiQ==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794605481;
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.218.45
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1794605988;
+	b=CCz9jRrJIWyNbMEsBITb3w9btAiTz7Xl9u1khIBw9VcgN7YNChLz6PW8O6yv1Jc6/tc5
+	 q3baOeOAbbPAI6R5x0kkUZpZ7lP99ybKPqGQb5vW+bYOvOdJwwXj9hTLVRoRxw0TjU54e
+	 oroOtrhlbVVQgzdrjFs7U/f/vCL7PWU4xynMwHnopXsHk9MMnuL6ZZuPpisYspGmlyqxn
+	 fyxJIoHnInrEtMaZplrwaKP1gHI+iE46ue9zbCGuOerNo6HQxk4UkYXzQ1NHWOiH8edYS
+	 KWkFZetgrAFYHZj7V7PxmZYwS2ZEkP4EIWgRBDcsPiU+J7lHbVMkRzHchglGS1omUbQ==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794605988;
 	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:Date:Subject:
-	 MIME-Version:Content-Type:Content-Transfer-Encoding:Message-Id:
-	 References:In-Reply-To:To:Cc:X-Mailer:X-Developer-Signature:
-	 X-Developer-Key;
-	bh=1Z97KMLhks2eUt1zVFkZTVVZd8kDUivIxgxGyFdw6i8=;
-	b=MBJzae6Ujf3Tet2A/jKdVp5D8Enj6DgMCB5LCoUQdQEw42frGK4XgdvYtmMNUjLM1GgO
-	 yyDP1AYutvX4sgrmM6676afDr02mrtFbA8VNjfU5iKDRPQmJbpsCap3M2AR4xBc0Bf5Uj
-	 RQMUsny49RXhsD+BR5Nx/ns2rfxWcmarjhH5WEz9xTUBOlSrB7ulWZVb3xntBSl5hVRov
-	 E4yHOQendauJvHqKid5qki0cXDkyfJpNxxwV+OcXQ2lLVa59lAL2RCFN/0xRLwPlVPh7h
-	 Gif5ToTGrDyt2GQcSNm04oTFvf8wKtX3V4c4NwnXaZG8Biq/ApWTUiLK1Co7g96mIKw==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=linaro.org;
-	spf=pass smtp.mailfrom=linaro.org;
-	dkim=pass header.d=linaro.org header.i=@linaro.org header.a=rsa-sha256 header.s=google header.b=iXISRmA+;
-	arc=none smtp.remote-ip=209.85.221.48
-Received: from mail-wr1-f48.google.com (mail-wr1-f48.google.com [209.85.221.48])
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:
+	 MIME-Version:References:In-Reply-To:From:Date:X-Gm-Features:
+	 Message-ID:Subject:To:Cc:Content-Type:Content-Transfer-Encoding;
+	bh=z09G6Mh32lxTcN93Jth8bp3CpV5mh1cGftMTw1FyV+4=;
+	b=a2DS5q+bGmOaXg1v35sSgoLXJbUFj+BRYHJz1D9SuMfpmFLnKwZx5VOGVB3foiDrd4F8
+	 a5PfSHyZokt5bTcDS2zbyw/PRKmKp1IAtI8hCYetno+lZLOB06+cvm/1gqEfFArAHZqfQ
+	 P2FzaUWLTQ0gJFbXXgv5RFnCaS0wcEemCHUXB1HPrVkxmYbVaqd3tLF/oJKr5EY5zULFH
+	 bKCjpyqPuE/nZ1uxuvyTWqQ91IfEjZ7UHO41/xvNlPEjxhy4Et4bFNSf0mQFCKldeCvnl
+	 MT0QTi+PYCU5+D7HVmQ8G70xXG3Cqfst/fn6p4XcnyOdUMrLurFS0jPqYS/Dg+iI6Lg==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=NYuf6ucd;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.218.45
+Received: from mail-ej1-f45.google.com (mail-ej1-f45.google.com [209.85.218.45])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DF12606A8A6
-	for <linux-omap@vger.kernel.org>; Fri, 13 Nov 2026 21:31:20 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5DF12606A8A6
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 591A1606A89F
+	for <linux-omap@vger.kernel.org>; Fri, 13 Nov 2026 21:39:48 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 591A1606A89F
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.a=rsa-sha256 header.s=google header.b=iXISRmA+
-Received: by mail-wr1-f48.google.com with SMTP id ffacd0b85a97d-490f38e9688so1014437f8f.0
-        for <linux-omap@vger.kernel.org>; Fri, 13 Nov 2026 13:31:20 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=NYuf6ucd
+Received: by mail-ej1-f45.google.com with SMTP id a640c23a62f3a-c50537f731eso22294866b.1
+        for <linux-omap@vger.kernel.org>; Fri, 13 Nov 2026 13:39:48 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1794605987; cv=none;
+        d=google.com; s=arc-20260327;
+        b=qAuF70991gFqEA/TTWRGq9IRMzoqrG4PrqH4kvGGVEjFRP1YiQpwqtAy9AaH9op/ij
+         oaSohtlD7EpryS4K0ulJiXZBkvSY0p6pwh625kX7FPXK2kGxM/Usl0mLqfj7EbrCvtk1
+         vptT7fzWq1IdDwe8Qbw1CBrLQiu8v54Dr0tliLifWOG3cqPKPDxVGac/lXoWZav6bqA4
+         lIfsTs5sQTF5kpXo8pRT+UqLy6XLj/D5vB86ACDW0yhz/K+UxH7dpKvw505zGxMoB5jc
+         m9Fpf1fsxh89M4y1mfxOtc7Z3kts+7kIRwJ3D/VAcK3mgNYGyijwlkCzXNCF/CDhg0pG
+         dHvw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=z09G6Mh32lxTcN93Jth8bp3CpV5mh1cGftMTw1FyV+4=;
+        fh=T60IXzfJ0YI0OZ1I6T+ARRTbr/tXwvDph6Q94N3Y3S0=;
+        b=pLp9McFtDW4U5ZD2xgwnG+Jz9FADG+v0ySeG+QWB8g4Hbo6FJAGvRoKymqm7xV/YD7
+         et8X627+LByATmOJkbjrXwjaC3F/NKr61fO1s8+ltzjNhdW5+wis0vXs55tc7L2nNqdq
+         +jHY6ghwFr7GiOsQmnKTPvZTd55/0pCfS06ftQyDWT9FRkVOepVg3l4M1RqbluQL36Ya
+         NecHqTmu23sU7VydGRSMDdudU1CJvCAwI9/A44406AxSjSAJ3wRivMdiVZ4azNY5qzB8
+         WZmsytnKALOUdE8qcnbGlUenI2zPUtBaFFz7XFl6elTL57jd71bz7rsSDrisciH935Gg
+         V3jw==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1794605479; x=1795210279; darn=vger.kernel.org;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :content-type:mime-version:subject:date:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=1Z97KMLhks2eUt1zVFkZTVVZd8kDUivIxgxGyFdw6i8=;
-        b=iXISRmA+oktDtrSv4kMbnArkrGEcskye3m/DKWMCHC3TWyVdckPnyUctcpisWOiEkB
-         sMVbcaILkheEaGTGyIknfeMxWCMVG9EDCFoIxLwY8PZv/YW4/EybM5Z6VkGITfmSU0l/
-         ymf5zvwoZur1gbqZef7QlNw+/jqJCae1/2e4E8jqEodtr9rrYIuh1WU4SVTTs9WV08R0
-         VFiYpo8EX7uxwTjXipkDm94WVOLKYE4AWLtO3R1LZyr0QbXgpt9uHfy4nQlBnWSFUdBr
-         hYLEUdFGx35sr04h5U5gbSECsGEKti1kElQ830u7UwVGVI2F1VZZjkS6TmWilQecauRs
-         hMpg==
+        d=gmail.com; s=20260707; t=1794605987; x=1795210787; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=z09G6Mh32lxTcN93Jth8bp3CpV5mh1cGftMTw1FyV+4=;
+        b=NYuf6ucdQlZW6jzeitbcergVg/cyc1cbSBBFDiXM+vZjX1QWO592BJCRfAmF+K/O2l
+         M4kH7hN7l3NXN18K/csofZeEeh1Diq+i3H0PosJgBls5YxvxoHJLTYbongEUieXFKycX
+         cT0q0BowRibrBYvg7uMSd4+CPViFnKfdEqjcyAVgB4LfFsOU+Q/b2oaFVJcykHqxqE7h
+         CHXcRlY+J0fDLurZqPDBZDmnwrlm0VFxD0XMnSRUSEeoHMZXz2U2FMv4P04HnCqY/CYw
+         G6uQH57n0shjlpzI6Xus3OWfXDfhs9P0XZjIpt6WXadF071uyv0A3eodz/emGQXj4CXg
+         7Dtw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794605479; x=1795210279;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :content-type:mime-version:subject:date:from:x-gm-gg
+        d=1e100.net; s=20260707; t=1794605987; x=1795210787;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=1Z97KMLhks2eUt1zVFkZTVVZd8kDUivIxgxGyFdw6i8=;
-        b=V1OR4biM96xuw5zTnliAZxy4k2lDb6iloADIrLnp0ziKXtinqU8kx8bxkeU7pdUGkP
-         uWDQN2HymNV9iHSDaQ3R2N4U7Pvr1gTCsUSxiElEnc2dcTP4t4ulZoqr64/wWV7qrd/i
-         LHi33viLjvaJeY5npeQuKfoOs8lHmDTZObGUU9Z8myWLbA/wPOpuiw67kaUtM80WjUn9
-         3bGpNXBlwKh5noffBLS4/dN8dAjOAMmYt6NKZGSJhhVkfCsnq2qT9ixbrIP8rI4b0n7E
-         +tAa90C54zgZo59f1s5RyR1fXEUTfh4TSEhd242W0s54Xn2ys0AVZMM4jyVvtJdz4rkL
-         0DLg==
-X-Gm-Message-State: APuU4Z+vR0UTrWllLfOxKHepV/tH7FOwZ5cUWtpWlVKg46zHB4YoCqke
-	j5ZvKieYWhj0eHJda9klCBLdc/datBHb0TS4CCiy6Q3PxObZ/wVV0neOW8S2kTRmvkw=
-X-Gm-Gg: AYBFou2wG+NgmJI2om9E1kDVr2XkEu2Gbc3IGe7p4Mn+CF/FITCVAtARp+AtmWyYWBS
-	o+1OaSQxzKyn0+fseTeJhKf5bfykIXeWJnAZRNfmtLxlTGxSfsSkjvHxCuC6ePucMvnAI215jVQ
-	bpTatWgoBnyl7CFHEnMEtK0SXqqpuePPUpmr/i5K9FgtSU3tq9pcY0cWsqha6HInN2cLr3VmYvg
-	vp2Gw4QTzAozh0p/fc0A8Qffbp8zLgMs36bdUHBd3H51pcLQ1GVFKLyDZHXj/6fSMVrvhvXIBgi
-	V6hYzZGibZ2ywMwx6gvdd11n+WeS84tvZ+34Yu2NH1gkwrORA4H1ezqnI6pGCzipRnDYx8rKyNI
-	bwo94+hwvevPMDroR9F73ezygws8toTQThJEa1/xcHXZFIZXscWQp+gfMjH78/FKMBF6me3tJr/
-	eZxQeaP0MjpALTluc6hg2edy9CuQlilvWaOB9Xx2RrGUOmqyjUojWHql7wSZ6G86s7t8z0v9jlq
-	Ko2OEnCLONHB7fWymznLfJLdUESlEhkTkzH+dp1Vi/g1kggsFSQTIR9Rz7hFjzRbIeTs+2KcjK8
-	+ndyMSvj/+rrXRO5MePEoUN2SyoWLmmqL44g6GCN1ZPoFylZpOto0Ecf+aSw/FPNRTEWnCQ8Vlz
-	Qga+tb0EnIoRv5V6JUqnI+rwZBg==
-X-Received: by 2002:a05:6000:4305:b0:49b:d8e6:1723 with SMTP id ffacd0b85a97d-49c6d452d42mr9891966f8f.2.1794605478667;
-        Fri, 13 Nov 2026 13:31:18 -0800 (PST)
-Received: from z13-ek5.local ([151.40.161.170])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-49c609c8a77sm7447727f8f.49.2026.11.13.13.31.17
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 13 Nov 2026 13:31:18 -0800 (PST)
-From: Ettore Chimenti <ettore.chimenti@linaro.org>
-Date: Fri, 13 Nov 2026 22:30:50 +0100
-Subject: [PATCH v3 4/4] ARM: OMAP2+: ti81xx: use non-scalable voltage
- domains
+        bh=z09G6Mh32lxTcN93Jth8bp3CpV5mh1cGftMTw1FyV+4=;
+        b=Myw8EAymVNqE5fLChdUpRqjT6JRZuvhDS4nUOY/6PutscogGRCtWty0wvhxZUV0mXE
+         b9GYFjqoXANkQp7VX1ixrOC9goNZSNDoNrh0z2eyzF2eI53jd2Qh4YF9p+gIVHeuajMZ
+         cCxibK5QGZ8THABt4BJtd1LNB8OfooOELGJuSV28mPLtpfHFrOnqD+suWt90Mqpx0Wej
+         g/4nF2mT2zD25UBCtHqYs0pwn+MF1yDfRxjNcP9NQWfABFm73cp9jFAcomgNIVZ8YQVq
+         wOZvFxbJZeayFikVX6/YJ+GX76hs46eUGNXNCxACbrhzc1Ukm34oRO2rS6a3tYsByW8B
+         xKew==
+X-Forwarded-Encrypted: i=1; AL+hErFBJptR889AQM2wZNetJtNB0Qg2klcu6hqQjiIDU1Cq0L7xrQ5Bh+RWGKncSZ1oNl2mJfwjXm71qvnQ@vger.kernel.org
+X-Gm-Message-State: APuU4Z/Jo3p4jN4yfhqg2UxYJunQ6yP6UXcMIvFIeWyd+Qk21inS17NF
+	dFpYFIvW9F0t4WjlrplJBECY2ZaCGoNdS3fzyx62UYQUIMXKfLq2HLJj/t2b6DrUS2U3TL5TUIv
+	BTCZe3eSmVMR+q5WnrOeJPKj6ByoE8Sg=
+X-Gm-Gg: AYBFou2tCw17wCvnoiszgoZVVQQdyEVlbF304UKY23WYYmcmiJZb4vwKmv3qGlX4C2h
+	lIEbBxRS1S61jBjEAleXBNjuPI0pjB+dZAfw/VBGmtsaaA5LW/jFp+tKK0Y9oa0WLu1w3EEU86q
+	kwGfDhhPO+LPp/D5+zFxH5JKoPGd4jbLvVmQvo3hJRlf6gtJX9qfFfRZ1/fSrwHo9UDh3TveyAe
+	461T9FqOzEw9LUnSxXvFryIYy+jL3CEc/0NWEZxa6U8zXBGSzVXXKdJZIXyetVO+wh7G21Oe/sK
+	WHzPUzUtDbl0jiBgQ1f1s5q8rwQDclDzF56SPy3WSNwsQq8XclwyMjdb8c+SPwf57OEqswTFIPp
+	0ZcfOtG03O4XqmlMMZAMpXBtxOMcabbd1SiyJi6PsqKBmbMij4z442Gj08zONoFfnWwUIQRE=
+X-Received: by 2002:a17:906:fd4f:b0:c50:850d:7317 with SMTP id
+ a640c23a62f3a-c50962e7ec1mr326906266b.2.1794605986507; Fri, 13 Nov 2026
+ 13:39:46 -0800 (PST)
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -93,72 +104,43 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20261113-patch-ektor5-dm8168-clk-v3-4-a42cd1edc5f3@linaro.org>
-References: <20261113-patch-ektor5-dm8168-clk-v3-0-a42cd1edc5f3@linaro.org>
-In-Reply-To: <20261113-patch-ektor5-dm8168-clk-v3-0-a42cd1edc5f3@linaro.org>
-To: Tero Kristo <kristo@kernel.org>, Stephen Boyd <sboyd@kernel.org>, 
- Brian Masney <bmasney+clk@redhat.com>, 
- Jerome Brunet <jbrunet+clk@baylibre.com>, Tony Lindgren <tony@atomide.com>, 
- Aaro Koskinen <aaro.koskinen@iki.fi>, 
- Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
- Roger Quadros <rogerq@kernel.org>, Russell King <linux@armlinux.org.uk>, 
- Andrew Goodbody <andrew.goodbody@linaro.org>, 
- Rouven Czerwinski <rouven.czerwinski@linaro.org>
-Cc: linux-omap@vger.kernel.org, linux-clk@vger.kernel.org, 
- linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
- Ettore Chimenti <ettore.chimenti@linaro.org>
-X-Mailer: b4 0.15.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1794605472; l=1792;
- i=ettore.chimenti@linaro.org; s=20261014; h=from:subject:message-id;
- bh=IKFwMoPwqeJrJOd6paqyhsFrEgkIZs2drKUuLxdD8no=;
- b=AERHNgcVKZvhpwIQt1j4A6/AX353m/5rBEbtNJaMMfUtPJAmy0ZnFJTKThqFJVvq3htmRF3v/
- p2RyPKtI4iJBfzcDoXyR3witwvXGXrcp/sEgpjcxpBju2m8aSdYnfkN
-X-Developer-Key: i=ettore.chimenti@linaro.org; a=ed25519;
- pk=wCaUblFVaqhuBTQt/hAtysafsAaEsqj/yOD9SPlz6NM=
+References: <20261111-ti-omap-dts-fix-v1-0-19022d1ff4b4@gmail.com>
+ <20261111-ti-omap-dts-fix-v1-1-19022d1ff4b4@gmail.com> <20261113-handsome-agate-beaver-a641b5@quoll>
+In-Reply-To: <20261113-handsome-agate-beaver-a641b5@quoll>
+From: Bhargav Joshi <j.bhargav.u@gmail.com>
+Date: Sat, 14 Nov 2026 03:09:33 +0530
+X-Gm-Features: AclHuK9qMuSavHyZMHRslPpanBiVn4xnkEDEtZmjGZCm_S2Y7T6WYHlCBkoM4Pc
+Message-ID: <CAOWyW_5xDrEmuEpm8LKuDKFjS__kJfr=oDLJT5884NTSfuTatw@mail.gmail.com>
+Subject: Re: [PATCH 1/7] dt-bindings: vendor-prefixes: add eets and newflow
+To: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Rob Herring <robh@kernel.org>, Krzysztof Kozlowski <krzk+dt@kernel.org>, 
+	Conor Dooley <conor+dt@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, 
+	Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
+	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, Mark Jackson <mpfj@newflow.co.uk>, 
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-TI81xx SoCs reuse omap3xxx_voltagedomains_init(), which registers the
-OMAP34xx/36xx voltage domains for every SoC except AM35xx. Those
-domains are marked scalable and reference OMAP3 Voltage Controller and
-Voltage Processor instances, which do not exist on DM814x/DM816x, and
-no PMIC data is registered for these SoCs either.
+Hi,
 
-As a result, omap_voltage_late_init() tries to set them up on every
-boot and bails out early with:
+On Fri, Nov 13, 2026 at 4:18=E2=80=AFPM Krzysztof Kozlowski <krzk@kernel.or=
+g> wrote:
+>
+> On Wed, Nov 11, 2026 at 01:22:31AM +0530, Bhargav Joshi wrote:
+> > Add vendor prefixes for EETS GmbH ("eets") and Newflow Ltd ("newflow").
+> > These prefixes are needed to document the compatibles for the in-tree
+> > AM335x PDU001 and AM335x NanoBone boards.
+>
+> I see no eets in tree user. Neither newflow.
+Actually both boards are already in tree am335x-nano.dts (Newflow NanoBone)=
+ and
+am335x-pdu001.dts (EETS PDU001) but they only list the SoC compatible
+"ti,am33xx", so the root compatible does not identify the board. Patch 5/7 =
+adds
+a board-specific compatible to each, so the compatibles are new but the boa=
+rds
+are not.
 
-  omap_voltage_late_init: Could not get sys clk.
-
-Adding a "sys_ck" clock alias would only push the failure further into
-omap_vc_init_channel() and omap_vp_init(), which then complain about
-missing PMIC data.
-
-TI81xx has no voltage scaling support in mainline, so, as done for
-AM35xx in commit ddf536d0d7e1 ("ARM: OMAP: AM3517/3505: fix crash on
-boot due to incorrect voltagedomain data"), register the non-scalable
-voltage domains instead. They still provide the "mpu_iva", "core" and
-"wkup" domains needed by the powerdomain data, and
-omap_voltage_late_init() now skips them.
-
-Signed-off-by: Ettore Chimenti <ettore.chimenti@linaro.org>
----
- arch/arm/mach-omap2/voltagedomains3xxx_data.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-index e98a3f289c27..478f5eb2a17f 100644
---- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-+++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-@@ -119,7 +119,7 @@ void __init omap3xxx_voltagedomains_init(void)
- 	omap3_voltdm_mpu.vc_param = &omap3_mpu_vc_data;
- 	omap3_voltdm_core.vc_param = &omap3_core_vc_data;
- 
--	if (soc_is_am35xx())
-+	if (soc_is_am35xx() || soc_is_ti81xx())
- 		voltdms = voltagedomains_am35xx;
- 	else
- 		voltdms = voltagedomains_omap3;
-
--- 
-2.56.1
-
+Best regards,
+Bhargav
