@@ -1,95 +1,77 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.160.181
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1794725129;
-	b=r0vqpCuxkV9Sxi+wO516sr7+8oJhAOnJdc7tK5SqTNdT9A+EGLQEUhxNWFeXIDbpnI72
-	 yQAbbS3Yk5EBLmiUdgJErU7zZ+OcePjAZX+Nf6F1ZjzgUc01C7UA13Snxdtht84aTI07Y
-	 39TMS7lf6SJ4ofb/R432Cq4lBLadFHVtIEJ0CoGBfJsKa8SHWzdmyVtRvH6nnKk+t776u
-	 8uihOWLpj0/9NU7CGhMD06gcP8uYT28fdkFz6U0Qdoz/Ba/FOny3ripzXvbzQx3LyUWlQ
-	 mykEwDEBVnshiPl9kSownndTcU5iYMF9/fRVzdEviJLhLn9qFuXnb+PP7ZptJcojmpw==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794725129;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:MIME-Version:From:Date:
-	 X-Gm-Features:Message-ID:Subject:To:Cc:Content-Type;
-	bh=0/3xq8hIlkDZKn/4BFbonv8yuwP3/TV4s/w1lmYLKlE=;
-	b=ONI2rcpAIMp1WLh+2Xgs/da/Zb60FRmOHOF4Dcr5C4FlOdS6arztomHU15RKEjPnkvWi
-	 cq2UpAQAOoXUyO7FtCyTzB41t96C+WGiVxZxYjRPyJnI02bynX6mmXGze5jpRgjy9aZV9
-	 IxZHW3rZOdNGxgXvhVh++gZLTvIqMnmKc5vYzjx2VKLnDl9de8Pd44grwZb3kYDy2XM+3
-	 ZdMZe+ntb8A5xGdoNhKJeCt9cT4uvcD/Fj8tWDAlAHM5Tf0rC/yYB8BxHYmYaDqD3nXLf
-	 TCNkaYMrFZwtXNTYphZjp05vbmf2tH0FqjRQjcccCPRqJ2PFMi2surYSsVUgPkFKERA==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=BpwQH41B;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=209.85.160.181
-Received: from mail-qt1-f181.google.com (mail-qt1-f181.google.com [209.85.160.181])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.54.127.71
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1794741176;
+	b=tVcVNiHme0VNWLtyQTy142d3uHpixQ8uTDaTzfHvN/laRI01e5TgDbKvbo5fv8p0k2sW
+	 1J0mAy4hKcbDrlNWOnorOLKw3PrlKRylJkcc54ZRoKYYjyyxK5TBw8GbP/9K1bSck/hFj
+	 b3Gd+zhMIQ87k+vxyboz1Wruuzm1IEhwtWZXdYy+6JA9aMJ81uf/mi5pUtAxONHz7L1nD
+	 ajJSsPg+t0iJKJj1PPXCCgNTfjZqvKj/y8ynIzlPYAcE/NeAk6b0UQGjMOIn8gzBUKv0B
+	 nbuFvx/rtcz0Fktce7eUH0Y87jwySuRrwchI6BLQivpjXB+TtQEJWzcJiByWGqK+4yw==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794741176;
+	h=DMARC-Filter:Received:DKIM-Signature:From:To:Cc:Subject:Date:
+	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding:X-Envelope-From;
+	bh=Wtgom5SxqHDtHqRwD4u1SexlopRYafHtKihIR5rv3L8=;
+	b=Kz+Mz8PXZsbtvyx08Dv4n5Z+7wf2x+g4mrniISyYMsuPhoApH2AJiGRgPRkT3ganshEG
+	 x1qDczBPdqW5Ho4Ta52t8oc9js+1HiIKr/gRPPV9u6rhBMyXQBaZP71RKBMh4F6Q5VJC1
+	 Qy9T/94C0/OwKASaDwvOvqi68JAxC1T8+94d5L8cmr/DjW1yXZ6mO8/6//o2uD0iLubOf
+	 aBcGTUVF/MRk31xeS0SEe4eV3x0mlRdCA3BWYbL/S7xZpB7gXnNHGNdDkWWnlXxvcPEkZ
+	 vNrwrrrNehL/9JMSU55BANhM5DJGcZsGNRE/FVh37OPxtTtwYZRMfvyVOi8dxiPBRpg==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=chrispinetinega.com;
+	spf=pass smtp.mailfrom=chrispinetinega.com;
+	dkim=pass header.d=chrispinetinega.com header.i=@chrispinetinega.com header.a=rsa-sha256 header.s=default header.b=YnOTpAOn;
+	arc=none smtp.remote-ip=198.54.127.71
+Received: from out-zbxj-a71.jellyfish.systems (out-zbxj-a71.jellyfish.systems [198.54.127.71])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E63F3606A32F
-	for <linux-omap@vger.kernel.org>; Sun, 15 Nov 2026 06:45:28 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E63F3606A32F
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9C9C606A31E
+	for <linux-omap@vger.kernel.org>; Sun, 15 Nov 2026 11:12:55 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E9C9C606A31E
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chrispinetinega.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chrispinetinega.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=BpwQH41B
-Received: by mail-qt1-f181.google.com with SMTP id d75a77b69052e-53644ab1f7bso27021291cf.3
-        for <linux-omap@vger.kernel.org>; Sat, 14 Nov 2026 22:45:28 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1794725128; cv=none;
-        d=google.com; s=arc-20260327;
-        b=P17kpOlWM3K/5oNHTksRK0cwcCESP4B1oaT4yql6ioya0zfd4tSnkcgQm43RmCpGSG
-         3L7LSlUraY3JG0/ZZvEm/aU/22bpMFXkC/UcTshOtg1BwgGw+4A9W55SOSxOhsQLN69u
-         y/CPFTeqS2Mx4cZrwaCIblmontG3Xg75HYwQr4dHD8gRVmvbIPVDgYlw6FAuQBHaWF72
-         QYSktnRWkBY3ktSZgUhoTXGvdDZnFNJwKtlJZs0LTehHB6IXOjpsh3V2VTqW3UFg3gCk
-         Na7K6dXbQcPdbrPOSE5QvN0hprmmxI9ccn50H9f5CsnXDZ9imXIj6tGOPNalWLPuSx3o
-         lXhw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
-        h=cc:to:subject:message-id:date:from:mime-version:dkim-signature;
-        bh=0/3xq8hIlkDZKn/4BFbonv8yuwP3/TV4s/w1lmYLKlE=;
-        fh=Sri1dxalKcFAeuEuDQf83LY8vDYqVP2CZQy5AJUmL/k=;
-        b=CH46kPgbgTadJeihCzp3PZ9RExw6vOYRaWNPhrAHD3FAUBSdFAtA8YZkElEu7qVUny
-         4K58QIkWcEv4+RcppsfkFZadnij/RMyKFlDfLgPe4nANZuLeISo77Mk9gxTFISh71EqE
-         ahE/Q7iSakEdrLN5gTo6VzFCPYQa74TG0TK9WYp/DsNaQ6Y7h2mtt9FuhaFbODvXeB6s
-         vj1zJKHArMTG2dRalch0QSlxDJe5+lGKChpIetG5XQViMMrQ1US7g6lq8ykcOWRknoMu
-         7XkqXHSYduFj3CU+/HVBmNwsYNN/oWft3NvQTtlhc5L4uROWvvIxs4jvzJZv9r9PEsrt
-         N36Q==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1794725128; x=1795329928; darn=vger.kernel.org;
-        h=content-type:cc:to:subject:message-id:date:from:mime-version:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=0/3xq8hIlkDZKn/4BFbonv8yuwP3/TV4s/w1lmYLKlE=;
-        b=BpwQH41BDH+rLTxQ4tc49OHpD9jtyrWfvS1Q/B4sGyBzKtnNjWjgaN9us2ROVra5Yi
-         3EK+UWi+hCkYqvV59U8ZMjXVJU77NRjYrN5mBg5CPoFNLeOHpStMDVXSZtLa2SXDXxwz
-         UzKj4ZdIj9ewAK+bUoV4XSUe4Xm5WWSgiM07gyozlFoQWbmWa6GUdLTuXoTLwSLceoLP
-         plaBRT/1pWDidl7yagvZRRYEuaV5hj1HdNZ+y8NFgQMYcXXvE+ca1bnkWG5d5pP/3Oco
-         R6LFCVHxuiflf2SfMsWiBMgrFsoRA2afIahCe7VAxCUJGynp1DmCksec5Tc/YE4BmBP/
-         8aJw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794725128; x=1795329928;
-        h=content-type:cc:to:subject:message-id:date:from:mime-version
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=0/3xq8hIlkDZKn/4BFbonv8yuwP3/TV4s/w1lmYLKlE=;
-        b=aEOGUlF1Z9C/aA1FBZbr9dCQih8WTh56fAB0yEB0wOMTqgftUr5dK/B8ohnbSYLyEG
-         BMK4TNss8HRqqmkiT42Ornd68D8RzHtmRkrgIP4kKKIdjj/RfsQJF9nDgiab3BD3CTe2
-         FD9pAJVFI54x90UuF3et/WJDo7cuTA7ksAIIkmY+nem6fkmhN/RimLxCib1CcaS4Sx/+
-         4LgtAPvrz6zUMFWtcSwwn0Xtz+GH7DwNyIx1Vp3Z58gEQFcUTvbTHyb2y36kTuXtBZ5m
-         un7os1CBB2EkmG8PH36ye7QIsqFh2QbhWLInIzj+kZbq9Zo8wOSydUv/8C8EtnzizxTh
-         W1aQ==
-X-Gm-Message-State: APuU4Z9oMWGjGNlENslXVOnzoXFtPKAk3YB0Im9IwDHX2Qisxq/4JHLl
-	vGs/uXCb3CWOTDyXqwgOl62ofve5L/d0AfkkqZcYuWMQ3urpk5WrunNUvOrWUpnLP/NaksOPMSB
-	eG6zdzguphjBGEEnv5wvdZPL+8QbJmCY=
-X-Gm-Gg: AYBFou0w/BFIEJyAdMpBKEaPJzBIgyOKe+U0OEUDDCdKNFUwc675U/mh40dJWOpzbml
-	LKsJXtDIr6R2tdZOH4cR6gUUQYgZgqKL8R/Ynh8E49LuyjRGg53aCfCajCc/tjovNvWz1DP57Rr
-	QoevBWb/u4uu/VetJncZz7+P+gPYr+Wrm1RyPUx3rdoFvridnVN2BwW6Ftz02TPWOIBZ9NUFjrq
-	jv1Y+vdUwY2646xtZ5niOlrJLszhiHBE+aPQGPcyEdh4i31/2ijE+Caj19iiun4TBWwFf/PRlyo
-	zYuOCxTk+ABn5wRpFRJuXS66H2AD5OsJdEbjd3nJpuZejOHD2KBNhB0ud6K/RWRyq/yd8oME6HF
-	siLMRvEf+P4/8eHTskB9ZxEpBTg60yTo19GxZYbfkJCZu6gcNKWuHse6i4rBKQcyk6x2u
-X-Received: by 2002:ac8:5ac2:0:b0:536:2fd8:a4d8 with SMTP id
- d75a77b69052e-55ac667dfbamr119243201cf.15.1794725127927; Sat, 14 Nov 2026
- 22:45:27 -0800 (PST)
+	dkim=pass (2048-bit key, unprotected) header.d=chrispinetinega.com header.i=@chrispinetinega.com header.a=rsa-sha256 header.s=default header.b=YnOTpAOn
+Received: from mail.privateemail.com (unknown [62.8.90.37])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mail.privateemail.com (Postfix) with ESMTPSA id 4jS7cp6Fkdz8sWV;
+	Sun, 15 Nov 2026 11:12:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=chrispinetinega.com;
+	s=default; t=1794741153;
+	bh=Wtgom5SxqHDtHqRwD4u1SexlopRYafHtKihIR5rv3L8=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=YnOTpAOnG/bKK6ONGaUdDS0OeJWEzHI6Ua48oTmWyJyCOtqQ+dP8MUs9LSuWKu6Jt
+	 mQUpcSq8G1swf37deu91PLjTQMU54LnVNY/8OXWw6l6MElE3sOPeUQRBn81Nh9DrDZ
+	 JIPkdcQNyrJhZo7EmQFPokBWEkZcwNFRtHMqrXSVl56Gbl+Kv2A7ZJNWog1tVMCEDm
+	 mgBNRT8pfpjvWP4SiEZwnyVT7PWyHIKTkZoiVKgMeYWjuoPnTw68p0c8VNOZgOdwlt
+	 GuosHlVZj7MgVR95fIFQIqduV3DufEFYvzO85VStgsXX7NIU39qFHVUQIQpwR9K+5d
+	 LFhaa3X2FqO+g==
+From: Chrispine Tinega <dev@chrispinetinega.com>
+To: broonie@kernel.org
+Cc: lee@kernel.org,
+	lgirdwood@gmail.com,
+	robh@kernel.org,
+	krzk+dt@kernel.org,
+	conor+dt@kernel.org,
+	aaro.koskinen@iki.fi,
+	andreas@kemnade.info,
+	khilman@baylibre.com,
+	rogerq@kernel.org,
+	tony@atomide.com,
+	jerome.neanne@baylibre.com,
+	linux-kernel@vger.kernel.org,
+	devicetree@vger.kernel.org,
+	linux-omap@vger.kernel.org,
+	mfd@lists.linux.dev
+Subject: Re: [PATCH 2/3] regulator: dt-bindings: ti,tps65219: Add ti,no-warm-shutdown
+Date: Sun, 15 Nov 2026 14:12:17 +0300
+Message-ID: <20261115111217.371268-1-dev@chrispinetinega.com>
+X-Mailer: git-send-email 2.53.0
+In-Reply-To: <cedb08d0-cfa0-452d-b4cd-511d6c852eed@sirena.org.uk>
+References: <cedb08d0-cfa0-452d-b4cd-511d6c852eed@sirena.org.uk>
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -99,65 +81,26 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-From: Alex Guo <alexguo1023@gmail.com>
-Date: Sun, 15 Nov 2026 14:45:16 +0800
-X-Gm-Features: AclHuK_kcIbKAU4I18MjmNReJSn41ne32WepJS2MRE7kyM3HewwZkuZHAF6Bz20
-Message-ID: <CAAi4Z-e6cZ6wxFTO1rk7JmN-zdTo6=boWUwPeAOKSjuVQ6NbHQ@mail.gmail.com>
-Subject: [PATCH] bus: omap_l3_smx: Check IRQ lookup results
-To: aaro.koskinen@iki.fi, andreas@kemnade.info, khilman@baylibre.com, 
-	rogerq@kernel.org, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-Envelope-From: dev@chrispinetinega.com
 
-omap3_l3_probe() passes both platform_get_irq() results to request_irq()
-without checking them. A failed lookup can be reported as -EINVAL,
-losing the original error and preventing a retry if the lookup returned
--EPROBE_DEFER.
+On Sat, Nov 14, 2026 at 02:20:01PM +0000, Mark Brown wrote:
+> Reviewed-by: Mark Brown <broonie@kernel.org>
+>
+> though we might still want a runtime override for when the user is more
+> cautious.
 
-Check each result before requesting the interrupt. Use the existing
-cleanup paths so a failed application IRQ lookup also releases the debug
-IRQ.
+Thank you for the review.
 
-A similar issue was fixed in commit 47c3e06ed95a
-("spi: tegra210-quad: Fix missing IRQ check in tegra_qspi_probe").
+I agree. Looking at it again, a cautious user also has nothing to act on
+today. With the warm warning masked, the warm interrupt reaches the
+regulator driver with no regulator attached, so it only logs "Error IRQ
+trap warm temperature". Nothing is notified.
 
-Fixes: e2fa61d40919 ("OMAP3: l3: Introduce l3-interconnect error
-handling driver")
-Signed-off-by: Alex Guo <alexguo1023@gmail.com>
----
-Build-tested the affected driver object with Clang 18 for arm.
-No hardware test was performed.
+I would rather keep this series to the board default and add the
+override as a follow-up, once there is a user who needs it. I would
+also change the binding text in v2, so it no longer says the operating
+system decides how to react. Does that work for you, or would you like
+the override in this series?
 
- drivers/bus/omap_l3_smx.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
-
-diff --git a/drivers/bus/omap_l3_smx.c b/drivers/bus/omap_l3_smx.c
-index ee260c1fc087..7245be425f13 100644
---- a/drivers/bus/omap_l3_smx.c
-+++ b/drivers/bus/omap_l3_smx.c
-@@ -235,6 +235,11 @@ static int omap3_l3_probe(struct platform_device *pdev)
-        }
-
-        l3->debug_irq = platform_get_irq(pdev, 0);
-+       if (l3->debug_irq < 0) {
-+               ret = l3->debug_irq;
-+               goto err1;
-+       }
-+
-        ret = request_irq(l3->debug_irq, omap3_l3_app_irq, IRQF_TRIGGER_RISING,
-                          "l3-debug-irq", l3);
-        if (ret) {
-@@ -243,6 +248,11 @@ static int omap3_l3_probe(struct platform_device *pdev)
-        }
-
-        l3->app_irq = platform_get_irq(pdev, 1);
-+       if (l3->app_irq < 0) {
-+               ret = l3->app_irq;
-+               goto err2;
-+       }
-+
-        ret = request_irq(l3->app_irq, omap3_l3_app_irq, IRQF_TRIGGER_RISING,
-                          "l3-app-irq", l3);
-        if (ret) {
---
-2.43.0
+Chrispine
