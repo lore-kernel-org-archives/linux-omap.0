@@ -1,78 +1,73 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=198.54.127.165
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.224.42
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794855552;
-	b=gOb0rcIBGWuRTFy4CENWu2yIufYaW0KQK0cDGcI7xDRdfDdVD4uvjNh1797eWvKMlVbO
-	 aNHHutVx/pkhaq3F3RqN6WIdrHXmaNFCZW7FhTG/20RRGQ4WHjs3zq3TDkg7uFCdGinjK
-	 Txd9CUdIhJnioB4PvWORGSVnL7pyLmI746TsA5n2qlNTyIh4DcFZ+M3oZrqef9v4XOduY
-	 sg+8G9fCjgZ8GGFcPMlRFp7dj+ctMsD3eSEaawg5BFMX05rqvZmvfBL3hIXMKqxjKECbl
-	 1UKhZVKR19VrLgDin1IozPheG944nQgXBHVhdK07bvEvN6TjSDid54dvQhcUleAQgDw==
+	t=1794866624;
+	b=eY4JFO4XV7JRLh8iM+TCdAWO8PkeLLSXLk/mrM9jetu+UzhQjtoAk2ieq4wXJDByNKvT
+	 1/KjCDMERAkwgk/L5JPXWZN++0F0b0O7nXh2cim3LIlBTJtuH9IqFribNiozUAGWEOdWW
+	 Houvn/4ylYqRsn+OdynFr2TV6pv5fg1FZVgm0kkYbr15v/Pv9MOOk4sA2oo21cAkLwZRD
+	 6I03GFjhTH+wewtiQSBbbAoRHGW8IRCCBBs745hlcwSkqDdfB1eP0L/AaYwDxLMnscolq
+	 7qltKHvh9/FrHqIU3EQ0LqiN6a1a259oDAGNK4sXQCkAU+SI2TOEWqzr/eaza4XbalA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794855552;
-	h=DMARC-Filter:Received:DKIM-Signature:From:To:Cc:Subject:Date:
-	 Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding:X-Envelope-From;
-	bh=IpWRaIqFYpHuiZAy8OVcSapWNWeYnlDeXUT+MZCj6vA=;
-	b=qU8TvTawirq0RPQbiPieekaAy9EWJCbsS0TPgRDMq3n5Z2HCZU7cieYeHsJIwULrpD4K
-	 Ec/mp12odZgZvhWYeD2ouZ0DB2qN24Ma1oKZAsuzRZ2+8fbA+ikxRIFnkTRICarMpKhxm
-	 spI5ySX8qTJZk41ef/2Rqz7qnU5DLzysS8A14fHFFfavb6bmDTCllmC8MRqL2MlEndymR
-	 scInR6X/KZHktuz2JneYasrz3bOy0NUM9mvkKp9RXPJ2Dfr2hYqYUT9cvS7ixmfXuD+Fg
-	 yiyMA4NYDt48v578rSmDM80GGXQEWU0OuPb6+bukmUvdLPzJzyH4bI+vTN5tTDf816w==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794866624;
+	h=DMARC-Filter:Received:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:Subject:Date:
+	 Message-Id:MIME-Version:Content-Type:Content-Transfer-Encoding:
+	 X-B4-Tracking:X-Change-ID:To:Cc:X-Mailer;
+	bh=m+cxQs8yTdgDvbABlUHThuxHL2i4RK+nNcUQlxgwMtk=;
+	b=sE/0nwT+zHgelkl9uQYWfKsVeUCe9/NH9Q6c73FkU5YHl7xPcVP3NFFglCIkwOSIxp5t
+	 OwRclp4Pcst9fNEOKDjjXz0PrDex7dy/lx/W7/Wxio5uo0mXfRyaHDVwdn4NKGhIP4aqo
+	 imOglnPFg/gSbHRvIIk9LIpigbKjU7kZqC1qEPVP6WFbXfElDtsv99KqV9uIrCqkuuZ5W
+	 wm3lrzpl9B9Vmv0Iw0nFGeT/bhgsRTZyMdOrKuJSxCJcNvo7pyPiKSY807lGOJo/chdPB
+	 fzs3OgQ59aiMfE7wYREJg/S/uXbFsxkwWpMxwCN1nZL3IQpH2wyQ7G9/GIpwoYwdL0g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=chrispinetinega.com;
-	spf=pass smtp.mailfrom=chrispinetinega.com;
-	dkim=pass header.d=chrispinetinega.com header.i=@chrispinetinega.com header.a=rsa-sha256 header.s=default header.b=RLEnayxb;
-	arc=none smtp.remote-ip=198.54.127.165
-Received: from out-2z4y-a165.jellyfish.systems (out-2z4y-a165.jellyfish.systems [198.54.127.165])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=none header.from=telaak.dev;
+	spf=pass smtp.mailfrom=gmail.com;
+	arc=none smtp.remote-ip=74.125.224.42
+Received: from mail-yx1-f42.google.com (mail-yx1-f42.google.com [74.125.224.42])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD1BF606A88E
-	for <linux-omap@vger.kernel.org>; Mon, 16 Nov 2026 18:59:09 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CD1BF606A88E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chrispinetinega.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chrispinetinega.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=chrispinetinega.com header.i=@chrispinetinega.com header.a=rsa-sha256 header.s=default header.b=RLEnayxb
-Received: from mail.privateemail.com (unknown [62.8.90.37])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mail.privateemail.com (Postfix) with ESMTPSA id 4jSxwP4rGgz8sWT;
-	Mon, 16 Nov 2026 18:58:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=chrispinetinega.com;
-	s=default; t=1794855534;
-	bh=IpWRaIqFYpHuiZAy8OVcSapWNWeYnlDeXUT+MZCj6vA=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=RLEnayxbmvqpyZDpX6CRadKeHs0sNdNzsmnek0FEPWG8jaT+1ycW9FgPw4c8q5MEX
-	 LA4BdeJlDxU8K40KNPVpQVQm9O4fwKHwBWDATpbXfKdb2tw5sNgGFDUGagLaBuiAv0
-	 N+Iosk8HI5LPwBvHek8CpllgdXsbwEGChaJr3ToCzvBs2rBztkaMrxDDUi9b4fQKmk
-	 EpLPWeb7FN1QYaa6jpQ1sgB6rTdBYkpHDRxPeqTLqGhUgXbLitT8qRB2DkNDIZPwCU
-	 XUn+JT0UPrYovajVsYiRlDHxYS3LPVYtwX4oKcm5tCLmnGdSkUsPIOZMnKSUC5d9gn
-	 dyDzii6QUF7wg==
-From: Chrispine Tinega <dev@chrispinetinega.com>
-To: Lee Jones <lee@kernel.org>
-Cc: lgirdwood@gmail.com,
-	broonie@kernel.org,
-	robh@kernel.org,
-	krzk+dt@kernel.org,
-	conor+dt@kernel.org,
-	aaro.koskinen@iki.fi,
-	andreas@kemnade.info,
-	khilman@baylibre.com,
-	rogerq@kernel.org,
-	tony@atomide.com,
-	jerome.neanne@baylibre.com,
-	linux-kernel@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	mfd@lists.linux.dev,
-	Chrispine Tinega <dev@chrispinetinega.com>
-Subject: [PATCH v2 3/3] mfd: tps65219: Keep running past the warm threshold when asked
-Date: Mon, 16 Nov 2026 21:58:11 +0300
-Message-ID: <20261116185811.1907811-4-dev@chrispinetinega.com>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20261116185811.1907811-1-dev@chrispinetinega.com>
-References: <20261116185811.1907811-1-dev@chrispinetinega.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89370606A31C
+	for <linux-omap@vger.kernel.org>; Mon, 16 Nov 2026 22:03:44 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 89370606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=telaak.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: by mail-yx1-f42.google.com with SMTP id 956f58d0204a3-67db0791748so2052469d50.1
+        for <linux-omap@vger.kernel.org>; Mon, 16 Nov 2026 14:03:44 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794866623; x=1795471423;
+        h=cc:to:content-transfer-encoding:content-type:mime-version
+         :message-id:date:subject:from:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=m+cxQs8yTdgDvbABlUHThuxHL2i4RK+nNcUQlxgwMtk=;
+        b=tazorCXIqA1aEbRvALa21fC1FPDaiUiab/H3iUd5L8rXX4euWFOtH5VbKcciiLeyF4
+         aQKMrXIcZjDQWXeRrOAXqHnCeecWBrWuYbP4/Gl75QpLs8xlm9aMzmJpUccsePMZo/o8
+         RuGwsdAWw5uWLYNk/6KrORDTmp0t5AP1424xpiiEPm8dkrGdIfeG5UJ25oZSFYbJ5bD6
+         A8n9t1JSzLt7hKQBsw5MtvKsCfOeR6wAj6uBAnyfErmGA/gscC4MWwjW8PN8mRbMN0lq
+         hn+EhSHskcL+vIyIrbzsC11m+bPBrmJVRyIq6GnFKMxzmv6sSzKAu+d/2VKbpDTBH9Um
+         Y6XA==
+X-Forwarded-Encrypted: i=1; AL+hErFi/MEtQPKus+M3S3bXV7GBH91jhOW73Fa06wxrOWX7zhDREDLBhY8hgU5qv2bhzlfApjUhN/V7p6Af@vger.kernel.org
+X-Gm-Message-State: APuU4Z9gR5+2W5kYI4vI+3i1u/zJznHETzLol3Diov6J9FqUgNWPuYxP
+	S504L5AA/vDz+0HUPZlC88HbSdid6MMOJxlxSI+c7qmKwgt6oqCxW/yuFmWyy2je27w=
+X-Gm-Gg: AZFdTZeSA85+sVSeyxYmGcuUWAndsx+1BZmL3hb796en6PSwf/+X5qxrfVnGrozXWN5
+	mECzKt8veo67+k8s4x5J8DgxVQycEW6uluah9N+3nnpLmA/bNji+yjyQAb271GvCjDafsZIqIHU
+	LY7P/92Ens0R14fk7tIhD7FTYejZM0j0uppLqGaQvOpcOpktsNWuFR650Pya07vGewMR6CqlQhR
+	vAEcJnNOhPHVaqwP/4Zn9oD4Uc2lmZnzynVVmRAmwTonTy8/+bV+eKwLooR7ivQ8g1ksMCB6Onc
+	/Ha+kS4m+udPAiLfC5Mh1BWZ+b7vbItgP/hVXnzbBmyBi67xBuZa6lO9ZKMfBg79rZRHmW5lyJ1
+	3GtfpPDln9ZvnyIztUsR0ZBVEiB5wYEDmBkOl3EltvcNXSHVWU5Zew25j4crIMy17fk9wf+DwJB
+	qmLwwneBBnv9gnwPtZCwV54Gv4uUHxtndeXHWshxd0mU6L4i2NBjdNMcjYm1wI5A/z5qyM5SG8d
+	rELvBzaihDxntNoXoAE1PHRY7yWtsav6HUN1Op6WXSBj/E01arJ4mPS3sOgPOei0p8GSMwxEyD4
+	riEFxR1ZVjruBuCzmMU2fYi+JszSktwpNQkg+Wy3oS7Ai8cRJUdKVWnq8LnSe9JKHUOXYXU+tfT
+	DgAdXoPhRnc3KFkrn5q+gtV1WhMVzBIsE3Yo=
+X-Received: by 2002:a05:690e:169b:b0:67c:3484:f8e6 with SMTP id 956f58d0204a3-67d8963cae1mr7159104d50.38.1794866623596;
+        Mon, 16 Nov 2026 14:03:43 -0800 (PST)
+Received: from josephs-mac-mini.local ([71.68.170.161])
+        by smtp.gmail.com with ESMTPSA id 956f58d0204a3-67d8a629a2dsm11133078d50.21.2026.11.16.14.03.42
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 16 Nov 2026 14:03:43 -0800 (PST)
+From: Joseph Telaak <joseph@telaak.dev>
+Subject: [PATCH 0/2] ASoC: ti: omap-mcbsp: TDM slots for generic cards
+Date: Mon, 16 Nov 2026 17:03:20 -0500
+Message-Id: <20261116-omap-mcbsp-tdm-slot-v1-0-6c9f7aa45a29@telaak.dev>
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -82,69 +77,42 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Envelope-From: dev@chrispinetinega.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAAAAAAAA/yXMQQ6CMBBA0auQWTsJU7Ear2Jc0DLAGEubTjUkh
+ LtbdfkW/2+gnIUVrs0Gmd+iEpcKOjTg536ZGGWoBtMaS0QnjKFPGLzThGUIqM9Y8Mxs6dhdjLE
+ Oapkyj7L+rrf73/pyD/blu4J9/wCFfJBsdwAAAA==
+X-Change-ID: 20261115-omap-mcbsp-tdm-slot-7ee61348226b
+To: Jarkko Nikula <jarkko.nikula@bitmer.com>, Sen Wang <sen@ti.com>, 
+ Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, 
+ Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>
+Cc: linux-sound@vger.kernel.org, linux-omap@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, Joseph Telaak <joseph@telaak.dev>
+X-Mailer: b4 0.16.0
 
-When the devicetree sets ti,no-warm-shutdown on a TPS65219, set the
-four SENSOR_x_WARM_MASK bits in MASK_CONFIG at probe. The PMIC then
-reports a warm die instead of powering the board down, and powers off
-only at its hot threshold.
+With simple-audio-card or audio-graph-card, McBSP as clock provider runs
+its bit clock at the full SRG input, since only a machine driver can set
+its divider. Patch 2 adds set_tdm_slot() so these cards can ask for a
+frame of slots x slot_width bit clocks; patch 1 lets the divider use all
+8 bits of CLKGDV.
 
-The masks are loaded from the PMIC's NVM at every power-up, so they are
-set on every probe.
+The ADV7513 in the test takes S32_LE only with a companion adv7511
+patch:
+https://lore.kernel.org/r/20261116-adv7511-s32-v1-1-40ae8228db42@telaak.dev
 
-Signed-off-by: Chrispine Tinega <dev@chrispinetinega.com>
 ---
-Changes in v2:
-- None.
+Joseph Telaak (2):
+      ASoC: ti: omap-mcbsp: Use all 8 bits of CLKGDV
+      ASoC: ti: omap-mcbsp: Implement set_tdm_slot
 
- drivers/mfd/tps65219.c       | 15 +++++++++++++++
- include/linux/mfd/tps65219.h |  6 +++++-
- 2 files changed, 20 insertions(+), 1 deletion(-)
+ sound/soc/ti/omap-mcbsp-priv.h |   6 +-
+ sound/soc/ti/omap-mcbsp.c      | 155 ++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 159 insertions(+), 2 deletions(-)
+---
+base-commit: 7cd6b1fd8f9c1fcb1da1b761d502649f50b9800f
+change-id: 20261115-omap-mcbsp-tdm-slot-7ee61348226b
 
-diff --git a/drivers/mfd/tps65219.c b/drivers/mfd/tps65219.c
-index e52fbf148..d8e352f35 100644
---- a/drivers/mfd/tps65219.c
-+++ b/drivers/mfd/tps65219.c
-@@ -507,6 +507,21 @@ static int tps65219_probe(struct i2c_client *client)
- 		}
- 	}
- 
-+	/*
-+	 * The warm masks are loaded from NVM at every power-up, so they are set
-+	 * again on every probe. With a sensor unmasked, the PMIC powers down at
-+	 * the warm threshold; with all masked, only at the hot threshold.
-+	 */
-+	if (chip_id == TPS65219 &&
-+	    of_property_read_bool(tps->dev->of_node, "ti,no-warm-shutdown")) {
-+		ret = regmap_set_bits(tps->regmap, TPS65219_REG_MASK_CONFIG,
-+				      TPS65219_REG_MASK_SENSOR_WARM_MASK);
-+		if (ret) {
-+			dev_err(tps->dev, "Failed to mask warm shutdown: %d\n", ret);
-+			return ret;
-+		}
-+	}
-+
- 	ret = devm_regmap_add_irq_chip(tps->dev, tps->regmap, client->irq,
- 				       IRQF_ONESHOT, 0, pmic->irq_chip,
- 				       &tps->irq_data);
-diff --git a/include/linux/mfd/tps65219.h b/include/linux/mfd/tps65219.h
-index 5a6be84e2..688173044 100644
---- a/include/linux/mfd/tps65219.h
-+++ b/include/linux/mfd/tps65219.h
-@@ -196,7 +196,11 @@ enum pmic_id {
- #define TPS65219_REG_MASK_UV_BUCK3_UV_MASK		BIT(6)
- #define TPS65219_REG_MASK_UV_RETRY_MASK			BIT(7)
- /* MASK Config */
--// SENSOR_N_WARM_MASK already defined in Thermal
-+#define TPS65219_REG_MASK_SENSOR_3_WARM_MASK		BIT(0)
-+#define TPS65219_REG_MASK_SENSOR_2_WARM_MASK		BIT(1)
-+#define TPS65219_REG_MASK_SENSOR_1_WARM_MASK		BIT(2)
-+#define TPS65219_REG_MASK_SENSOR_0_WARM_MASK		BIT(3)
-+#define TPS65219_REG_MASK_SENSOR_WARM_MASK		GENMASK(3, 0)
- #define TPS65219_REG_MASK_INT_FOR_RV_MASK		BIT(4)
- #define TPS65219_REG_MASK_EFFECT_MASK			GENMASK(6, 5)
- #define TPS65219_REG_MASK_INT_FOR_PB_MASK		BIT(7)
--- 
-2.53.0
+Best regards,
+--  
+Joseph Telaak <joseph@telaak.dev>
 
