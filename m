@@ -1,63 +1,45 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=31.217.193.162
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794942899;
-	b=OBdyc0Ae9mGQAQTInN5pNGhOGDAhoJ8FZo/4R6wUUGtf6g0otb8AAZ+4yAqAlDQRWZDY
-	 4nq6HTFIXtbpPCOxDwdkLxiLdroU4LCmT21RD9D2MgyR1xKgWVjfJ3KMJop5Vl8iGi01T
-	 /0ZAckYfBCyEe5yuH5obUBUAJkIV8Np16xIuufL+t4BXuzrGHT7uSPeVZndLyc/yZMup1
-	 Zl+GTBiwCG0i5jAAG1fHR4xOZgK9KtlLYSFvS+y1UQhSycOG8lv2Zl7MLdKt3xmfaSChH
-	 8JjR2I93AnGPere6/uIP+UG7TBh7jeiwWcthciBQp1EnpTx8g7flVxyPmPkajS1yTZg==
+	t=1794953512;
+	b=KaDSbFdOTZmvTq4brjdwFauBuQvW7NSezsYU7LN0aGduZcXLgDeqGdRcQdiVAoAjK/7W
+	 tTm3WxujU9n4CAWJDonDcBndoOWardf54xPHjeOKozDHVvZuhuMAToJkGRPmUMDVCIq8H
+	 7n1iH7C6VDp6KTB+h+atEF7puauueMSOaQs+RCMYM7yeAmr50DraI4+KwyyPJ0PUQR848
+	 N4EIY0IVXUPJAJzdKIAux1YU1/omIIwyCbV01PivgRMmjG1/asM0PKMcjv4UdgczVZ+1T
+	 OCT8sYfM1grhblnWqPVwWXRLSFaXz4PZHnxxPhjKo75DT6kpGYMHaA5kBuD7dUxze0A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794942899;
-	h=DMARC-Filter:DKIM-Signature:Received:Message-ID:Date:MIME-Version:
-	 User-Agent:Subject:To:Cc:References:Content-Language:From:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding:
-	 X-Hostingpalvelu-MailScanner-Information:
-	 X-Hostingpalvelu-MailScanner-ID:X-Hostingpalvelu-MailScanner:
-	 X-Hostingpalvelu-MailScanner-SpamCheck:
-	 X-Hostingpalvelu-MailScanner-From:X-Spam-Status:X-Spam-Flag:
-	 X-AntiAbuse;
-	bh=MM8UVOcHmL2MRTreb8kFuCzOb6vqab/wkeY7bKqiKLE=;
-	b=tG9uv0yi+8R4HSFWfBYda+jHoS4zLEPN3iptflHGrYhoKqoyPtdiOigRMoL+0opPVJKo
-	 EYA5NK7KU5wIVFc2PY+jD1W02T6LsPGdT32YladPk/zkwR+BKim9GIQL3Qxn+QgAENvWt
-	 6TWH7OzDI6a85CI7Y4YFp6z/VqTSnZ2d7W1beHUo8q/J6pBQMtDbuL8aZ2Y1lx7XeBuyF
-	 dDasimW/aX6iOp3R0shOBCi05w/ajzVGYbxg+I1yF3VCj8N6/XM/cO65rZo2LUTnaofqn
-	 MiHxU9BBLawx56PGLywH32XQyCsvKCSjM/GZS3Jj5H8gyjUqyHATjSQ+hjaNRgYg/fQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794953512;
+	h=Received:DKIM-Signature:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding:Subject:From:To:Cc:In-Reply-To:References:
+	 Date:Message-Id:X-Mailer:X-Developer-Signature:X-Developer-Key;
+	bh=PQ1lkb7nCtNnaMBZ9SlFdtw9+jVlK/RLRabaEyTSzJo=;
+	b=rUgAk5V7e9dVROnIvZkLfdjb2CNaaF5lttz0pmdwM67yXQagk1jj81xNmznkCvAEQgZB
+	 leEDESzz16U4AG6YRo56xI562dIf/+eqmuu8r2n5IRPoJpWnOIelWfefmH+f6ON2HNcjs
+	 hUiukdLqBniz04SaGPgnjrhnC7Y6Lr6kJCncnxbPSN52Mvyrq36pFlnyDl8nhuduja1vn
+	 AMrmtvhzlz5+RP05nKrgirr/LmorHjM+cDIw0/UYzzYvA0/vs6pBivV2+gPuh3Akz8DKk
+	 hDT9WeBK6Z/xbkwue4BraWJQOoz0/0e4Jxdyfk7t7oIfRHHMFbEYnTZVrtHvhc0iFig==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=bitmer.com;
-	spf=pass smtp.mailfrom=bitmer.com;
-	dkim=pass header.d=bitmer.com header.i=@bitmer.com header.a=rsa-sha256 header.s=default header.b=IbKuYOtn;
-	arc=none smtp.remote-ip=31.217.193.162
-Received: from wp23.hostingpalvelu.fi (wp23.hostingpalvelu.fi [31.217.193.162])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=b+Udxlpe;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0B61606A31C
-	for <linux-omap@vger.kernel.org>; Tue, 17 Nov 2026 19:14:58 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C0B61606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bitmer.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bitmer.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A524B606A31C;
+	Tue, 17 Nov 2026 22:11:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bitmer.com header.i=@bitmer.com header.a=rsa-sha256 header.s=default header.b=IbKuYOtn
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=bitmer.com;
-	s=default; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:
-	References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:
-	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-	Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
-	List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=MM8UVOcHmL2MRTreb8kFuCzOb6vqab/wkeY7bKqiKLE=; b=IbKuYOtneCgkjTU6wV/15i4flH
-	cSh+pMebMxlayI/CZ5WvPs+oxjd23YFEwcZ1e9XnmFYNhXD+eztxZJjfmni014ffjitRY+uli/xT2
-	V55058fPxuR4l2//fIooIH8KcPdBCXLTjvXfxvic9B3hWmCL2pxRqcfcUWIbutOA0LW1W5ewDLn+y
-	zxs+do7dhXKAacOedkPz/20KTGQLvQbGa2IdjYuez9M8Ruu7rSTCL/A7rD0FJJVukYqRtTXFBBDnQ
-	Y7VnhB7hbY/q+G8L83Ew0QyiJKR3NT2/yywQhQd8RC6lMVDtgiy8kt8b6x7BtHafdMW1blDRNvQbv
-	PvqVSvQw==;
-Received: from 91-155-183-156.elisa-laajakaista.fi ([91.155.183.156]:59008 helo=[192.168.0.14])
-	by wp23.hostingpalvelu.fi with esmtpsa  (TLS1.3) tls TLS_AES_128_GCM_SHA256
-	(Exim 4.97.1)
-	(envelope-from <jarkko.nikula@bitmer.com>)
-	id 1xTOdq-00000008KHH-2V6J;
-	Tue, 17 Nov 2026 20:14:54 +0100
-Message-ID: <65ea5216-9c1c-409a-9a67-7053bbf07cd3@bitmer.com>
-Date: Tue, 17 Nov 2026 21:14:54 +0200
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=b+Udxlpe
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A6F51F000C7;
+	Tue, 17 Nov 2026 22:11:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1794953512;
+	bh=PQ1lkb7nCtNnaMBZ9SlFdtw9+jVlK/RLRabaEyTSzJo=;
+	h=Subject:From:To:Cc:In-Reply-To:References:Date;
+	b=b+UdxlpemwPOnSf43MqI4NgEf44TZ3ADYUpSOCmm5PfvQ0twBUB0liPEaHYotkpsO
+	 ZupUAg9wVep5QGZDP3HKvA/SQha6PvDI2qzNO+0Gl5RW+p1tP0ix3TvEe2SGc+nase
+	 QRSa++ghApI/BS/LMheMmPsDAAaNSd1ctDxQf4EsPrNvIuxlYmrjOWAuK75LuR1dOM
+	 u9a4wLL5/Pv1zI4f4SHkU+z2WjltOl+Pw+MD6d/J5L5L5JHkq3cgeJgBPJ/ABOfjTU
+	 SBVDOQnAG4WW77dYe4RIKLwJpEcFQNyktgrdtpoMQtbd86bKwtoCl7VjZMqpelR4aN
+	 JzR7MnTlIfREQ==
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -67,58 +49,77 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Subject: Re: [PATCH 2/2] ASoC: ti: omap-mcbsp: Implement set_tdm_slot
-To: Joseph Telaak <joseph@telaak.dev>, Sen Wang <sen@ti.com>,
- Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>,
- Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>
-Cc: linux-sound@vger.kernel.org, linux-omap@vger.kernel.org,
+From: Mark Brown <broonie@kernel.org>
+To: Joseph Telaak <joseph@telaak.dev>
+Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, Sen Wang <sen@ti.com>, 
+ Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, 
+ Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
+ linux-sound@vger.kernel.org, linux-omap@vger.kernel.org, 
  linux-kernel@vger.kernel.org
+In-Reply-To: <20261116-omap-mcbsp-tdm-slot-v1-2-6c9f7aa45a29@telaak.dev>
 References: <20261116-omap-mcbsp-tdm-slot-v1-0-6c9f7aa45a29@telaak.dev>
  <20261116-omap-mcbsp-tdm-slot-v1-2-6c9f7aa45a29@telaak.dev>
-Content-Language: en-US
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-In-Reply-To: <20261116-omap-mcbsp-tdm-slot-v1-2-6c9f7aa45a29@telaak.dev>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Hostingpalvelu-MailScanner-Information: Please contact the ISP for more information
-X-Hostingpalvelu-MailScanner-ID: 1xTOdq-00000008KHH-2V6J
-X-Hostingpalvelu-MailScanner: Found to be clean
-X-Hostingpalvelu-MailScanner-SpamCheck: not spam, SpamAssassin (score=0.711,
-	required 5, ALL_TRUSTED -1.00, KAM_DMARC_QUARANTINE 1.50,
-	KAM_DMARC_STATUS 0.01, KAM_MANYTO 0.20, TVD_RCVD_IP 0.00)
-X-Hostingpalvelu-MailScanner-From: jarkko.nikula@bitmer.com
-X-Spam-Flag: NO
-X-AntiAbuse: Primary Hostname - wp23.hostingpalvelu.fi ; Original Domain - vger.kernel.org ; Sender Address Domain - bitmer.com
+Date: Tue, 17 Nov 2026 22:11:46 +0000
+Message-Id: <179495350668.2707353.9603940609466130588.b4-review@b4>
+X-Mailer: b4 0.17-dev
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2203; i=broonie@kernel.org;
+ h=from:subject:message-id; bh=cRxcbpa3t4zw11M9tXL4PZCGMhSuhM/BTNbnsk47r/c=;
+ b=owGbwMvMwCWm/754w+YLFp2Mp9WSGLL+XFSZoZspZTiD+dqm25dzvbfuCEhavKVs8qzv+tbS8
+ 7MC7paFdpSyMIhxMciKKbLEZXG/rC95vYbv4MI2mDmsTCBDGLg4BWAizAIM/z35Zi56JHH66QrG
+ 82qpBTPWhF+dGNSz5tzdDXobJ90s9jjMyPD/wAk7BY+7Ow1m3eObw3pVpaf/1Ma5iXsDpJ7zHah
+ 5fIYfAA==
+X-Developer-Key: i=broonie@kernel.org; a=openpgp;
+ fpr=3F2568AAC26998F9E813A1C5C3F436CA30F5D8EB
 
-Hi
-
-On 11/17/26 12:03 AM, Joseph Telaak wrote:
 > As bit clock and frame provider, McBSP sizes the frame from the SRG
 > input, the set_clkdiv() divider and the rate. Only a machine driver can
 > call set_clkdiv(), so with simple-audio-card or audio-graph-card the
 > divider stays 1 and the bit clock runs at the full SRG input: 96 MHz on
 > OMAP3, a 2000-bit frame at 48 kHz.
->
-> Implement set_tdm_slot() so these cards can ask for a frame of slots x
-> slot_width bit clocks with dai-tdm-slot-num and dai-tdm-slot-width.
-> hw_params() then picks the divider for the rate, and startup() offers
-> only the rates the SRG input divides to within 0.1%, the IEC 60958 level
-> II clock tolerance. McBSP sends a frame's words back to back, so
-> startup() also limits the sample width to the slot width and the
-> channels to the active slots, which must be the low ones, and refuses
-> I2S or left-justified with other than two slots. This applies only when
-> McBSP provides both clocks; without slots nothing changes.
->
-> Tested on an OMAP3630 board whose McBSP4 drives the I2S input of an
-> ADV7513 with no MCLK, with 2 x 32-bit slots and adv7511 taking S32_LE:
-> a left-only and a right-only 44.1 kHz tone each play at full level
-> (96 MHz / 34 gives 44117.6 Hz), 48 kHz (0.8% off) and S16_LE are
-> refused.
->
-> Signed-off-by: Joseph Telaak <joseph@telaak.dev>
-> ---
->   sound/soc/ti/omap-mcbsp-priv.h |   4 ++
->   sound/soc/ti/omap-mcbsp.c      | 155 ++++++++++++++++++++++++++++++++++++++++-
->   2 files changed, 158 insertions(+), 1 deletion(-)
-Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+
+> +static int omap_mcbsp_slot_constraints(struct snd_pcm_substream *substream,
+> +				       struct omap_mcbsp *mcbsp)
+> +{
+> +	struct snd_pcm_runtime *runtime = substream->runtime;
+> +	unsigned int format = mcbsp->fmt & SND_SOC_DAIFMT_FORMAT_MASK;
+> +	bool tx = substream->stream == SNDRV_PCM_STREAM_PLAYBACK;
+> +	unsigned int list[ARRAY_SIZE(omap_mcbsp_slot_rates)];
+> +	unsigned int active = tx ? mcbsp->tx_slots : mcbsp->rx_slots;
+> +	int ret;
+> +
+> +	if ((format == SND_SOC_DAIFMT_I2S || format == SND_SOC_DAIFMT_LEFT_J) &&
+> +	    mcbsp->slots != 2) {
+> +		dev_err(mcbsp->dev, "I2S/LEFT_J needs 2 slots, not %u\n",
+> +			mcbsp->slots);
+> +		return -EINVAL;
+> +	}
+> +	if (!active) {
+> +		dev_err(mcbsp->dev, "no %s slots in the TDM mask\n",
+> +			tx ? "TX" : "RX");
+> +		return -EINVAL;
+> +	}
+> +	if (!omap_mcbsp_slot_rate_list(mcbsp, list)) {
+> +		dev_err(mcbsp->dev, "no rate for %u x %u-bit slots from %u Hz\n",
+> +			mcbsp->slots, mcbsp->slot_width, mcbsp->in_freq);
+> +		return -EINVAL;
+
+Will this do the right thing with a card like simple card that sets the
+sysclk dynamically?  The card might reprogram in hw_params() and should
+really set it to 0 on shutdown to tell things not to apply constraints.
+
+> @@ -1020,7 +1125,15 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
+>  	/* In McBSP master modes, FRAME (i.e. sample rate) is generated
+>  	 * by _counting_ BCLKs. Calculate frame size in BCLKs */
+>  	master = mcbsp->fmt & SND_SOC_DAIFMT_CLOCK_PROVIDER_MASK;
+> -	if (master == SND_SOC_DAIFMT_BP_FP) {
+> +	if (master == SND_SOC_DAIFMT_BP_FP && mcbsp->slot_width) {
+> +		/* startup() limited channels, width and rate to the slots */
+
+While we're doing constraints stuff it'd be good to validate the params
+against the current slot configurastion.
+
+-- 
+Mark Brown <broonie@kernel.org>
