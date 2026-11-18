@@ -1,45 +1,77 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.54
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794953512;
-	b=KaDSbFdOTZmvTq4brjdwFauBuQvW7NSezsYU7LN0aGduZcXLgDeqGdRcQdiVAoAjK/7W
-	 tTm3WxujU9n4CAWJDonDcBndoOWardf54xPHjeOKozDHVvZuhuMAToJkGRPmUMDVCIq8H
-	 7n1iH7C6VDp6KTB+h+atEF7puauueMSOaQs+RCMYM7yeAmr50DraI4+KwyyPJ0PUQR848
-	 N4EIY0IVXUPJAJzdKIAux1YU1/omIIwyCbV01PivgRMmjG1/asM0PKMcjv4UdgczVZ+1T
-	 OCT8sYfM1grhblnWqPVwWXRLSFaXz4PZHnxxPhjKo75DT6kpGYMHaA5kBuD7dUxze0A==
+	t=1794978559;
+	b=OQF1VyFL8JvTVkCSQYnhUxWtVOYHnnR8xLPI3egsbOk62PhRwVjtaa188+p5tDJcNc/Q
+	 l+TooCQNQoHCgHUYL6u3pfQAQYJfTpYfXnWRzhymvYo2yXfAa+1AupmuRgW/n/dCXfnab
+	 +ew5OwztbzbKSc9wgx9Wyk6saK1fPvez73NUuCgxrNPY5zBTYg9d+NjTe5cCLpvwzlY0U
+	 WKZVshwrkcouRnLqkKD27B5hrGBLucRdcHCm10+JYTDIURVrqBAsw6YK8VSRIn+pqMMWW
+	 U5DctzSGlB0KT0J+LA9EptNeVGsg8bPUTDgeLDuNUgad5Qb6QPBuikCMBqZ7a6n50og==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794953512;
-	h=Received:DKIM-Signature:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding:Subject:From:To:Cc:In-Reply-To:References:
-	 Date:Message-Id:X-Mailer:X-Developer-Signature:X-Developer-Key;
-	bh=PQ1lkb7nCtNnaMBZ9SlFdtw9+jVlK/RLRabaEyTSzJo=;
-	b=rUgAk5V7e9dVROnIvZkLfdjb2CNaaF5lttz0pmdwM67yXQagk1jj81xNmznkCvAEQgZB
-	 leEDESzz16U4AG6YRo56xI562dIf/+eqmuu8r2n5IRPoJpWnOIelWfefmH+f6ON2HNcjs
-	 hUiukdLqBniz04SaGPgnjrhnC7Y6Lr6kJCncnxbPSN52Mvyrq36pFlnyDl8nhuduja1vn
-	 AMrmtvhzlz5+RP05nKrgirr/LmorHjM+cDIw0/UYzzYvA0/vs6pBivV2+gPuh3Akz8DKk
-	 hDT9WeBK6Z/xbkwue4BraWJQOoz0/0e4Jxdyfk7t7oIfRHHMFbEYnTZVrtHvhc0iFig==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794978559;
+	h=DMARC-Filter:Received:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:Received:
+	 X-Forwarded-Encrypted:X-Received:MIME-Version:References:In-Reply-To:
+	 From:Date:X-Gmail-Original-Message-ID:X-Gm-Features:Message-ID:
+	 Subject:To:Cc:Content-Type;
+	bh=GDWt7Xx8f2hrTHrvXOUqAMcvT8tyJ1b4aUv40Hj2kOI=;
+	b=iPqYlG6oGHPV+9O7o18SdOmcq9xjgOdrIgcmtV/1F66GL58V7evLV9WSUcI/oOEcUCia
+	 qpzFBXr4Io8VraLj1a62hGGZVlAizpl6iQ6QGlSJr4c7FL0vWqjD55BzMhk/W0LwL0tbr
+	 Rn1+uZOMPA2hraWI1wL/mKTG2Hz4gQEhsP0a5JdZI8YUzfPd7xSUmSjNC3DjNGfRSE6E0
+	 E4HtLHtgSxxCx5/iZ824kyEbJnh4RDykXo8Dv4k7jnRd1+LMqPzs/14JnSYd78FzrKUcx
+	 OOqAAE95/OC1ndCqPnO++m2wx6URSp2fldd7OB8TR9xUkl6bUZdt4Lzqd1QvhyDvTkA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=b+Udxlpe;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=none header.from=telaak.dev;
+	spf=pass smtp.mailfrom=gmail.com;
+	arc=none smtp.remote-ip=209.85.216.54
+Received: from mail-pj1-f54.google.com (mail-pj1-f54.google.com [209.85.216.54])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A524B606A31C;
-	Tue, 17 Nov 2026 22:11:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=b+Udxlpe
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A6F51F000C7;
-	Tue, 17 Nov 2026 22:11:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794953512;
-	bh=PQ1lkb7nCtNnaMBZ9SlFdtw9+jVlK/RLRabaEyTSzJo=;
-	h=Subject:From:To:Cc:In-Reply-To:References:Date;
-	b=b+UdxlpemwPOnSf43MqI4NgEf44TZ3ADYUpSOCmm5PfvQ0twBUB0liPEaHYotkpsO
-	 ZupUAg9wVep5QGZDP3HKvA/SQha6PvDI2qzNO+0Gl5RW+p1tP0ix3TvEe2SGc+nase
-	 QRSa++ghApI/BS/LMheMmPsDAAaNSd1ctDxQf4EsPrNvIuxlYmrjOWAuK75LuR1dOM
-	 u9a4wLL5/Pv1zI4f4SHkU+z2WjltOl+Pw+MD6d/J5L5L5JHkq3cgeJgBPJ/ABOfjTU
-	 SBVDOQnAG4WW77dYe4RIKLwJpEcFQNyktgrdtpoMQtbd86bKwtoCl7VjZMqpelR4aN
-	 JzR7MnTlIfREQ==
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 498F9606A335
+	for <linux-omap@vger.kernel.org>; Wed, 18 Nov 2026 05:09:19 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 498F9606A335
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=telaak.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: by mail-pj1-f54.google.com with SMTP id 98e67ed59e1d1-3ace1f3897cso328637a91.0
+        for <linux-omap@vger.kernel.org>; Tue, 17 Nov 2026 21:09:19 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1794978559; x=1795583359;
+        h=content-type:cc:to:subject:message-id:date:from:in-reply-to
+         :references:mime-version:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to:content-type;
+        bh=GDWt7Xx8f2hrTHrvXOUqAMcvT8tyJ1b4aUv40Hj2kOI=;
+        b=apHGS36QVIDjeyP08Ta0duOx5Dfei4jBjLioOdLBsfPbX/sK9eF/7TrKegSceAs0xX
+         Hl7wQZ9rdJOXmN8iGbEkJAG0Wdx2hg9LbqLfxEWAbcOWGT7wVd1SEuWzlPA+rwNXJLRG
+         2MV8FSbwLgPWxef9fWDU6CP8sLJDakMjzVgcG+eDYF9CEpAoWb4+06PGvEDfKYuwEw39
+         GdHQBx+beiucA/C36zRbO2Ev1saSMzbPTn4WC4eKZcrK3NzVhzHRwvgEn+FJHw2EBsIR
+         nvdwuCVDE5D0vFyrj1/UWtIG0teEPk3y7Nw4Ed/YXk+FJgA0s0YnA/qXnmsdfeF3tjQv
+         FVEw==
+X-Forwarded-Encrypted: i=1; AL+hErHv5ng0hY5aRO5wYPU8gzwbr9LbBoqfjei5Q8T+p5r80hvygtKw38W+wQCa/yTj+nW0j/DRGrDLDlzS@vger.kernel.org
+X-Gm-Message-State: APuU4Z8lqeJhfkUFMMeU5CSSBnPpXdgsw1l2FKrBfgut+sfyWBOqoN1m
+	gDplhPaEY41e9M94VzblDKul7D145+InIjHaj5HgtPmAu5Q47V0IDsFPaok804o3
+X-Gm-Gg: AZFdTZdkwJTaGzUL4A50EBhwYThZh1VFPzlQmLE0W8nlu9qfY22YhNOTfGGVO8iqeCs
+	WU6kmiFJSAKkMkIgRU0IZl2gR86GW7jegKVfIuOzhW4AnW44ZCO7CR5b8tBTbtiKgpcBEQejMtZ
+	yl/CIVRqQsvGgnBZeLOUWJ9e0WcElpAue7smKW5hA/juYHJ3CMJfDKHB+xo7HXOdc0V0moaRspf
+	4x9KRzZEV39x+q3XRj7E2Z4i9DOMs2mBpz9z0C/0Z9A69bf7BCNCOjcdt1kfNzsEJ1OrTQr86LE
+	V69J7xHPOD8YG2wQBBtb1MzDW4z2D7Dz9NmfRSIky3Y98JHpyJVYGDQur26+u3XBZSm5Zumwm6P
+	kRXJVmdAx0/UdzZbxM3gnM7M63981MbsnFLTSbV31MZ8MQUvz+bS90yHMygPKDl/VZPM3q2Ggii
+	NOo17ZRBLnjzRMmK5J0do1U5pNuxwEvnTrdP+/7p/FsLafnXOm4d2J/VkC99GehXd6+OBvvDeJ8
+	v7RaHLliAXWDqqTnrnEOyufkxODGSe7RNrj3NqQCD2uIxrGOGSZn4XzbOgOeQjKmctpbXvkYTHw
+	/YkgzdURww7Julk89gQtwMbGOuUPDG6LYxl1lURMX6p8X08pD3zwxwJWxIP+OMEeSrbPC28ttKD
+	sMlEFExzRS4bXdh6ldRnZJKIF026ZwGG5ovZlWKhbnRk8c6k=
+X-Received: by 2002:a17:90b:5307:b0:39e:21a7:5df5 with SMTP id 98e67ed59e1d1-3b3d0760eebmr1737087a91.24.1794978558541;
+        Tue, 17 Nov 2026 21:09:18 -0800 (PST)
+Received: from mail-dy1-f174.google.com (mail-dy1-f174.google.com. [74.125.82.174])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b3d1acd118sm2188842a91.12.2026.11.17.21.09.17
+        for <linux-omap@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 17 Nov 2026 21:09:17 -0800 (PST)
+Received: by mail-dy1-f174.google.com with SMTP id 5a478bee46e88-36eb1cb7aabso932924eec.0
+        for <linux-omap@vger.kernel.org>; Tue, 17 Nov 2026 21:09:17 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AL+hErGfcCz9vZtT+WEZvt8I7b4xm/6js1WtrIILRvDt8EViN3QKbpXjS00Rblw4dkIGE3o79PUmYFuLhRRG@vger.kernel.org
+X-Received: by 2002:a05:7301:710e:b0:36c:3b8a:8090 with SMTP id
+ 5a478bee46e88-3827db0e75bmr1699348eec.2.1794978557201; Tue, 17 Nov 2026
+ 21:09:17 -0800 (PST)
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -49,77 +81,33 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH 2/2] ASoC: ti: omap-mcbsp: Implement set_tdm_slot
-From: Mark Brown <broonie@kernel.org>
-To: Joseph Telaak <joseph@telaak.dev>
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, Sen Wang <sen@ti.com>, 
- Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, 
- Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
- linux-sound@vger.kernel.org, linux-omap@vger.kernel.org, 
- linux-kernel@vger.kernel.org
-In-Reply-To: <20261116-omap-mcbsp-tdm-slot-v1-2-6c9f7aa45a29@telaak.dev>
 References: <20261116-omap-mcbsp-tdm-slot-v1-0-6c9f7aa45a29@telaak.dev>
- <20261116-omap-mcbsp-tdm-slot-v1-2-6c9f7aa45a29@telaak.dev>
-Date: Tue, 17 Nov 2026 22:11:46 +0000
-Message-Id: <179495350668.2707353.9603940609466130588.b4-review@b4>
-X-Mailer: b4 0.17-dev
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2203; i=broonie@kernel.org;
- h=from:subject:message-id; bh=cRxcbpa3t4zw11M9tXL4PZCGMhSuhM/BTNbnsk47r/c=;
- b=owGbwMvMwCWm/754w+YLFp2Mp9WSGLL+XFSZoZspZTiD+dqm25dzvbfuCEhavKVs8qzv+tbS8
- 7MC7paFdpSyMIhxMciKKbLEZXG/rC95vYbv4MI2mDmsTCBDGLg4BWAizAIM/z35Zi56JHH66QrG
- 82qpBTPWhF+dGNSz5tzdDXobJ90s9jjMyPD/wAk7BY+7Ow1m3eObw3pVpaf/1Ma5iXsDpJ7zHah
- 5fIYfAA==
-X-Developer-Key: i=broonie@kernel.org; a=openpgp;
- fpr=3F2568AAC26998F9E813A1C5C3F436CA30F5D8EB
+ <20261116-omap-mcbsp-tdm-slot-v1-2-6c9f7aa45a29@telaak.dev> <179495350668.2707353.9603940609466130588.b4-review@b4>
+In-Reply-To: <179495350668.2707353.9603940609466130588.b4-review@b4>
+From: Joseph Telaak <joseph@telaak.dev>
+Date: Wed, 18 Nov 2026 00:09:05 -0500
+X-Gmail-Original-Message-ID: <CAPY4CJ4QAvENNYMNz0vfjhwGPi8HMUJO8M3G0zBcxn6nBd1SrQ@mail.gmail.com>
+X-Gm-Features: Aa3M54rshe7OANZPuVP9PlNMTTXkt0PN_Sfmm0dIkeYRICbDlqlKakJADXPsyNc
+Message-ID: <CAPY4CJ4QAvENNYMNz0vfjhwGPi8HMUJO8M3G0zBcxn6nBd1SrQ@mail.gmail.com>
+Subject: Re: [PATCH 2/2] ASoC: ti: omap-mcbsp: Implement set_tdm_slot
+To: Mark Brown <broonie@kernel.org>
+Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, Sen Wang <sen@ti.com>, 
+	Liam Girdwood <lgirdwood@gmail.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
+	linux-sound@vger.kernel.org, linux-omap@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-> As bit clock and frame provider, McBSP sizes the frame from the SRG
-> input, the set_clkdiv() divider and the rate. Only a machine driver can
-> call set_clkdiv(), so with simple-audio-card or audio-graph-card the
-> divider stays 1 and the bit clock runs at the full SRG input: 96 MHz on
-> OMAP3, a 2000-bit frame at 48 kHz.
+> Will this do the right thing with a card like simple card that sets
+> the sysclk dynamically?
 
-> +static int omap_mcbsp_slot_constraints(struct snd_pcm_substream *substream,
-> +				       struct omap_mcbsp *mcbsp)
-> +{
-> +	struct snd_pcm_runtime *runtime = substream->runtime;
-> +	unsigned int format = mcbsp->fmt & SND_SOC_DAIFMT_FORMAT_MASK;
-> +	bool tx = substream->stream == SNDRV_PCM_STREAM_PLAYBACK;
-> +	unsigned int list[ARRAY_SIZE(omap_mcbsp_slot_rates)];
-> +	unsigned int active = tx ? mcbsp->tx_slots : mcbsp->rx_slots;
-> +	int ret;
-> +
-> +	if ((format == SND_SOC_DAIFMT_I2S || format == SND_SOC_DAIFMT_LEFT_J) &&
-> +	    mcbsp->slots != 2) {
-> +		dev_err(mcbsp->dev, "I2S/LEFT_J needs 2 slots, not %u\n",
-> +			mcbsp->slots);
-> +		return -EINVAL;
-> +	}
-> +	if (!active) {
-> +		dev_err(mcbsp->dev, "no %s slots in the TDM mask\n",
-> +			tx ? "TX" : "RX");
-> +		return -EINVAL;
-> +	}
-> +	if (!omap_mcbsp_slot_rate_list(mcbsp, list)) {
-> +		dev_err(mcbsp->dev, "no rate for %u x %u-bit slots from %u Hz\n",
-> +			mcbsp->slots, mcbsp->slot_width, mcbsp->in_freq);
-> +		return -EINVAL;
+No. A sysclk of 0 at open fails startup(), and later opens keep the
+last stream's rates. In v2 I'll only limit rates at open for a sysclk
+set outside a stream, as simple-audio-card does at init, and check the
+rest in hw_params().
 
-Will this do the right thing with a card like simple card that sets the
-sysclk dynamically?  The card might reprogram in hw_params() and should
-really set it to 0 on shutdown to tell things not to apply constraints.
+> it'd be good to validate the params against the current slot
+> configuration
 
-> @@ -1020,7 +1125,15 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
->  	/* In McBSP master modes, FRAME (i.e. sample rate) is generated
->  	 * by _counting_ BCLKs. Calculate frame size in BCLKs */
->  	master = mcbsp->fmt & SND_SOC_DAIFMT_CLOCK_PROVIDER_MASK;
-> -	if (master == SND_SOC_DAIFMT_BP_FP) {
-> +	if (master == SND_SOC_DAIFMT_BP_FP && mcbsp->slot_width) {
-> +		/* startup() limited channels, width and rate to the slots */
-
-While we're doing constraints stuff it'd be good to validate the params
-against the current slot configurastion.
-
--- 
-Mark Brown <broonie@kernel.org>
+Will do. hw_params() will check the channels, width and rate against
+the slots and sysclk, and against the other direction, since both
+share the sample rate generator.
