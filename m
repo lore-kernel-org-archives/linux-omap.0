@@ -1,54 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795024647;
-	b=PJBx6VcU2A4uu7h7wPokJyttaid/nyUioOPg8itfEIgoIFRAJQrEIN8qKCc/i8VIPsqI
-	 Hb93eIWpIZ90ZR7O6iwXX4ITtwYkWFYS/x73XMA+xETkdugU4B6N0vikzwR9Bfw7lab0+
-	 duI6PJpJFKaJk3UYbTK5z7ajw3ld19qtPyfjQuDeGSNfW/hxNnLTDOtAjnm1tmTZd7oPk
-	 dxf9kUClgDbTGpEqDeFQOCiWZYb7VQXgGpqmigNfrabcxVlR+v6euIKlbNdyEcVnYgNeZ
-	 xsxwUhvpxc58wEjzC4+mqyMH8rFPVa5FPb1Iai3gP2aTWvP4S8lD2DPj9mkW4dL+2eg==
+	t=1795026164;
+	b=5rnAS9yJgcjjTyXFqzp+ASiJCJcSdJ3MDGTp4KLwTVjde9JN48rnqVgphk+Zq+yNarTP
+	 7WZdF7S5w6jSSIutUwpy44WEYZIOZqnmMdBg+/K97L1LBCLJqSy9PF/xxHgdTRmYNLZdw
+	 wuLuRVi/2s8BnMzlBqxIKDIQAc54NQCdkpkhWajbg/S7UeEh7GTxu6F7w8jSyuIjucJM1
+	 +riWt0yQuwxqad/ViIG0A2UNmEvm90c9rZJkXM3EGCoDqib76GgHpGG+ewQVyTwnrTbPO
+	 o5w/IWUjzfrirjjwYn02lciqyqH2ju1bU3gN8F0On0sJMw0n6btOUlS5GE4Fr1shzMg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795024647;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795026164;
 	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To:
-	 X-AI-Review-Draft;
-	bh=uAd3MUk9qYtbze38uBTrXfFgtr/gz/IeQWxE+iY3ORY=;
-	b=4gbJ8bNEmbBBsPz9o+n4jcdK/rlUdbo7FY2aRzj8uJM9J3T0TYjw+gRdgRSzLH1GMLOm
-	 U042j3i4QyxH/7GJ7/AU0UMqHLbtAcsAEFLp8f0xTGxQyJiq1Ec6W3+qGOipwS7GhmV0M
-	 eoYV6EyANeoaVL5d0ci5k4olXoaPbnmQhGtUQMiYdjkzpHr8NyYH1dOEjB/i1yZAXxASZ
-	 3yL4VRdon6LLw43yEn6hEuKTzyuwWU2u5us1lKxjYvgmyDPeomEadlnnqizKGXSZ3DzVL
-	 sm09IKdnS82k8l/QValabSQ4LdsK5I+YzLATOFWj/Iui01mnVWBuGBIscsWxNwYWMiQ==
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=J7vdS07rOVMmeJWGjnXjAQm2E14T2hLPt/YVGYzgVb0=;
+	b=0bFi3aZglDRxhD9iieDLqSzMVbYhO6G/Mg0eFe8GxV4MCQsFTsAWNjGHpggNyRYrEYrU
+	 wht3ZYWPiROJi3ey6vPc3g+jBgYWNQHWmq7jq51gtLGdGv500JYKd7AsOr1JUZTMXT/VA
+	 xw+pb/nm+fzEw+YU/iBbdRADkW3H2FodnVY0QYFUdSULpJBXruDI+yqPeUQz81XJtGX0A
+	 48I/1NDlbfi+ocky/7RjsXf9001OwDqPglmud0cZwrPP5Crk0vW6OHiRymlq2o98XThdl
+	 +pEzIOQ1+kuGYJ3BL4MlLa3Z/ylaDWmIIxmfygjKlyZln5dT8+5T+fK/48tHkJzC0gQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AjXj0INO;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=a4mBjuEL;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57054606A31C;
-	Wed, 18 Nov 2026 17:57:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C729560A260F;
+	Wed, 18 Nov 2026 18:22:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=AjXj0INO
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B7131F000C4;
-	Wed, 18 Nov 2026 17:57:24 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=a4mBjuEL
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 067AD1F000C7;
+	Wed, 18 Nov 2026 18:22:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795024646;
-	bh=uAd3MUk9qYtbze38uBTrXfFgtr/gz/IeQWxE+iY3ORY=;
+	s=k20260515; t=1795026164;
+	bh=J7vdS07rOVMmeJWGjnXjAQm2E14T2hLPt/YVGYzgVb0=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=AjXj0INOLZZ4UtY6XYtnJ0+s9Nz8424ZXR0rn3JnscN98FY7gWN9amG8CC1wkLmat
-	 rcHwX5i2epSeLbKfXyAO4cCuAXaJjtHd1BEXJk01CLc+moE7DOi2PzRI12DFdl3Eov
-	 JTnq1ASDiUprECftBPjJeHE8rhjZFUdqOiALjYAe1hqza/NMyKgmdbdheD+rO4FRZV
-	 44Thopdq2AEOiDeIaGL1PRn5o7/TXC+e7mvDD5i8Z7JuA/brN2AtlA0FKRub3OKZwV
-	 Be9Yr9e+G7w/CoXgdjCwR1YHYOQRo+J4ZiaBoUJgQJxr6BFbCdqAyF464WHiCIoohc
-	 PxKvqXkStzjGA==
-Date: Wed, 18 Nov 2026 17:57:22 +0000
+	b=a4mBjuELonYMPG9I5byBU1DzNzPQHFF5s+YO86vHPZ/HdbbVV0pM2ml5FPunkPYIv
+	 uWX3v3le9n6SyLOl6pW85XNAaIrRaNClXzxNiiZ6QMpDiBsND7EkOVuEd2FZu/Mdh4
+	 WrQ24gKgbj5kki/2qSNBGoXrLqXkSbewHc9nXGSSQkbmqO1HnpJ8VSzeJq8D4DM4ql
+	 6U35wEKQoj/mF8JDF+8TwZzoWd+fAzAlHmrFyGr/R4AXywRVc88JPkjGFTKlOT68aX
+	 Ys53b+NNHOU40kWEfRNgUNVoVIvhRdtl/LafwIwQpTWKVGgTvaEaBnbqoWsBpOGGrg
+	 VUAc5+a58sEsA==
+Date: Wed, 18 Nov 2026 18:22:40 +0000
 From: Lee Jones <lee@kernel.org>
 To: shao.mingyin@zte.com.cn
 Cc: mfd@lists.linux.dev, tony@atomide.com, linux-omap@vger.kernel.org,
 	tharvey@gateworks.com, support.opensource@diasemi.com,
 	patches@opensource.cirrus.com, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 4/5] mfd: da9052: Disable IRQ wake on device removal
-Message-ID: <179442121138.44545.365837636476170108@kernel.org>
-References: <20261107160747079LomNfOJeeu6knwkNqJYTx@zte.com.cn>
+Subject: Re: [PATCH 5/5] mfd: gateworks-gsc: Check firmware CRC reads for
+ errors
+Message-ID: <20261118182240.GH98456@joneslee-macbookpro.roam.internal>
+References: <202611071607376342uPiYA9rHRC7ZI9Ix-8xh@zte.com.cn>
+ <20261107160748370uUkky_wRKP7vtnKU1uRKZ@zte.com.cn>
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -60,87 +61,50 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20261107160747079LomNfOJeeu6knwkNqJYTx@zte.com.cn>
-X-AI-Review-Draft: <20261107160747079LomNfOJeeu6knwkNqJYTx@zte.com.cn>
+In-Reply-To: <20261107160748370uUkky_wRKP7vtnKU1uRKZ@zte.com.cn>
 
 On Sat, 07 Nov 2026, shao.mingyin@zte.com.cn wrote:
 
 > From: Shao Mingyin <shao.mingyin@zte.com.cn>
->
-> da9052_irq_init() calls enable_irq_wake() on the chip IRQ but neither the
-> error path (when requesting the ADC_EOM IRQ fails) nor da9052_irq_exit()
-> (the removal path reached from da9052_i2c_remove()/da9052_spi_remove())
-> ever calls disable_irq_wake().  The wakeup configuration is therefore left
-> behind when the device is unbound; the IRQ line keeps being treated as a
-> wakeup source and, should the descriptor be reused by another device later,
-> the stale wake setting persists.
->
-> Track whether the wake source was successfully enabled and disable it
-> symmetrically on both the probe failure path and in da9052_irq_exit().
->
-> Fixes: ed05be56643e ("mfd: da9052: Register ability of device to cause a wake-up interrupt")
+> 
+> gsc_probe() checks the return value of the GSC_FW_VER regmap_read() but
+> the two reads of GSC_FW_CRC just below it are not checked.  On an I2C
+> error regmap_read() leaves "reg" holding the value of the previous
+> successful read (the firmware version, or the CRC low byte), so
+> gsc->fwcrc ends up with a wrong value that is later printed as the
+> firmware revision, and the error is silently ignored.
+> 
+> Check both CRC reads and fail the probe with -EIO, matching the handling
+> of the version read above.
+> 
+> Fixes: d85234994b2f ("mfd: Add Gateworks System Controller core driver")
 > Signed-off-by: Shao Mingyin <shao.mingyin@zte.com.cn>
 > ---
-> diff --git a/drivers/mfd/da9052-irq.c b/drivers/mfd/da9052-irq.c
-> index abbdbf0337e2..da5bac424efc 100644
-> --- a/drivers/mfd/da9052-irq.c
-> +++ b/drivers/mfd/da9052-irq.c
-> @@ -259,7 +259,8 @@ int da9052_irq_init(struct da9052 *da9052)
->  		goto regmap_err;
->  	}
->
-> -	enable_irq_wake(da9052->chip_irq);
-> +	if (!enable_irq_wake(da9052->chip_irq))
+> diff --git a/drivers/mfd/gateworks-gsc.c b/drivers/mfd/gateworks-gsc.c
+> index a3301502ce6a..1d697e82ea29 100644
+> --- a/drivers/mfd/gateworks-gsc.c
+> +++ b/drivers/mfd/gateworks-gsc.c
+> @@ -219,9 +219,11 @@ static int gsc_probe(struct i2c_client *client)
+>  		return -EIO;
+>  	gsc->fwver = reg;
+>  
+> -	regmap_read(gsc->regmap, GSC_FW_CRC, &reg);
+> +	if (regmap_read(gsc->regmap, GSC_FW_CRC, &reg))
+> +		return -EIO;
 
-In general, I'm not a fan of stuffing functions into if()s.
+Again, I'd rather you didn't put functions in if() statements.
 
-> +		da9052->irq_wake_enabled = true;
+But worse, you're hiding the real error and forcing -EIO.
 
-Can't this be called after da9052_request_irq()?
+Better to propagate the error instead.
 
-Doing so avoids all of this craziness.
-
->  	ret = da9052_request_irq(da9052, DA9052_IRQ_ADC_EOM, "adc-irq",
->  			    da9052_auxadc_irq, da9052);
-> @@ -272,6 +273,10 @@ int da9052_irq_init(struct da9052 *da9052)
->  	return 0;
->
->  request_irq_err:
-> +	if (da9052->irq_wake_enabled) {
-> +		disable_irq_wake(da9052->chip_irq);
-> +		da9052->irq_wake_enabled = false;
-> +	}
->  	regmap_del_irq_chip(da9052->chip_irq, da9052->irq_data);
->  regmap_err:
->  	return ret;
-> @@ -281,6 +286,10 @@ int da9052_irq_init(struct da9052 *da9052)
->  int da9052_irq_exit(struct da9052 *da9052)
->  {
->  	da9052_free_irq(da9052, DA9052_IRQ_ADC_EOM, da9052);
-> +	if (da9052->irq_wake_enabled) {
-> +		disable_irq_wake(da9052->chip_irq);
-> +		da9052->irq_wake_enabled = false;
-> +	}
->  	regmap_del_irq_chip(da9052->chip_irq, da9052->irq_data);
->
->  	return 0;
-> diff --git a/include/linux/mfd/da9052/da9052.h b/include/linux/mfd/da9052/da9052.h
-> index 9cb2fc2938ce..d7dd36891539 100644
-> --- a/include/linux/mfd/da9052/da9052.h
-> +++ b/include/linux/mfd/da9052/da9052.h
-> @@ -93,6 +93,8 @@ struct da9052 {
->
->  	int chip_irq;
->
-> +	bool irq_wake_enabled;
-
-If the above is not possible, why not call disable_irq_wake()
-regardless?  It's safe to do so, right?
-
-> +
->  	int fault_log;
->
->  	/* SOC I/O transfer related fixes for DA9052/53 */
+>  	gsc->fwcrc = reg;
+> -	regmap_read(gsc->regmap, GSC_FW_CRC + 1, &reg);
+> +	if (regmap_read(gsc->regmap, GSC_FW_CRC + 1, &reg))
+> +		return -EIO;
+>  	gsc->fwcrc |= reg << 8;
+>  
+>  	gsc->i2c_hwmon = devm_i2c_new_dummy_device(dev, client->adapter,
 
 -- 
 Lee Jones
