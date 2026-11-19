@@ -1,54 +1,58 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=210.79.60.96
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795092250;
-	b=jfOWuX0+NtJ1T6oFueqNnXid5GrSMADIalbIrBoe/D3Ad68vwfG//R+hEIT8FFrxc5KV
-	 7a/aSynHuHs0suamyO3pIkOHFVn1k71DWMTriMG9CDP7Z0l7Ed9qZkRt8+RUDZZzeLVb/
-	 tCiBxqvuqgWiDT2dQLs+28jAM5tFXRlMGHQwsXEBTGQrKyp51rNBDspxWswYzuE+t7R0J
-	 /wff+nw5V3RsxLdU7RlUwoURgTimcPURVIQ3PNrmOk5kkwokrJjqVEoxgPkaVifsSZ5fQ
-	 wOLr6FTgKb1gGWL9QUq2eNXOBNSYUKvRukxRRjCoUFnu5+yRmT09mheerfj8Skx7SQw==
+	t=1795095653;
+	b=E+3vOb0HImioZ0avFG33NPn+SciHWWeeGyJ7Imb0Rdk7vimeziv1LNqmW0ZPSQEKK0oV
+	 CRq4Qm0R5bAGm4RKq65rE+NHMBccfyZi915Wu8kZcWZI8tnyulvP8i1cQWgcKSSbm9iZB
+	 fbbg+8/kOuyWJ48Wds8ZmXQenNf7siSYJLRUDIAkLy7ErpKEFv5TpVto9zKWQ3jl6CzTb
+	 7drM+XybQf2YaQLTUO2SRBWZjn9gnKGhBZiEWOuHP/kTMLXFlRS6ZFFLFh+JfAlXmqull
+	 jPmag9kSb7kux5mMTXm2KEwuYh2n32lL5QgASQgAYeOjYq4Dd5es2tf1QXHdnbLa2MQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795092250;
-	h=DMARC-Filter:Content-Type:Content-Transfer-Encoding:Message-ID:To:Cc:
-	 Subject:X-Priority:X-Mailer:X-Originating-IP:In-Reply-To:References:
-	 MIME-Version:Received:From:Date:X-HM-Tid:X-HM-MType:X-HM-NTES-SC:
-	 X-HM-Spam-Status:DKIM-Signature;
-	bh=qLPZEX0epsWd7es1kW82u4+2WFeyQwtuYOTDlogKltk=;
-	b=MDJ1Kaij4XeY4hgOc27yfJXvedOkkPPkS4OBdG4DfPEeuiQhBSqPFwyMHqDTNOwSO1zo
-	 rtdI1FyPK2Ke7YSMCjCpuQ7wK4KPNlC3I1FG758qVSg5vqjyAwqo/kNs7UudEas7OAPge
-	 LIHZ6xPTmWduLQPxh2BYk29jS3Dgw/Ed6195R/iFrDCDp2HChXYDiziJ/NQBEq743hF7b
-	 sO1q964KT2b9J/SrmYKNu68smv/ZTQ7aubsDwOT7CGd1hjOhsMlxI2IVujAmoEzDH3qe/
-	 fd+II+28VVm4jdLIit3zdqr1CRvDAPKhTEcIX76w8MnwAYRLdRkNHI2LKDMZbSqxnsg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795095653;
+	h=Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=0NYdcVDwwKTLDFYwyrcPETMsPlvi/iH4FJG9TXdikXo=;
+	b=GcQHgyiY0ENp9gwRgwZbfx3tx6ZmaUXzoveGmh+d2y0tqZZ3XYZuGuDzdJQXEZhTdD3l
+	 yPsDI6T5zs3HeDS7eeGuxdemWkb4fnP8Qu/cTuz6teG0Sp4YAnsZgoHNId0ZKujvXlkYg
+	 8lZro936K3hYIZJlY8MIaq1yKm4gP2vT3P/XZ85UEvGDf/O0cgSHzFLY7Ru/0NcbBgf4/
+	 LQAbppLUs0e/Yo50hY0xC37nIryNnFCPeld2UnNfXR/OgWr+IEn2SwkxfkAn4YlNMNUpw
+	 d1RNxuxvrpesYTQKdB3Z9M+A29qgIlURqv4LOFVbxlXPRyN3PytOVU179Q2jwSFILjw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=mail.sdu.edu.cn;
-	spf=pass smtp.mailfrom=mail.sdu.edu.cn;
-	dkim=pass header.d=mail.sdu.edu.cn header.i=@mail.sdu.edu.cn header.a=rsa-sha256 header.s=default header.b="eaiTa/aG";
-	arc=none smtp.remote-ip=210.79.60.96
-Received: from mail-m6096.netease.com (mail-m6096.netease.com [210.79.60.96])
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBD1E606A338;
-	Thu, 19 Nov 2026 12:44:04 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DBD1E606A338
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mail.sdu.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mail.sdu.edu.cn
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=mail.sdu.edu.cn header.i=@mail.sdu.edu.cn header.a=rsa-sha256 header.s=default header.b=eaiTa/aG
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: base64
-Message-ID: <ACoAEgCeLDq4C5*UjRtdZKp9.3.1795092235677.Hmail.202321181@mail.sdu.edu.cn>
-To: Lee Jones <lee@kernel.org>
-Cc: stable@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, 
-	Andreas Kemnade <andreas@kemnade.info>, 
-	Kevin Hilman <khilman@baylibre.com>, 
-	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
-	linux-omap@vger.kernel.org, mfd@lists.linux.dev, 
-	linux-kernel@vger.kernel.org
-Subject: =?UTF-8?B?UmU6UmU6IFtQQVRDSCAzLzZdIG1mZDogcGFsbWFzOiBGaXggcG90ZW50aWFsIElSUSBhY3Rpb24gbGVha3Mgb24gcmVtb3ZhbA==?=
-X-Priority: 3
-X-Mailer: HMail Webmail Server V2.0 Copyright (c) 2016-163.com web
-In-Reply-To: <179370041880.793788.14407997006744050474@kernel.org>
-References: <cover.1793377422.mfd.git.liguangshuo@mail.sdu.edu.cn> <fe4ee2ff4b3ad6675a46a169d6de6410db32b652.1793377422.git.liguangshuo@mail.sdu.edu.cn> <179370041880.793788.14407997006744050474@kernel.org>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1D64606A324;
+	Thu, 19 Nov 2026 13:40:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93B921F000C6;
+	Thu, 19 Nov 2026 13:40:48 +0000 (UTC)
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+To: Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Paul Walmsley <paul@pwsan.com>,
+	Stephen Boyd <sboyd@kernel.org>,
+	Brian Masney <bmasney+clk@redhat.com>,
+	Jerome Brunet <jbrunet+clk@baylibre.com>,
+	Sandy Huang <hjc@rock-chips.com>,
+	=?UTF-8?q?Heiko=20St=C3=BCbner?= <heiko@sntech.de>,
+	Andy Yan <andyshrk@163.com>,
+	Ulf Hansson <ulfh@kernel.org>
+Cc: linux-clk@vger.kernel.org,
+	linux-renesas-soc@vger.kernel.org,
+	linux-rockchip@lists.infradead.org,
+	linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	dri-devel@lists.freedesktop.org,
+	linux-pm@vger.kernel.org,
+	Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: [PATCH 0/6] clk: Improve consumer field in debugfs clk_summary
+Date: Thu, 19 Nov 2026 14:40:33 +0100
+Message-ID: <cover.1795094688.git.geert+renesas@glider.be>
+X-Mailer: git-send-email 2.43.0
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -58,64 +62,76 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Received: from 202321181@mail.sdu.edu.cn( [101.76.249.61] ) by ajax-webmail ( [127.0.0.1] ) ; Thu, 19 Nov 2026 20:43:55 +0800 (GMT+08:00)
-From: =?UTF-8?B?5p2O5bm/56GV?= <liguangshuo@mail.sdu.edu.cn>
-Date: Thu, 19 Nov 2026 20:43:55 +0800 (GMT+08:00)
-X-HM-Tid: 0aa1f3d57aaed0cdkusycbd0c45d1600e
-X-HM-MType: 1
-X-HM-NTES-SC: AL0_4z5B86Wr4Tz9jdMF+bhXMVHpP02bZAKsMEiErRSAekjx+ys+KNZNl0PLwl
-	f2MeqR5lbiqKsoq8sm3hZVy9q3VVBNOjIUwfWq1GfV2NBR9WJV5pp9Gwt04oeFjraKOA9z4Ebfb5
-	HaGbLSL75hBggy81rjpsAjN1bCk8YhhNfCILQ=
-X-HM-Spam-Status: e1kfGhgUHx5ZQUpXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
-	tZV1koWUFITzdXWRgWCB1ZQUpXWS1ZQUlXWQ8JGhUIEh9ZQVkZTBkdVkMfTh9MSBgeSRpMTFYVFA
-	kWGhdVEwETFhoSFyQUDg9ZV1kYEgtZQVlKS0pVTE1VSU9CVU1KWVdZFhoPEhUdFFlBWU9LSFVCQk
-	lOS1VKS0tVSkJLQlkG
-DKIM-Signature: a=rsa-sha256;
-	b=eaiTa/aGsGbIQ/8Mdo5kvUqyOX9/1GaNuGgnh/funKCyHIn8yUSpxUTYtsujWX0yle5mnVu1/4y+PjYrYQQ26EboSFFmN/+QyOMw0LqqbyJLNPYs9ERCjMBoYGU1N9XIqp4d0XHYG3a6Ne020O5REcTbn1YfFEjJBzO+khZfua8=; c=relaxed/relaxed; s=default; d=mail.sdu.edu.cn; v=1;
-	bh=qLPZEX0epsWd7es1kW82u4+2WFeyQwtuYOTDlogKltk=;
-	h=date:mime-version:subject:message-id:from;
+Content-Transfer-Encoding: 8bit
 
-CkhpIExlZSwKClRoYW5rcyBmb3IgdGhlIHJldmlldy4KCkZyb206IExlZSBKb25lcyA8bGVlQGtl
-cm5lbC5vcmc+CkRhdGU6IDIwMjYtMTEtMTMgMjE6MDk6MTgKVG86ICBHdWFuZ3NodW8gTGkgPGxp
-Z3VhbmdzaHVvQG1haWwuc2R1LmVkdS5jbj4KQ2M6ICBzdGFibGVAdmdlci5rZXJuZWwub3JnLEFh
-cm8gS29za2luZW4gPGFhcm8ua29za2luZW5AaWtpLmZpPixBbmRyZWFzIEtlbW5hZGUgPGFuZHJl
-YXNAa2VtbmFkZS5pbmZvPixLZXZpbiBIaWxtYW4gPGtoaWxtYW5AYmF5bGlicmUuY29tPixSb2dl
-ciBRdWFkcm9zIDxyb2dlcnFAa2VybmVsLm9yZz4sVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRl
-LmNvbT4sbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcsbWZkQGxpc3RzLmxpbnV4LmRldixsaW51
-eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnClN1YmplY3Q6IFJlOiBbUEFUQ0ggMy82XSBtZmQ6IHBh
-bG1hczogRml4IHBvdGVudGlhbCBJUlEgYWN0aW9uIGxlYWtzIG9uIHJlbW92YWw+T24gU2F0LCAz
-MSBPY3QgMjAyNiwgR3VhbmdzaHVvIExpIHdyb3RlOgo+Cj4+IFRoZSByZW1vdmUgY2FsbGJhY2sg
-ZGVsZXRlcyB0aGUgSVJRIGNoaXAgYmVmb3JlIG1hbmFnZWQgT0YgY2hpbGRyZW4KPj4gYXJlIHJl
-bW92ZWQuIFRoZWlyIGxhdGVyIGZyZWVfaXJxKCkgY2FsbHMgY2Fubm90IGZpbmQgdGhlIGRpc3Bv
-c2VkIElSUQo+PiBkZXNjcmlwdG9ycywgcG90ZW50aWFsbHkgbGVha2luZyBpbnRlcnJ1cHQgYWN0
-aW9ucy4gRGVwb3B1bGF0ZSB0aGUKPj4gY2hpbGRyZW4gYmVmb3JlIGRlbGV0aW5nIHRoZSBJUlEg
-Y2hpcCBhbmQgYXV4aWxpYXJ5IEkyQyBjbGllbnRzLgo+Pgo+PiBUaGlzIGlzc3VlIHdhcyBmb3Vu
-ZCBieSBvdXIgc3RhdGljIGFuYWx5c2lzIHRvb2wgdW5kZXIgZGV2ZWxvcG1lbnQuCj4+Cj4+IEZp
-eGVzOiAxMjRlOWRlYjFjNDAgKCJtZmQ6IHBhbG1hczogVXNlIGRldm1fb2ZfcGxhdGZvcm1fcG9w
-dWxhdGUoKSIpCj4+IENjOiBzdGFibGVAdmdlci5rZXJuZWwub3JnCj4+IEFzc2lzdGVkLWJ5OiBP
-cGVuQUk6Z3B0LTYtYXN0cmEKPj4gU2lnbmVkLW9mZi1ieTogR3VhbmdzaHVvIExpIDxsaWd1YW5n
-c2h1b0BtYWlsLnNkdS5lZHUuY24+Cj4+IC0tLQo+PiBCdWlsZC10ZXN0ZWQgdGhlIGNoYW5nZWQg
-b2JqZWN0IHdpdGggeDg2XzY0IGRlZmNvbmZpZyBwbHVzIENPTVBJTEVfVEVTVAo+PiBhbmQgdGhl
-IGRyaXZlciBkZXBlbmRlbmNpZXMgKFc9MSkuCj4+IE5vIHJ1bnRpbWUgb3IgZmF1bHQtaW5qZWN0
-aW9uIHRlc3Rpbmcgd2FzIHBlcmZvcm1lZC4KPj4KPj4gIGRyaXZlcnMvbWZkL3BhbG1hcy5jIHwg
-MyArKysKPj4gIDEgZmlsZSBjaGFuZ2VkLCAzIGluc2VydGlvbnMoKykKPj4KPj4gZGlmZiAtLWdp
-dCBhL2RyaXZlcnMvbWZkL3BhbG1hcy5jIGIvZHJpdmVycy9tZmQvcGFsbWFzLmMKPj4gaW5kZXgg
-N2ZjODg2ZjRmODBlLi44YTBiN2IxZTg5ZDcgMTAwNjQ0Cj4+IC0tLSBhL2RyaXZlcnMvbWZkL3Bh
-bG1hcy5jCj4+ICsrKyBiL2RyaXZlcnMvbWZkL3BhbG1hcy5jCj4+IEBAIC02NzcsNiArNjc3LDkg
-QEAgc3RhdGljIHZvaWQgcGFsbWFzX2kyY19yZW1vdmUoc3RydWN0IGkyY19jbGllbnQgKmkyYykK
-Pj4gIAlzdHJ1Y3QgcGFsbWFzICpwYWxtYXMgPSBpMmNfZ2V0X2NsaWVudGRhdGEoaTJjKTsKPj4g
-IAlpbnQgaTsKPj4KPj4gKwlpZiAoaTJjLT5kZXYub2Zfbm9kZSkKPj4gKwkJZGV2bV9vZl9wbGF0
-Zm9ybV9kZXBvcHVsYXRlKCZpMmMtPmRldik7Cj4KPkkgdGhpbmsgaXQgd291bGQgYmUgbmljZSB0
-byBkZXZtXyogcmVnbWFwX2FkZF9pcnFfY2hpcCgpIGluc3RlYWQuCj4KPklmIHlvdSBhbHNvIGNv
-bnZlcnQgdGhlIGF1eGlsaWFyeSBJMkMgY2xpZW50cyBhbmQgJ3BtX3Bvd2VyX29mZicKPnRlYXJk
-b3duIHRvIGRldm0sIHlvdSBjb3VsZCBkcm9wIHBhbG1hc19pMmNfcmVtb3ZlKCkgYWx0b2dldGhl
-ci4KPgo+PiArCj4+ICAJcmVnbWFwX2RlbF9pcnFfY2hpcChwYWxtYXMtPmlycSwgcGFsbWFzLT5p
-cnFfZGF0YSk7Cj4+Cj4+ICAJZm9yIChpID0gMTsgaSA8IFBBTE1BU19OVU1fQ0xJRU5UUzsgaSsr
-KSB7Cj4KPi0tIAo+TGVlIEpvbmVzCj4KClRoZSBJUlEgY2hpcCBpcyByZWdpc3RlcmVkIGJlZm9y
-ZSBkZXZtX29mX3BsYXRmb3JtX3BvcHVsYXRlKCkuIFdpdGgKZGV2bV9yZWdtYXBfYWRkX2lycV9j
-aGlwKCksIHRoZSBjaGlsZHJlbiB3b3VsZCBiZSByZW1vdmVkIHdoaWxlIHRoZWlyCklSUSBtYXBw
-aW5ncyBhcmUgc3RpbGwgdmFsaWQuCgpJZiB0aGUgYXV4aWxpYXJ5IEkyQyBjbGllbnRzIGFuZCB0
-aGUgcG93ZXItb2ZmIGhhbmRsZXIgdXNlIG1hbmFnZWQKY2xlYW51cCB0b28sIEkgdGhpbmsgcGFs
-bWFzX2kyY19yZW1vdmUoKSBjYW4gZ28gYXdheS4gSXMgdGhhdCB3aGF0IHlvdQpoYWQgaW4gbWlu
-ZD8gSWYgc28sIEknbGwgc2VuZCBhIHYyIGZvciBwYWxtYXMgYWxvbmcgdGhvc2UgbGluZXMuCgpU
-aGFua3MsCkd1YW5nc2h1bwo=
+	Hi all,
+
+When a driver uses of_clk_get_from_provider() to obtain clocks, the
+latter show up as "deviceless" in the consumer column of the clk_summary
+file in debugfs.
+
+This patch series aims to improve that, by introducing a new variant
+dev_clk_get_from_provider() that also takes a consumer device.
+When callers provide it, the consumer's name will be shown in the
+clk_summary output.
+
+Sample clk_summary change snippet on R-Car H1 Marzen:
+    - sata 1 1 0 62500000 0 0 50000 Y deviceless    of_clk_get_from_provider
+    + sata 1 1 0 62500000 0 0 50000 Y fc600000.sata dev_clk_get_from_provider
+
+Overview:
+  - The first patch removes the unused "dev" member from struct clk and
+    the "dev" parameter from clk_hw_create_clk(): it felt wrong to add
+    yet another user of clk_hw_create_clk() passing a useless device
+    pointer,
+  - The second patch introduces the new dev_clk_get_from_provider()
+    function,
+  - Patches 3-6 convert users to the new helper:
+      - The Renesas clock patch was tested on R-Car H1 and H3, and
+	should work fine on other Renesas SoCs,
+      - The Rockchip HDMI patch was only compile-tested, but is probably
+	fine, too,
+      - The OMAP2+ patch definitely needs testing,
+      - The Renesas pmdomain patch depends on work in progress.
+
+This series has been tested on R-Car H1, H3, and X5H.
+
+Thanks for your comments!
+
+Geert Uytterhoeven (6):
+  clk: Remove unused clk.dev
+  clk: Add dev_clk_get_from_provider()
+  clk: renesas: Convert to dev_clk_get_from_provider()
+  [RFT] drm/rockchip: dw_hdmi: Convert to dev_clk_get_from_provider()
+  [RFT] ARM: OMAP2+: Convert to dev_clk_get_from_provider()
+  [RFC] pmdomain: renesas: r8a78000: Convert to
+    dev_clk_get_from_provider()
+
+ arch/arm/mach-omap2/omap_device.c           |  2 +-
+ arch/arm/mach-omap2/omap_hwmod.c            |  3 ++-
+ drivers/clk/clk.c                           | 23 ++++++++++-----------
+ drivers/clk/clk.h                           | 11 ++++------
+ drivers/clk/clkdev.c                        | 14 ++++---------
+ drivers/clk/renesas/clk-mstp.c              |  2 +-
+ drivers/clk/renesas/r9a06g032-clocks.c      |  2 +-
+ drivers/clk/renesas/renesas-cpg-mssr.c      |  2 +-
+ drivers/clk/renesas/rzg2l-cpg.c             |  2 +-
+ drivers/clk/renesas/rzv2h-cpg.c             |  2 +-
+ drivers/gpu/drm/rockchip/dw_hdmi-rockchip.c |  3 ++-
+ drivers/pmdomain/renesas/r8a78000-mdlc.c    |  2 +-
+ include/linux/clk.h                         | 10 +++++++--
+ 13 files changed, 38 insertions(+), 40 deletions(-)
+
+-- 
+2.43.0
+
+Gr{oetje,eeting}s,
+
+						Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+							    -- Linus Torvalds
