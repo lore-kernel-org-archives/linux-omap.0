@@ -1,62 +1,65 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795117784;
-	b=VUZpEJjhYhttiQ8pqDwfPj7wYGFGHuHr+B/aWLNqXMbflayxAVOt1rVF8Itbvh4em9CY
-	 lFAncHaKT+ukvu7AsqwZx2oqs9qx5UZS92z6ErScgWufTgzaWlXT0XxwgC9EgcwJW8yuH
-	 iq/WCEKdQ4VRXisRf0kHJztyKWEK4B6zLsrIBOxjc0fsBOdyf0yNRLkAvb/G0qPU4gvD8
-	 VaV2QrsSH66JGW8nh7t2vq1fpM1nwZt9TrYE+pOMoSdv8L86Zs/mEvvapN6iD7WFSmYXY
-	 Nu26JF5YFIgAPYlLNdTa3vt7cAJMcB0jPPPD52je02awbm/vCHC8qThb5FtACEr47FA==
+	t=1795117791;
+	b=jl6ADOdQO5LTDqzfmc0rF3hW/XbHzJVRQv17MEl7w4WisFskHre/XclWSKIDf+8Nn5+j
+	 bJLSMYlZNZDWb9BiQlSoSj8kV0VtiC4Cjb6b6JMOYfqHCPwh68BWEtfeDLzZvdmHscSb/
+	 b5tlVL0E3R4s9A6ITlHW7260BtIJyp1sT/VKRuvh7B6c9JQjla6KZ6HjOw2LTHvqTSYyh
+	 ++Tc5dZb4p6mDBqX39BAmK6TOE+bbZPKR8Bb7B6M0mCmFCCcAYZO0gbFiy5borUF5jnY5
+	 l5PGfvmhovL+AiXNvl5k2DZgmN9lYMFoeLWUU3ZClHhPP8lCr0LHtgi3bZYiT3n//Cg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795117784;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795117791;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 MIME-Version:Content-Type:Content-Transfer-Encoding;
-	bh=gDsAJvJzkxTjWKsQDYc43r0mxoSvKQLIjsKVDf45Mok=;
-	b=rnpsssy9gmdpCuSWrTydbmkrqg93P/xtwtNRF+VoGUBM+L5FmLHJ8R+GXOrp0XawpGLw
-	 rYav4xKfEVikjvcBnK5tnFlNJHcLUT716RekyJCxuLnt43BM5njvq9E+p/cJEEvYZ+X5H
-	 SlgvH//0lctDHMImAChYEiCj+tPRN3hJTauf39TtDPVN/XLimNw8Z6jm/feZmB3iaZc9A
-	 3M5hbY3PFbrEFCFn/I6VY6UmfXYwKSYEWHzTeMOrk0qp7GVWeRbulG/MdcHyJ6JyY41rX
-	 0RH5jX/MxlowAC255GhMBXajwbTycmXuRUjOGY3VPZNszcbc0NV7Wy/bWPnbrIydyKg==
+	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
+	bh=Mt0OZH7DK0jpPILxOpJd8SFj/UQdh0ixbhSO8Lem3dI=;
+	b=qnpu8fY1JQkkaTpoz/HoyqBUznX83PGInHtf9SamQHMrCU6/mEoKiHQR1J0U82P4ceq8
+	 KzMSIFSxgObrW8fRFWFoMlRZCB1U3PeWq1ilw9tGE8gctBwBd52q++0M/AhUOYa8uvrcx
+	 SJZE7Ev9+FNJSOEWYkNSdpeSWhwAmQwfJm2rrqLe7C+VAeIWDT30R8vazwvu7tog084pY
+	 d5Vfah7GFTemd6sWXkvlkSUM7y3wQ0kMKuieiQ6/FzwneG3h16HGFj9l1EUyMkSJD6aj8
+	 A7FIgFBo51BWr+6vTeOAJ3p6asA/32kldNuLtw3ZF/y5a/3zEjsKcJ2VmsBdVhUPNPw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=igbIo64e;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XL+oSOub;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9403460A2611;
-	Thu, 19 Nov 2026 19:49:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9ABC606A333;
+	Thu, 19 Nov 2026 19:49:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=igbIo64e
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B4581F000C5;
-	Thu, 19 Nov 2026 19:49:41 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=XL+oSOub
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E56EC1F000C5;
+	Thu, 19 Nov 2026 19:49:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795117784;
-	bh=gDsAJvJzkxTjWKsQDYc43r0mxoSvKQLIjsKVDf45Mok=;
-	h=From:To:Cc:Subject:Date;
-	b=igbIo64eiJnIUIW03oOk9cKCyhCAZ9rcJJMK3o1KRYPZc4X1aSSzlR+jKoRglV1VR
-	 UdaM1gWRSVgeBl7JYYEPAZ+8BKKuGNhA0FzB2h8nVGkZSrxGso+2XKRJrxsnGjhkEL
-	 PknXTOklzuUUbM9yVY31+LPwZKiT/Qgp0BZFFeUjWLG5s39k1Vs9x1J19OL3D3jo3A
-	 kxa1YtYEDD3JUXLgjzZ6c93HmwwPhHMzgLNLL86frD+UEdS/QQV9SY33muNMyiGGIM
-	 A+imCOcZcX7++H+H164IEPMm62NtKfQ5dKGuCxOLbawAhQljzfARxTCxb30hwGgx8M
-	 iCMjYgcGKP5+Q==
+	s=k20260515; t=1795117791;
+	bh=Mt0OZH7DK0jpPILxOpJd8SFj/UQdh0ixbhSO8Lem3dI=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=XL+oSOubvp7BVBwOu4I6g16r/mEwZuOIbdLcuDy6w+x+b6Zza7GZ6/6CiG9JE/DIu
+	 cRBMx7zHL9Vdo3XH24K+Dv3k3H2/CBWpzIrbdhC3T6c/hQSS8EQAl7xYvjo/BgUMkL
+	 zB1Btemh4X/1P+v0jsoQpJ77nYdOyvPv630EmohjeEgNbdfiru3CG/z8yv/pUPsetC
+	 v08rxszI1ZxuK2U2pnEf/ZT3GuQm01YH4zjXWrjuaBd+dG95c86OGFWWPQZBiiuLSw
+	 /B+9m0NcB70vvcdUtpt7Xc5he0c2vV69uPSJgvqoJBg15m3CEZLjrFSSB9YAuzw5wo
+	 3pD3K3+vYMfeQ==
 From: Lee Jones <lee@kernel.org>
-To: lee@kernel.org
-Cc: linux-kernel@vger.kernel.org,
+To: lee@kernel.org,
 	Aaro Koskinen <aaro.koskinen@iki.fi>,
 	Andreas Kemnade <andreas@kemnade.info>,
-	Kai Svahn <kai.svahn@nokia.com>,
 	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Kai Svahn <kai.svahn@nokia.com>,
+	syed khasim <x0khasim@ti.com>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Peter Ujfalusi <peter.ujfalusi@ti.com>,
 	linux-omap@vger.kernel.org,
 	mfd@lists.linux.dev,
-	Peter Ujfalusi <peter.ujfalusi@ti.com>,
-	Roger Quadros <rogerq@kernel.org>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	syed khasim <x0khasim@ti.com>,
-	Tony Lindgren <tony@atomide.com>
-Subject: [PATCH v3 0/2] mfd: twl-core: Fix dangling twl_priv on teardown and probe failure
-Date: Thu, 19 Nov 2026 19:49:28 +0000
-Message-ID: <20261119194939.2436337-1-lee@kernel.org>
+	linux-kernel@vger.kernel.org
+Cc: stable@vger.kernel.org
+Subject: [PATCH v3 1/2] mfd: twl-core: Clear twl_priv pointer on teardown and probe failure
+Date: Thu, 19 Nov 2026 19:49:29 +0000
+Message-ID: <20261119194939.2436337-2-lee@kernel.org>
 X-Mailer: git-send-email 2.56.1.750.gf70dc682cf-goog
+In-Reply-To: <20261119194939.2436337-1-lee@kernel.org>
+References: <20261119194939.2436337-1-lee@kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -66,44 +69,82 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-These issues were reported by Sashiko.
+twl_probe() allocates the file-scope twl_priv state with devm_kzalloc()
+and checks for a non-NULL twl_priv at entry to reject multiple device
+instances.  However, twl_remove() and the early error paths in
+twl_probe() never reset twl_priv to NULL, a failure when adding MFD
+child devices bypasses twl_remove() by jumping to out instead of fail,
+and twl_remove() tears down the IRQ domain and dummy I2C clients before
+child devices are unregistered.  After devres frees the underlying
+memory on probe failure or unbind, twl_priv remains a dangling pointer,
+causing subsequent exported API calls to dereference freed memory and
+blocking future probe attempts with -EBUSY.
 
-Patch 1 is the minimal, Stable-suitable fix from v2 (13/27), which was
-skipped when the rest of that series was applied due to a collision with
-"mfd: twl-core: Unregister the auxiliary platform device on unbind".
+Unregister DT-populated and MFD child devices at the start of
+twl_remove(), ensure mfd_add_devices() failures unwind via fail, and
+reset twl_priv to NULL in twl_remove() and on probe error exit.
 
-Patch 2 is the follow-up suggested by Andreas, converting the manual
-twl_priv reset to a devres action.
+Fixes: 80a97ccd33be ("mfd: twl-core: Collect global variables behind one private structure (global)")
+Closes: https://sashiko.dev/#/bug/linux-73e82f84-94de-4d08-82a4-f22d42a1dedf
+Cc: stable@vger.kernel.org
+Signed-off-by: Lee Jones <lee@kernel.org>
+---
 
-v2 => v3:
- - Rebased patch 1 onto for-mfd-next
- - Sent the previously standalone devres follow-up as patch 2
+v2 => v3: Rebased onto for-mfd-next (the free: label is now out:)
 
-v2 (patch 1): https://lore.kernel.org/all/20261027093306.2812695-14-lee@kernel.org/
-v1 (patch 2): https://lore.kernel.org/all/20261105110332.1874728-1-lee@kernel.org/
+ drivers/mfd/twl-core.c | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: Andreas Kemnade <andreas@kemnade.info>
-Cc: Kai Svahn <kai.svahn@nokia.com>
-Cc: Kevin Hilman <khilman@baylibre.com>
-Cc: linux-omap@vger.kernel.org
-Cc: mfd@lists.linux.dev
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Roger Quadros <rogerq@kernel.org>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Cc: syed khasim <x0khasim@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-
-Lee Jones (2):
-  mfd: twl-core: Clear twl_priv pointer on teardown and probe failure
-  mfd: twl-core: Reset twl_priv using devm_add_action_or_reset()
-
- drivers/mfd/twl-core.c | 20 +++++++++++++++++---
- 1 file changed, 17 insertions(+), 3 deletions(-)
-
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index 55a7f579595c..7784e000b995 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -691,6 +691,11 @@ static void twl_remove(struct i2c_client *client)
+ {
+ 	unsigned i, num_slaves;
+ 
++	of_platform_depopulate(&client->dev);
++
++	if (twl_class_is_6030())
++		mfd_remove_devices(&client->dev);
++
+ 	if (pm_power_off == twl6030_power_off)
+ 		pm_power_off = NULL;
+ 
+@@ -708,6 +713,7 @@ static void twl_remove(struct i2c_client *client)
+ 		twl->client = NULL;
+ 	}
+ 	twl_priv->ready = false;
++	twl_priv = NULL;
+ }
+ 
+ 
+@@ -883,10 +889,10 @@ twl_probe(struct i2c_client *client)
+ 			num_cells = ARRAY_SIZE(twl6030_cells);
+ 		}
+ 
+-		status = devm_mfd_add_devices(&client->dev, PLATFORM_DEVID_NONE,
+-					      cells, num_cells, NULL, 0, NULL);
++		status = mfd_add_devices(&client->dev, PLATFORM_DEVID_NONE,
++					 cells, num_cells, NULL, 0, NULL);
+ 		if (status < 0)
+-			goto out;
++			goto fail;
+ 
+ 		if (of_device_is_system_power_controller(node)) {
+ 			if (!pm_power_off)
+@@ -903,6 +909,9 @@ twl_probe(struct i2c_client *client)
+ 	if (status < 0)
+ 		twl_remove(client);
+ out:
++	if (status < 0)
++		twl_priv = NULL;
++
+ 	return status;
+ }
+ 
 -- 
 2.56.1.750.gf70dc682cf-goog
 
