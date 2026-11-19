@@ -1,127 +1,87 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=205.220.168.131
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.246.85.4
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795084528;
-	b=qXS35YMfMVIbe07qgLmAfhckMmbcXnIz1tO+LtKq+ezSVvQ3hCHG3cHKKf1Yul77XEzr
-	 xB19eJ3wZU/GiYf0GoxvYiFv/m92ekyE/CTPN8txvMzwq7yRftKqC3YW1An6pFqyBjTrj
-	 rijwCvpAv41EkQiTi9jT3L4Gv0wRxbecBlms9lo8OKf6YlZxSfiaiIExjH4eYAlYkYuLQ
-	 wxqo4xxJjMK8tqAE8djbmRXg9RRkJAMj9afc8/UzhRxYszGCCirBxa6+VV6rhOn/3wPCT
-	 yJvfzC0wnYl00QgqWwNPEg/5Hya3rM6ZLdPnrpY4VIDXDCgIQe22LkjamqOxFAnbbVw==
+	t=1795086033;
+	b=sJkNJ7LZWm976PcRRCtmcrhef3WaeeRC+p2nZ0uL9p9CSwjkOamwCNztYlDv1bUY2btj
+	 AklJNC1brFa3ao24WvSRKkpl7qXSmM5W1769a9jzv2E25R9V/n/MVN4xyHbWhORjYq98p
+	 wF6Kxkv5wM8UlHpPj5/9vbhcClMyiv58BChbOz6oFgZY2djXb82MIawzg3adJaYL8wCEq
+	 MDA/CmoJh8KrXAIHquNZINT3UjxBL7L9ZrME3SDfdT+YG/rdfFa23n43G/w8WFd9FhjMe
+	 6+qIYRQWY90x9FK53bQs6EyjpqznweMvIkUxGmB8qJYBPijDTqrmQsgN8nT7TOVnhrQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795084528;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
-	 DKIM-Signature:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:X-Received:Received:From:To:Cc:
-	 Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Type:Content-Transfer-Encoding:X-Authority-Analysis:
-	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-ORIG-GUID:
-	 X-Proofpoint-GUID:X-Proofpoint-Spam-Info:X-Proofpoint-Virus-Version:
-	 X-Proofpoint-Spam-Details;
-	bh=Cnrr4Yn7YHkbhryjrkHy7utpdkTnIjvy/NXUx3UPL3k=;
-	b=UBWulGrtiFoSAfOlkYpkEhz2moygHdpSlYXw8ToyUvTCnOmEuwzmmW5H5oGmkJ2O6OMZ
-	 Q4iPGP14Gg0LkjAMQxB7DufJvph/Op5iVsKyluKDHdTLtdQ83dAkqrYWVn1TWsolE/wK9
-	 jalSPNqQmkAQbiY3iqmP/zJfQ4CHUHjoJZ3BdyghLyzjeFMpsGw/wVD04pbjhsq17jACU
-	 7bE3vMunDXRj+eVIQ1cgA2ogAyOeo4cCqDww7ccLpNF9qRJPm4A5XQuV9DeeH2XUKOk2j
-	 42q5y+ex/ejHgpdieUum7jab6O7w7NyTlUA9CdQteNJX2uJ9Rb21p0rj4jsvKLUD7+g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795086033;
+	h=DMARC-Filter:Received:Received:Received:DKIM-Signature:From:To:Cc:
+	 Subject:Date:Message-ID:X-Mailer:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding:X-Last-TLS-Session-Version;
+	bh=+PYYgCGLGcwMtP5pvVfhLD9ogPaemJ+h8oEMrJ2JhsU=;
+	b=dumI8Fwu7VVtoO1QQm9b71IBCZmfiCg86V8P5NdWbg/dAkB5uuaAl2d/ZyANCJUoM6C2
+	 RLpLjvbtpXXupRnPD6FQ0vLnCRhrdyihU2/9Hr03N2URcaPgLtv63JGk5MTI5FXyTH9zT
+	 ZBpzh976vEayaSJ6CswaL5KBeC3vnJlMyAgwr0iy1rzW9cY5thHYULUYMUXoHFqTY0Ge3
+	 A/PxqW06bveXTwNlWKuOdaywzyy5ZTrN3VKBtgEPb/fhtgPRQm2Gv2eAT1lr5WjSKZSMJ
+	 TSSGYrz4jLM+QeDQbAUWx0lwL/dryvWA5b9QX4WqvELhT51MK/d6JWQEyTyXcVyyHPw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=oss.qualcomm.com;
-	spf=pass smtp.mailfrom=oss.qualcomm.com;
-	dkim=pass header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=mcfjQf6T;
-	dkim=pass header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=WEs3TUN4;
-	arc=none smtp.remote-ip=205.220.168.131
-Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
+	dmarc=pass header.from=bootlin.com;
+	spf=pass smtp.mailfrom=bootlin.com;
+	dkim=pass header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=eUM67WnD;
+	arc=none smtp.remote-ip=185.246.85.4
+Received: from smtpout-03.galae.net (smtpout-03.galae.net [185.246.85.4])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04C19606A320
-	for <linux-omap@vger.kernel.org>; Thu, 19 Nov 2026 10:35:27 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 04C19606A320
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oss.qualcomm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oss.qualcomm.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7EE6606A330
+	for <linux-omap@vger.kernel.org>; Thu, 19 Nov 2026 11:00:32 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D7EE6606A330
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.a=rsa-sha256 header.s=qcppdkim1 header.b=mcfjQf6T;
-	dkim=pass (2048-bit key) header.d=oss.qualcomm.com header.i=@oss.qualcomm.com header.a=rsa-sha256 header.s=google header.b=WEs3TUN4
-Received: from pps.filterd (m0279865.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AJ9IM5g2514133
-	for <linux-omap@vger.kernel.org>; Thu, 19 Nov 2026 10:35:27 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=
-	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=qcppdkim1; bh=
-	Cnrr4Yn7YHkbhryjrkHy7utpdkTnIjvy/NXUx3UPL3k=; b=mcfjQf6TW5pUx3ik
-	7wCEwTKM/pEtSHAzhdW41rpIfKhqj4q70h6/JeA5SWJgk6ZpSnYnVbrRx75oYPF3
-	4z5kT6B9vpPg6GrVHxvN9Md/63GXQDNXlmgRtIHpHaPm9XyFe4BPkg5wTOfcVJas
-	/YGBEh42IlsICnVQSN91glTcE4s6J94V2HfdjpbSrY2N9RUrNlFnSHNp6/zILFLu
-	O2SFvLa8d0PnklJfX/XiCBQvz34gzWlqPSvF/e50ysT9TbekwAH391s6S0BAQ3e9
-	NW1EZzIWD1HHjDK4HLJs0X1083GavdZLWya5MyrJRGc29FLCd6Jwz3cbYtUixSiU
-	2jgfnw==
-Received: from mail-qk1-f197.google.com (mail-qk1-f197.google.com [209.85.222.197])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 4j1xc6ravq-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <linux-omap@vger.kernel.org>; Thu, 19 Nov 2026 10:35:27 +0000 (GMT)
-Received: by mail-qk1-f197.google.com with SMTP id af79cd13be357-949b0d3232fso51842585a.1
-        for <linux-omap@vger.kernel.org>; Thu, 19 Nov 2026 02:35:27 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=oss.qualcomm.com; s=google; t=1795084526; x=1795689326; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-type:mime-version:references
-         :in-reply-to:message-id:date:subject:cc:to:from:from:to:cc:subject
-         :date:message-id:reply-to:content-type;
-        bh=Cnrr4Yn7YHkbhryjrkHy7utpdkTnIjvy/NXUx3UPL3k=;
-        b=WEs3TUN49r7BzVVrpbPYgSUAmwgV1xmr9y5/y33hD+4EYg6iafwb6FTmPKVO8oHBeD
-         zGvIwL19J870RNP6raf/In9ik+rDYBOJK7RkrW3RfgryBKkH/8k1czbAZMSTS1tLSo5c
-         +C43d2ikNrTPck27fTbZe433Dw63ZlvELoHti0Ri9upfJZ8x3Z5YLjTouJg4cg9eAlM5
-         Ebt2R674t8SNGkvzEfXpqwBO97Wvl7BIBNc0+npBmcOeiPRn4U4wkwoxWP4U3uXK5knx
-         m51UpBqTr9NOHDMWoAs6dWM/+qcSP15DFIpYc7/zhdSjAhcG1SZ5H4t/kS9GThAUanz8
-         gTqw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795084526; x=1795689326;
-        h=content-transfer-encoding:content-type:mime-version:references
-         :in-reply-to:message-id:date:subject:cc:to:from:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=Cnrr4Yn7YHkbhryjrkHy7utpdkTnIjvy/NXUx3UPL3k=;
-        b=gaQtkSfHEqNxXNSL8N+occFVS9FuKnIi68RMuJ7NqaWKnjOdiBAz0S+jsWjv9m7o6n
-         EbRjhabVZ5NF/DdcDvQTVXrBaPWz2CPnJl8qSr+VxDFADEqDV6KbThOMzn2nW7Uauo7Z
-         lFH5LcApjoXe7540OREfmSR0/6h9E72ALEQp2RH2EJEuwJ6zVyswwe3EX6LkqjzPiLkg
-         lLVP3ByDYSCV2GkkTM1/cjKuXl8SJZYEDhx8MJYruovz0H/P2UhjkFq+JgGG0XA8jCYF
-         9Zy2YVj3PdkoWMFrjPuM8sHDjY7UGrF5ZyJCtQrvvr9uybJyLoh1DL6b/G4b3ej0aYp2
-         u0tQ==
-X-Forwarded-Encrypted: i=1; AL+hErEBpgW1Qgpb9d57ppTpgF7gecah/1kd3GyhWcVNhTFks6f0jfACAp+BKPY4+1FSG01fx9ugZgvvoy1N@vger.kernel.org
-X-Gm-Message-State: APuU4Z9mmfzuYi8vHZ/tsnKb79X467WbQu5n5Ucp5kF2b3EQYJd2jQ8e
-	3pMi3ylP0f6RgAHFsooS/fSFVXHui3niNBbxVLZ34gmmioSUymP14cZyEGd+HRY9COJEYCrYk34
-	fI7+kobi2TqXW2K3cRp30zLbtnPhes7J9PuYVK1kZA80B4gkExvAe9g9UgRVH3kzc
-X-Gm-Gg: AYBFou07ifsP0zAOeozRxIXtijqUCCxVpzwxI1UUhP0fn8LcZHBKN35NGONR84jOGwI
-	/ITWAM3kF91EUXyU223xRnPbgR8OsA4v4M9nqZdPr6LvKgWVhCJQ93+U8iBKxveH6agFWK/aMCa
-	YCQ7Qiyxrj/1GSnRzSFjwj3U75rPzHoBb4qvI45FbhbcQZ50GfQTdaHkeQkYfB+jSg2wJalh0QU
-	vh3qdys8/Ll+jUbikMCDJp4PD7PE5MLu4KiKos3eguq/VKf8SSkxP/iK+napil1c6aKChBlzVGB
-	Q6s2QOirxIBlRBUpqmlAGVtwhtVEBQuQSt2Rz8TC6WtxwY+0oO22muF832VD85dMxMuQ/M4XWFw
-	K2MV0zy5Nrh+zLFdPaAktgROQrRNrjCYErQarw+5LdbtqWLv7zX79S/zVu8zrgd21DGBnxh4KaE
-	M=
-X-Received: by 2002:a05:620a:4551:b0:949:873d:3dbf with SMTP id af79cd13be357-949995e0f87mr931933285a.59.1795084526244;
-        Thu, 19 Nov 2026 02:35:26 -0800 (PST)
-X-Received: by 2002:a05:620a:4551:b0:949:873d:3dbf with SMTP id af79cd13be357-949995e0f87mr931931185a.59.1795084525819;
-        Thu, 19 Nov 2026 02:35:25 -0800 (PST)
-Received: from brgl-qcom.local ([195.50.164.66])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4a656933956sm10237506f8f.44.2026.11.19.02.35.24
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 19 Nov 2026 02:35:24 -0800 (PST)
-From: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
-To: Grygorii Strashko <grygorii.strashko@ti.com>,
-        Santosh Shilimkar <ssantosh@kernel.org>,
-        Kevin Hilman <khilman@kernel.org>, Linus Walleij <linusw@kernel.org>,
-        Bartosz Golaszewski <brgl@kernel.org>, Jiawen Liu <1298662399@qq.com>
-Cc: Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>,
-        linux-omap@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Andreas Kemnade <andreas@kemnade.info>,
-        Dan Carpenter <error27@gmail.com>,
-        Markus Elfring <Markus.Elfring@web.de>,
-        kernel-janitors@vger.kernel.org,
-        Alexander Sverdlin <alexander.sverdlin@siemens.com>,
-        Matti Vaittinen <mazziesaccount@gmail.com>
-Subject: Re: [PATCH v2] gpio: omap: handle debounce clock preparation failure
-Date: Thu, 19 Nov 2026 11:35:23 +0100
-Message-ID: <179508449069.49049.11977204683056699145.b4-ty@oss.qualcomm.com>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <tencent_D8A4B6EE90931660EB6F586543FD58110E06@qq.com>
-References: <tencent_B4F504456790E8BA3C4EAB80F4BFB6954E08@qq.com> <tencent_D8A4B6EE90931660EB6F586543FD58110E06@qq.com>
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=eUM67WnD
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-03.galae.net (Postfix) with ESMTPS id 1E24B4E415F3;
+	Thu, 19 Nov 2026 11:00:30 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id E15CF60237;
+	Thu, 19 Nov 2026 11:00:29 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 0B92811BC0CEC;
+	Thu, 19 Nov 2026 12:00:17 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1795086027; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding; bh=+PYYgCGLGcwMtP5pvVfhLD9ogPaemJ+h8oEMrJ2JhsU=;
+	b=eUM67WnDGsyDCXHyYI30qVYNa9mXIo9JS5PgLI2cs2fSNNiy4e1Nq51/kUFHUQ3MM7RoAa
+	8xqb6NXi3Vovu3Y9CsI39XErTt+b3l2/kljEfdy77QuEiw2TcGoYpO1MRAJhIpX+/u/WKy
+	npKq8rn+QwjtelDGSaHaJpw2qrLXd5NosCTNR1sArY/MTZu7fJwS5sEb01gsgtktAKMS6S
+	qvUiRNf9I5b/tSwfXThbIQWFfk43pXikexhp2GRsMQHz54EQdcQYLPJu1NKf02QtArcnoL
+	E/2N6jtd277HAjFiBXcdIgoyAS9gZ+bsWmG/pu/nRf5+2S6sHeNujNSY46ZdHg==
+From: Herve Codina <herve.codina@bootlin.com>
+To: Andrew Lunn <andrew@lunn.ch>,
+	Rob Herring <robh@kernel.org>,
+	Saravana Kannan <saravanak@kernel.org>,
+	Geert Uytterhoeven <geert+renesas@glider.be>,
+	Kalle Niemi <kaleposti@gmail.com>,
+	Matti Vaittinen <mazziesaccount@gmail.com>,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Danilo Krummrich <dakr@kernel.org>,
+	Johan Hovold <johan@kernel.org>
+Cc: linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	driver-core@lists.linux.dev,
+	devicetree@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Allan Nielsen <allan.nielsen@microchip.com>,
+	Horatiu Vultur <horatiu.vultur@microchip.com>,
+	Daniel Machon <daniel.machon@microchip.com>,
+	Steen Hegelund <steen.hegelund@microchip.com>,
+	Luca Ceresoli <luca.ceresoli@bootlin.com>,
+	Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+	Herve Codina <herve.codina@bootlin.com>
+Subject: [PATCH v10 0/5] lan966x pci device: Add support for SFPs, simple-bus part
+Date: Thu, 19 Nov 2026 12:00:06 +0100
+Message-ID: <20261119110014.582363-1-herve.codina@bootlin.com>
+X-Mailer: git-send-email 2.56.0
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -131,55 +91,111 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-Authority-Analysis: v=2.4 cv=ef+o7LEH c=1 sm=1 tr=0 ts=6afed0ef cx=c_pps
- a=50t2pK5VMbmlHzFWWp8p/g==:117 a=Jk2/TV77q6/E6wQq2oQJxQ==:17
- a=IkcTkHD0fZMA:10 a=zJRp6_cAMcgA:10 a=s4-Qcg_JpJYA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=u7WPNUs3qKkmUXheDGA7:22 a=Um2Pa8k9VHT-vaBCBUpS:22
- a=VwQbUJbxAAAA:8 a=EUspDBNiAAAA:8 a=AXu-sfnRVQekOsvvnCgA:9 a=QEXdDO2ut3YA:10
- a=IoWCM6iH3mJn3m4BftBB:22
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTE5MDA0MSBTYWx0ZWRfXxHu8n5Jb7VPN
- 3EaV8NaSb4zxBD3ikE61xoQbqNhldP0kBFoW+Z0qoP4SCzlvStRY3LdG6XxuUPBn50zULMmnk9e
- wYueoMiPEZDnT/CJuBJpSnhuYazQJCtIIH0krNEV5H4PNb43E/B2swAq05AqibZTVXJeddtkepR
- oPzIlMv+3N2kqXbtjkVou6plPTKwKNEG7PVURI2qZm3WUEQVtrAN9yFbKF/QXYx4VoHcH5n+0lj
- c01EuQli7lq4KRgj8oeNqcdsiwgutxAvy6Y9XpbToLxSmB3OyZa+3/xqWdqIbBiNyBq6HkZ7mso
- 4+cAu+NwFJUcbdSypleczkdYGMUQ4u0y0Z1LXtug0dmCdbJavRsKRacnONtsWq01MKc1Jr80G5k
- Cxun/k78vvg+sdj6f9n6XUiwl1NIploOcq93hXcQmnA64YJEXcHR4PvraYfHAKOvFKAQsIIkR7o
- dzoAH2vY+PQVB/dt+3A==
-X-Proofpoint-ORIG-GUID: jZkYdKj51wMXJeM8qNkJb9lfgAajJk3Z
-X-Proofpoint-GUID: jZkYdKj51wMXJeM8qNkJb9lfgAajJk3Z
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTE5MDA0MSBTYWx0ZWRfX+unWhNqAwk87
- m76BsZKv38yfgICb4yLetWU8XRy9oxdZghI4UndCPWUPuuaZ1MxmSMkARUi80shCNVaOLcpIsPy
- wuJhmPhqRB60si7E2FQqn4RvCzSBMw4=
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1176,Hydra:6.1.138,FMLib:17.12.100.49
- definitions=2026-11-19_02,2026-11-16_01,2025-10-01_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- priorityscore=1501 phishscore=0 spamscore=0 lowpriorityscore=0 suspectscore=0
- malwarescore=0 clxscore=1015 impostorscore=0 bulkscore=0 adultscore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2611040001 definitions=main-2611190041
+X-Last-TLS-Session-Version: TLSv1.3
 
+Hi,
 
-On Mon, 09 Nov 2026 17:42:04 +0400, Jiawen Liu wrote:
-> omap_gpio_probe() ignores the return value of clk_prepare() for the
-> debounce clock. If preparation fails, the driver still treats debounce as
-> available and may use or unprepare a clock that was not prepared.
-> 
-> Use devm_clk_get_prepared() and disable debounce if the clock cannot be
-> obtained or prepared. This keeps the existing behavior for clock lookup
-> failures. Remove both manual clk_unprepare() calls because the managed
-> clock is released on probe failure and device removal.
-> 
-> [...]
+Previously, I sent a big picture series adding support for SFP ports
+available on the LAN966x PCI device [0].
 
-I dropped the development history from the commit message. Next time please
-don't send new revisions as replies to earlier threads.
+In this series patches touch several parts and sub-system in the kernel.
+Reviews have be done and it makes sense to split the series and send
+parts separately.
 
-[1/1] gpio: omap: handle debounce clock preparation failure
-      https://git.kernel.org/brgl/c/9df982f1f283d2f2a9aad764dff92e36ed764e16
+This current series is the extraction of patches related to the
+simple-bus driver. It has to be seen as a continuation of the big
+picture series but related to this specific simple-bus part.
+
+Patch 1 fixes an already existing issue reported by Sashiko.
+Patch 2 removes the no more useful remove() function.
+
+Patch 3 depopulates devices populated at probe() when the driver is
+unbound.
+
+Patch 4 prepares TI OMAP bus-only devices to be populated by the
+simple-pm-bus probe().
+
+Patch 5 makes the simple-bus driver compatible with fw_devlink
+expectation consisting in creating its child devices at probe.
+
+[0] https://lore.kernel.org/all/20260325143555.451852-1-herve.codina@bootlin.com/
 
 Best regards,
+Hervé
+
+Changes:
+
+v9 -> v10
+  v9: https://lore.kernel.org/all/20261109140916.90625-1-herve.codina@bootlin.com/
+
+  - Patches 1..3
+    No change
+
+  - Patch 4 (new patch in v10)
+    Prepares TI OMAP bus-only devices to be populated by the
+    simple-pm-bus probe(). This fixes an issue reported by Sashiko
+    related auxdata lookup table dropped in simple_pm_bus_probe().
+
+  - Patch 5 (patch 4 in v9)
+    Use of_platform_default_populate() instead of of_platform_populate()
+    for bus-only devices to fix the 'unpopulated grandchildren in
+    simple_pm_bus_populate()' issue reported by Sashiko.
+    Add Fixes tag.
+
+v8 -> v9
+  v8: https://lore.kernel.org/all/20260630102717.413501-1-herve.codina@bootlin.com/
+
+  Rebase on top of v7.4-rc1
+
+  - Patch 1 (new patch in v9)
+    Fix an issue reported by Sashiko related to possible inconsistencies
+    between operations done at probe() and the ones done at remove().
+
+  - Patch 2 (new patch in v9)
+    Fully remove the remove() function.
+
+  - Patch 3
+    Changed the way depopulate is performed and use devres feature.
+    Took into account a pm_runtime possible issue (reported by Sashiko)
+    related to async pm_request_idle() triggered when all child devices
+    are removed from the bus.
+
+  - Patch 4
+    Use devres feature.
+
+v7 -> v8
+  v7: https://lore.kernel.org/all/20260511155902.34534-1-herve.codina@bootlin.com/
+
+  Rebase on top of v7.2-rc1
+  No nother changes
+
+v6 -> v7
+
+  Rebase on top of v7.1-rc1
+
+  - Patch 1
+    No changes
+
+  - Patch 2
+    Fix conflict due to device_has_driver_override() introduction.
+
+Older iterations:
+  Patches 4 and 5 in the big picture series
+  https://lore.kernel.org/all/20260325143555.451852-1-herve.codina@bootlin.com/
+
+Herve Codina (5):
+  bus: simple-pm-bus: Avoid inconsistencies between probe() and remove()
+  bus: simple-pm-bus: Remove the remove() function
+  bus: simple-pm-bus: Remove child devices when the bus is unbound
+  ARM: OMAP2+: pdata-quirks: Pass auxdata for simple-bus devices
+  bus: simple-pm-bus: Populate child nodes at probe
+
+ arch/arm/mach-omap2/pdata-quirks.c |  1 +
+ drivers/bus/simple-pm-bus.c        | 92 ++++++++++++++++++++++--------
+ 2 files changed, 70 insertions(+), 23 deletions(-)
+
 -- 
-Bartosz Golaszewski <bartosz.golaszewski@oss.qualcomm.com>
+2.56.0
+
