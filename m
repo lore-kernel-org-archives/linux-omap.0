@@ -1,58 +1,62 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=178.238.236.174
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795115095;
-	b=xm1RrWy1SugQTeKaUqFtOjbJiAF+9vVw+e45yfHPr7/Q0kEJk3WXCCCV6sSXbRKbKU4N
-	 4n1Cqu1wz6K0STwpeN/rS3HXRxjSBj53Fwq2CVAmRAUMZ9TaHwWJTmAiDkVN+H6c5g+TJ
-	 T/ofmdxA93Nvu7fRUrvrRpqYOHIwkRmlf7Cknq+NNLqhD49CBKPq7tIr7z5hiY5q/VPbk
-	 dCKc3UJ2U50iwKCtYR4KQItsIUjzzsHnf+di7SXo578xoVPj87kUPQfqTWBYZYsLLbbQj
-	 1c7kuGyxpAXhR5XHKvvBUv4Jze/iwDGqWk7fno6WYUUDNGOauQVKXsVkOBMl5gC3B+Q==
+	t=1795117784;
+	b=VUZpEJjhYhttiQ8pqDwfPj7wYGFGHuHr+B/aWLNqXMbflayxAVOt1rVF8Itbvh4em9CY
+	 lFAncHaKT+ukvu7AsqwZx2oqs9qx5UZS92z6ErScgWufTgzaWlXT0XxwgC9EgcwJW8yuH
+	 iq/WCEKdQ4VRXisRf0kHJztyKWEK4B6zLsrIBOxjc0fsBOdyf0yNRLkAvb/G0qPU4gvD8
+	 VaV2QrsSH66JGW8nh7t2vq1fpM1nwZt9TrYE+pOMoSdv8L86Zs/mEvvapN6iD7WFSmYXY
+	 Nu26JF5YFIgAPYlLNdTa3vt7cAJMcB0jPPPD52je02awbm/vCHC8qThb5FtACEr47FA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795115095;
-	h=DMARC-Filter:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 In-Reply-To:References:X-Mailer:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=XJ8YVJK/sKNycWi3MkxIZMW+XV37XoghNTXy23scPpw=;
-	b=tVLPXXksp6Q9hYrLuAw4ngNtcdIvZZhiwNL90xq0i6SVmMojZFUiDKrPFtmMBYXg6xYn
-	 hyer+rHEOSoX1sRPQm7mnX36LoAfmbKGGbQxIfv6hpvp2WSgAlauIZtYXpUnAGt/dp9R7
-	 uJngSU3FDxUq/MmnC1L8gPYnOv7QIvt67TXvL0oQTNMo9U3ZoeT+nqhKFLLM0JzFnx40u
-	 5L7cWJ7ydoitwtbp7IDgvdkgeq4wi0IjbX22ec3w+8mFFFD+Y6NWm0S5gK9Dcwinud6JY
-	 lCl2CnVGT00l95fJsBu/nOlRZQ1jqKK414Yh3vE1G33+/u94EmEedhqUs4ZNT2Ci+QA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795117784;
+	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
+	 MIME-Version:Content-Type:Content-Transfer-Encoding;
+	bh=gDsAJvJzkxTjWKsQDYc43r0mxoSvKQLIjsKVDf45Mok=;
+	b=rnpsssy9gmdpCuSWrTydbmkrqg93P/xtwtNRF+VoGUBM+L5FmLHJ8R+GXOrp0XawpGLw
+	 rYav4xKfEVikjvcBnK5tnFlNJHcLUT716RekyJCxuLnt43BM5njvq9E+p/cJEEvYZ+X5H
+	 SlgvH//0lctDHMImAChYEiCj+tPRN3hJTauf39TtDPVN/XLimNw8Z6jm/feZmB3iaZc9A
+	 3M5hbY3PFbrEFCFn/I6VY6UmfXYwKSYEWHzTeMOrk0qp7GVWeRbulG/MdcHyJ6JyY41rX
+	 0RH5jX/MxlowAC255GhMBXajwbTycmXuRUjOGY3VPZNszcbc0NV7Wy/bWPnbrIydyKg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=kemnade.info;
-	spf=pass smtp.mailfrom=kemnade.info;
-	dkim=pass header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=i8lbYZaq;
-	arc=none smtp.remote-ip=178.238.236.174
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=igbIo64e;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D734760A2630
-	for <linux-omap@vger.kernel.org>; Thu, 19 Nov 2026 19:04:54 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D734760A2630
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9403460A2611;
+	Thu, 19 Nov 2026 19:49:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=i8lbYZaq
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=kemnade.info; s=20220719; h=References:In-Reply-To:Subject:Cc:To:From:
-	Reply-To:Content-ID:Content-Description;
-	bh=XJ8YVJK/sKNycWi3MkxIZMW+XV37XoghNTXy23scPpw=; t=1795115094; x=1796324694; 
-	b=i8lbYZaqPVAxytzJNf8qTb4dYEzo1xQt+g9nFXtN8aduWgNB8qtO5rjXgUxdPKQyNZ9gZ0td3Qs
-	INQQhVFkxHEwJBxin7z0wpfxnAeFuHSUTbtgvkjMOoJwv0f8OW+FEKB/xIsNJLLMh1mpaCXbF4lYR
-	Ibyt0FR1m2SFP4u7zIyNXeLgl0a5NNyX7Fx/X4KMreQa4SrYIsUryaUoh/IfhX3OEj2q23XCnO8PB
-	B2DrxxeXdE7Xpg4k8oLl3ilqQRT+a6J37gCME7lvikPKL6q0i8grOCp4ST07zC1hN74V6NMw6ds3Z
-	Kb+cZfSFypcUOL6f+GUcL83UFnsI8Gx15HIA==;
-Date: Thu, 19 Nov 2026 20:04:50 +0100
-From: Andreas Kemnade <andreas@kemnade.info>
-To: "Kevin Hilman (TI)" <khilman@baylibre.com>
-Cc: linux-omap@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, Roger
- Quadros <rogerq@kernel.org>, linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH] ARM: OMAP2+: pm34xx: add NEON wakeup dependency before
- clockdomain idle
-Message-ID: <20261119200450.038bcc12@kemnade.info>
-In-Reply-To: <20261113-wip-omap3-vfp-neon-mismatch-v1-1-3f6f67b25251@baylibre.com>
-References: <20261113-wip-omap3-vfp-neon-mismatch-v1-1-3f6f67b25251@baylibre.com>
-X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=igbIo64e
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B4581F000C5;
+	Thu, 19 Nov 2026 19:49:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795117784;
+	bh=gDsAJvJzkxTjWKsQDYc43r0mxoSvKQLIjsKVDf45Mok=;
+	h=From:To:Cc:Subject:Date;
+	b=igbIo64eiJnIUIW03oOk9cKCyhCAZ9rcJJMK3o1KRYPZc4X1aSSzlR+jKoRglV1VR
+	 UdaM1gWRSVgeBl7JYYEPAZ+8BKKuGNhA0FzB2h8nVGkZSrxGso+2XKRJrxsnGjhkEL
+	 PknXTOklzuUUbM9yVY31+LPwZKiT/Qgp0BZFFeUjWLG5s39k1Vs9x1J19OL3D3jo3A
+	 kxa1YtYEDD3JUXLgjzZ6c93HmwwPhHMzgLNLL86frD+UEdS/QQV9SY33muNMyiGGIM
+	 A+imCOcZcX7++H+H164IEPMm62NtKfQ5dKGuCxOLbawAhQljzfARxTCxb30hwGgx8M
+	 iCMjYgcGKP5+Q==
+From: Lee Jones <lee@kernel.org>
+To: lee@kernel.org
+Cc: linux-kernel@vger.kernel.org,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Kai Svahn <kai.svahn@nokia.com>,
+	Kevin Hilman <khilman@baylibre.com>,
+	linux-omap@vger.kernel.org,
+	mfd@lists.linux.dev,
+	Peter Ujfalusi <peter.ujfalusi@ti.com>,
+	Roger Quadros <rogerq@kernel.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	syed khasim <x0khasim@ti.com>,
+	Tony Lindgren <tony@atomide.com>
+Subject: [PATCH v3 0/2] mfd: twl-core: Fix dangling twl_priv on teardown and probe failure
+Date: Thu, 19 Nov 2026 19:49:28 +0000
+Message-ID: <20261119194939.2436337-1-lee@kernel.org>
+X-Mailer: git-send-email 2.56.1.750.gf70dc682cf-goog
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -62,44 +66,44 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On Fri, 13 Nov 2026 10:11:05 -0800
-"Kevin Hilman (TI)" <khilman@baylibre.com> wrote:
+These issues were reported by Sashiko.
 
-> On OMAP3630 (BeagleBoard-xM), about one boot in three dies early when
-> a context switch touches the VFP, which traps as undefined.
-> 
-> The VFP is unreachable because NEON is powered off while the MPU runs.
-> omap3_pm_init() sets NEON's next state to OFF/RET and lets all
-> clockdomains idle before it adds the NEON -> MPU wakeup dependency, so
-> NEON can power down immediately and stay off until the MPU next idles.
-> This was visible in pm_debug, which showed neon_pwrdm OFF:1 while
-> mpu_pwrdm OFF:0.
-> 
+Patch 1 is the minimal, Stable-suitable fix from v2 (13/27), which was
+skipped when the rest of that series was applied due to a collision with
+"mfd: twl-core: Unregister the auxiliary platform device on unbind".
 
-I haved played around during debugging with this:
+Patch 2 is the follow-up suggested by Andreas, converting the manual
+twl_priv reset to a devres action.
 
-@ -687,7 +695,17 @@ static int vfp_kmode_exception(struct pt_regs *regs, unsigned int instr)
-         * rebuilding and running with CONFIG_DEBUG_ATOMIC_SLEEP enabled should
-         * be helpful in localizing the problem.
-         */
-+       u32 access = get_copro_access();
-+
-+
-+       WARN_ON(1);
-+       if ((CPACC_FULL(10) | CPACC_FULL(11)) != (access & (CPACC_FULL(10) | CPACC_FULL(11)))) {
-+               pr_err("no access to copro\n");
-+               WARN_ON(1);
-+               vfp_enable(NULL);
-+       }
-        if (fmrx(FPEXC) & FPEXC_EN)
+v2 => v3:
+ - Rebased patch 1 onto for-mfd-next
+ - Sent the previously standalone devres follow-up as patch 2
 
-That error comes. but the endless exception  recursion of course still comes.
-I am wondering if I should submit something like that with a BUG() instead
-to have some more sane error message.
-So the visibile symptom is that these CPI15 bits cannot be set.
+v2 (patch 1): https://lore.kernel.org/all/20261027093306.2812695-14-lee@kernel.org/
+v1 (patch 2): https://lore.kernel.org/all/20261105110332.1874728-1-lee@kernel.org/
 
-Regards,
-Andreas
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Andreas Kemnade <andreas@kemnade.info>
+Cc: Kai Svahn <kai.svahn@nokia.com>
+Cc: Kevin Hilman <khilman@baylibre.com>
+Cc: linux-omap@vger.kernel.org
+Cc: mfd@lists.linux.dev
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Roger Quadros <rogerq@kernel.org>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: syed khasim <x0khasim@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+
+Lee Jones (2):
+  mfd: twl-core: Clear twl_priv pointer on teardown and probe failure
+  mfd: twl-core: Reset twl_priv using devm_add_action_or_reset()
+
+ drivers/mfd/twl-core.c | 20 +++++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
+
+-- 
+2.56.1.750.gf70dc682cf-goog
+
