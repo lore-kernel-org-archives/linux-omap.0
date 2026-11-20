@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795138847;
-	b=vlqVWyVx3IcNuVeBGoMDUU6LVybJjMTZFfd7A+VE3FrnRQBeA8luQ8gaJDzqUyrmCH7Z
-	 j/HO1pj54rht6CBnUs7JVuX1dDGyHxX1mrbXyAg7bcvODalp3ALCUVvKt1SqSLaWui54j
-	 fOlC3ifjoI5wGeN/dli8Ru0n/Y9u5geIOj1x7GrKWNE5NzbV2aD1+xRvB2ecTl/E1DFAL
-	 AP60Bj6/HTjLJi45VFjghhJULa7QyDtZjWdExn0lYiuNXZtexjKgLPgVjBc2XYS4cdhmN
-	 wbcG9R06s2Hk4eRBDfN9jBtp9ZaSOUzw1Uz+2wcw329BiCHJostAn6oaBgQQefVsw4A==
+	t=1795138848;
+	b=wdGQvfucqXpadgfw8N2cU+5aa468Ylux9GCMxTEskwZ+jIfrCpz6JHzY6o4mUS4GfgrC
+	 DctOExiraMEyUQmpmPG/v5DqchWoDhW5IzFHZWa7fBe/1REQqzrTdXAsJaxZukU36ur/J
+	 +TSavEYXd0bEC6LG88FJluKI8xhvpofHz9cGzPoBNiGEZfTaS+NsLSZqpCc4REJPFYpsF
+	 w8LqxWG/c/NRq77IEJLj8QJGSC79ElQHQe3WfTPDdBqeo1WCmwCPgnvV4oQSvd4Skue0I
+	 V68/NxCqN4P3XbHYzJtOF7nzT+aYAiVUtutudFGdbMuMUV/qrVC/DFVVXvsIXN2cpRQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795138847;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795138848;
 	h=Received:DKIM-Signature:MIME-Version:Content-Type:
 	 Content-Transfer-Encoding:Subject:From:To:Cc:In-Reply-To:References:
 	 Date:Message-Id:X-Mailer:X-Developer-Signature:X-Developer-Key;
-	bh=XHUsb0Xtaw6Jq3ZXOlI1gdrz1ttBLZ57v7PE2vNJerY=;
-	b=ctp7n8U+UH4lQx1qD8TLIMfenWOmQFksN+v+UbiPDP71+91pDs6WU1PsHAjuamdrRjB1
-	 /Zul/RoNKrlP/Va4QhrTDgmqhHCNRAYrZG/l/3hW6E9WfFhTsKvfoqWE4Dc77lK3a0MLW
-	 yrhdGFZTY7exA7mpLe70yd+XLE3y0yV5hOjkObl/1xfmdbS/WVHFm7pigXG3h8eOy4kXE
-	 /+lJ2PG3KPtQZLeWKkk2bYRTKzUbFbz7TaO064mR7fQPITUk+Td5Htrnz1gglrTuCXcYX
-	 HV5mV43AZ8fuSaFOFq07esDzoEkK+o4GzavPEEkcGfuIm71l0fmVh/u1wQzkKBTza/Q==
+	bh=aWLmF/3TFJHphPfFbdIW/SCt13oJ16DXgR+WbLyacng=;
+	b=z0ScmiLjhFNEeiARttmEJliKwMgKy4owoHzGqRAy95/yo0JkOq33t/tkToVzvTtWWtjd
+	 jijcKO7h+xC1O+ETVS0B8WowI/Ro8kP1i51mwudgwrKg7C+l39mSCC8eXujEmrBbp/0Tp
+	 hAfPUaXO4QzxOpTbIQink2NWOBZ8RgK5HiDsj9Gb0jmYE6vdLuTCrCreoTLKSIwMxuCSg
+	 m+4uvhLIyVtBSog+q5t29i13bB5vYkyg2y2ZZWx0Kgz173nLkZXP9K0yIzHJPNcAPa5yR
+	 IZrxugU1prspmaxFsR4s5mXVAZNYh1XpCrFRbCWEK/qj0/YUmo8QjCnlTH+N/PBgfSw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=W0YUc57e;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hSWvlxGX;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02186606A320;
-	Fri, 20 Nov 2026 01:40:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92574606A330;
+	Fri, 20 Nov 2026 01:40:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=W0YUc57e
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 152CF1F000CF;
-	Fri, 20 Nov 2026 01:40:45 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hSWvlxGX
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D964F1F000C4;
+	Fri, 20 Nov 2026 01:40:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795138846;
-	bh=XHUsb0Xtaw6Jq3ZXOlI1gdrz1ttBLZ57v7PE2vNJerY=;
+	s=k20260515; t=1795138848;
+	bh=aWLmF/3TFJHphPfFbdIW/SCt13oJ16DXgR+WbLyacng=;
 	h=Subject:From:To:Cc:In-Reply-To:References:Date;
-	b=W0YUc57edZeG2Y6/hqlHJhhl41/gafd+T0NW3lQi3zCbK0OQ7sBEJhGlifHaujcie
-	 EITdRwmzmgDZgklRGPDMDDcBM1rIrLt0Hd05C678Wc18jURvd8orYq+S0Dohsn/r9z
-	 X9hnFDED24ktVwgAOH55wtKm6YhHipDka8rjRx1zeYjdHMcJUaFSnpEzgdmpbzPsvk
-	 tpCCUBVoIqku91yz5lbyxeQSw3OuyMNqy1WTu64HvbGY2+jr4b0Othq9u5ekumaZoT
-	 OQp0FtZMvmFBIvokuV2tMussXvosFMgj5TkQipTvmEJYSaco6vltRTb1bKEukpXNpn
-	 eTAd+jeSii/OQ==
+	b=hSWvlxGXDrkBhyd8iPNzHhSr//zVCQ8oOyWZLSkfEgGDXAqyuxG7EU1Dn8IAgv/o7
+	 iM55eayZXAoWHo+12C1oZPhfZC3kCYDfQNNR2U1THP45Jy97i7G7Prhsu/4SveW8BB
+	 rut3yoF9BKy+UwPKY8hauuhCzl2OJR07Tu/t1RD+gS9qb2k/FVet28DIZgILz0xPHC
+	 qA98vwMx63v6+usMfwqmJLOQ9HXx+ygT87RAyw2hjzoDoKG36r8MUhz4mSJrdm0hgQ
+	 D1EhOGPj/RRai2NzLViEUzRp9LRhgOKjh6tkEG65FmhZzUq1sJrOSnnzJGxryKq1RA
+	 7Co0Vh43lGhwA==
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -51,7 +51,8 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH 2/6] clk: Add dev_clk_get_from_provider()
+Subject: Re: [PATCH 3/6] clk: renesas: Convert to
+ dev_clk_get_from_provider()
 From: Brian Masney <masneyb@kernel.org>
 To: Geert Uytterhoeven <geert+renesas@glider.be>
 Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, 
@@ -66,30 +67,32 @@ Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
  linux-rockchip@lists.infradead.org, linux-omap@vger.kernel.org, 
  linux-arm-kernel@lists.infradead.org, dri-devel@lists.freedesktop.org, 
  linux-pm@vger.kernel.org, Brian Masney <masneyb@kernel.org>
-In-Reply-To: <7155949aea78042fd399da5ad23a72765b2b6cc7.1795094688.git.geert+renesas@glider.be>
+In-Reply-To: <55d67b95c675924fb67d13ecbab47bb45c8af372.1795094688.git.geert+renesas@glider.be>
 References: <cover.1795094688.git.geert+renesas@glider.be>
- <7155949aea78042fd399da5ad23a72765b2b6cc7.1795094688.git.geert+renesas@glider.be>
+ <55d67b95c675924fb67d13ecbab47bb45c8af372.1795094688.git.geert+renesas@glider.be>
 Date: Thu, 19 Nov 2026 20:40:22 -0500
-Message-Id: <179513882272.284394.5255700296836474521.b4-review@b4>
+Message-Id: <179513882272.284394.9826583224210522814.b4-review@b4>
 X-Mailer: b4 0.17-dev-8145e
-X-Developer-Signature: v=1; a=openpgp-sha256; l=565; i=masneyb@kernel.org;
+X-Developer-Signature: v=1; a=openpgp-sha256; l=700; i=masneyb@kernel.org;
  s=20250903; h=from:subject:message-id;
- bh=6zJGmBMLssq21U23/Bgo8QkI6kNUxjlR9Sy14J5yfUI=;
- b=owGbwMvMwCW2/dJd9di6A+2Mp9WSGLL+LxW8Ns1Y/1VJ9huOYqsvN/TmCc14dU74RbjaV/u6W
- 9vNDYTKO0pZGMS4GGTFFFmW5BoVRKSusr13R5MFZg4rE8gQBi5OAZjI1iyG/6ELNDYWGjFMXyef
- +e6E+P7o5zVsKwNd1t+ZV1mokPdh13VGhqXZUoyvr3W1X+3d/vHpLF+R2wmFM6ZO+KskvufN/F1
- 7krkA
+ bh=NYTf8jjEK+WlRFfr+I/PcRCeTGbwoene0QOnnIsqQzM=;
+ b=owGbwMvMwCW2/dJd9di6A+2Mp9WSGLL+LxX6yHaVa5rUJs4HTdOYPGVati9u/tZWPIfNWtSye
+ EVw+qSwjlIWBjEuBlkxRZYluUYFEamrbO/d0WSBmcPKBDKEgYtTACai3cPwv3D1ca83R60eNDtV
+ W085viJXcaXhjiur/qrmzXpv9tnkvxMjw9UJpdHBidtqejZEXP383uHDlwuMn+612oVsStuoubn
+ hPScA
 X-Developer-Key: i=masneyb@kernel.org; a=openpgp;
  fpr=A46D32705865AA3DDEDC2904B7D2DD275D7EC087
 
-> Clocks obtained through of_clk_get_from_provider() show up as
-> "deviceless" in the consumer column of the clk_summary file in debugfs.
-> Add a new variant dev_clk_get_from_provider() that also takes a consumer
-> device, so callers can provide it, and consumer's name will be shown in
-> the clk_summary output.
+> Renesas clock domain callbacks use of_clk_get_from_provider() to obtain
+> clocks used for power management, so the latter show up as "deviceless"
+> in the consumer column of the clk_summary file in debugfs.
 > 
-> Reimplement of_clk_get_from_provider() on top of
-> dev_clk_get_from_provider().
+> Fix this by using dev_clk_get_from_provider() instead, letting us pass
+> the consumer device, too.
+> 
+> Sample clk_summary change snippet on R-Car H1 Marzen:
+>     - sata 1 1 0 62500000 0 0 50000 Y deviceless    of_clk_get_from_provider
+>     + sata 1 1 0 62500000 0 0 50000 Y fc600000.sata dev_clk_get_from_provider
 > 
 > Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
 
