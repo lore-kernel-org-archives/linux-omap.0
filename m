@@ -1,52 +1,103 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.41
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795184140;
-	b=pGSEuLDGhjh+Ty//G8TP5QhJxFMhnZAePxc9B+Fh0HENbIVC6RQbVq7txF2VUzYo0ybF
-	 R0JF98muCDGEYaQH9DryRWKTqqzPz8JkFenzVqGGzlPzamtAjaj0yvOR6EwMADK+Uajv3
-	 pfAJGFx7v+rzC+BNzo1zFkrvd3SiVVnie3ewKLSS+bJIQVJnW6ExHzK91D5Cv4HU+EHEL
-	 pv9PR0umXo6Q4nlaJAPzg8ATy1ofOVKN/uJ5vBGGVnp2DN13lJowH3pg/WS7TqYeIbBpg
-	 A+LTPHfdYUU0ixMxSaaSC7KBBI0oojs7QZNL97KkyNQase6sTLSdY5I3mTW7lyo2bhw==
+	t=1795186852;
+	b=TJk/aS8QLwjdAJ1kO+Q3nLFy3TUtaKIXl3CDM1P7xNjzv0tz4+PCp33VNZe2i2CVmHAz
+	 iIp3T6P/h8Pw7z8mxbrKJ+N27roDkYJIp041wArrboefyqAjte0++2MMxDkMS3zfJjDH8
+	 wnSI/1ycpSni1njqXLuLRg0XC9pdaC/RF0CVLQ1O/dJUzn7hWmk4jTTEDwcXD9hkN/cD+
+	 QoBJt22KHVZM0kvy00dlCdee5wUIQ2qcImx5BHzuo+y3OvaB/kxgu6jGCQdZiDmZMvTsX
+	 viOiGQuh5/TPCu9gJsElbEfmGiJtXylKe43EPNWxSsvUlbpX2OIb68CebB4Bt1Gb6sA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795184140;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=HqefVXcaCxEhIu49wuMHH1PTYdplvnQs6UJ8+Hj9kwk=;
-	b=Mvc/D/0WCqmRpx1z+iB4lmGSoEx+jv1O5JNzvYFKp/ojO6yiEI7LhGTBLmZSxQfKhfm+
-	 cTJ/YnzD5p71+Fcr5lJjBLslSO4Y3janTK27gYRCDJXnV6weej3DZqVDq5KHWDvGedFUR
-	 B+HSWHWCLl3GUONvdquh3orKCiurzUj9MBJByxzvEuTOUSAK8bShI5jXsyrGaR1EQzF3C
-	 cPuQ5UiuaFz3pEMD8TXHxGIfnq2W+6v36cScEdZgc1/zjwxAOxItDzy2QjsFkCakQUvTc
-	 pS87k+ughfQtpvEdXLosfV6H72DLB+q6kGrfse6Ex/f5JC+qRVUSz/Hs+fyO7HsHPiQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795186852;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-Id:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=7/iYOhMINhvEOk0ds7NRqLPwYU2L0FMs7KPyj2Wr1b4=;
+	b=kEv165MiWdmI20iLvUGEGR3CkTMVXNCIBPQ6t7tUUmFEWsSLnSllsfgk5XzMnx/ZJaeo
+	 j8d2ZpO4FShTSdbfGccx4qcNdnZvLrDLQO/8qf4/gYzjfSbge6lDXwrTEeJXiGIBKcrN4
+	 TfyIr9HLyQmm0xF8Ahg0qQT1Qy78UIXy4QZ1d7WMEdN7MeSzahxpJ6QxDiw4Jmj8VCWuu
+	 WRof4mOem3ujZucshw402+2AMQN/zbGVZalcyW3b8igvgXMu2HABTWg4r1UWF8qucRPdN
+	 iAJ+Z3w1i6G0ISGrG7x/crlUTu+/1VSZRl7XICsydl3bekTyDrkVj86/ANef3XRxTcg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=linuxfoundation.org header.i=@linuxfoundation.org header.a=rsa-sha256 header.s=korg header.b=PjGkazSK;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=TiD8fojx;
+	arc=none smtp.remote-ip=209.85.216.41
+Received: from mail-pj1-f41.google.com (mail-pj1-f41.google.com [209.85.216.41])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EF34606A335;
-	Fri, 20 Nov 2026 14:15:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5668E60A2630
+	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2026 15:00:51 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5668E60A2630
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.a=rsa-sha256 header.s=korg header.b=PjGkazSK
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 274B51F000C6;
-	Fri, 20 Nov 2026 14:15:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linuxfoundation.org;
-	s=korg; t=1795184139;
-	bh=HqefVXcaCxEhIu49wuMHH1PTYdplvnQs6UJ8+Hj9kwk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=PjGkazSKPLft2aI71A8fYJVNGO/DtQMXszP0BZ3CAdQEaLtBa/ixTU6luQnapnJ34
-	 SMiGbjLv8aQsXPqOialcO0jXpEB2GQ1FBWr7GMZE25jAXb46czt831mwJ5j2x3SwrB
-	 aJm/moDzuOKGDMBbo7ypk5bT1lkwPaATJdTfGFQk=
-Date: Fri, 20 Nov 2026 15:15:37 +0100
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Frank.Li@oss.nxp.com
-Cc: Bin Liu <b-liu@ti.com>, Frank Li <Frank.Li@nxp.com>,
-	"open list:MUSB MULTIPOINT HIGH SPEED DUAL-ROLE CONTROLLER" <linux-usb@vger.kernel.org>,
-	open list <linux-kernel@vger.kernel.org>,
-	"open list:OMAP USB SUPPORT" <linux-omap@vger.kernel.org>,
-	imx@lists.linux.dev, vkoul@kernel.org
-Subject: Re: [PATCH 1/1] usb: musb: use dmaengine_desc_set_callback()
-Message-ID: <2026112028-unicycle-filing-6dfd@gregkh>
-References: <20261102180300.3966399-1-Frank.Li@oss.nxp.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=TiD8fojx
+Received: by mail-pj1-f41.google.com with SMTP id 98e67ed59e1d1-3b40d23e1adso842704a91.0
+        for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2026 07:00:51 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1795186851; x=1795791651; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=7/iYOhMINhvEOk0ds7NRqLPwYU2L0FMs7KPyj2Wr1b4=;
+        b=TiD8fojx05fpXLGJd9ptfNKTEs7T1NdcBKTFQxZJA32CsSSfGN14cPiJwznki7FzKp
+         sYCDFhKNdWYAR4j94D8GcjDNCD3r8lxF7c6NGErd6hf3MVTC4WMkKuYsQt94gqQkhUWr
+         MihaNqOWjJWrvDn3GNcuFd/k3TpcDgEwbCcAexgxqFVfPteP1mQto3nS5rTd2nRu7q2i
+         vwj5dSKkcafKqAkZ5ZT4xxEyZVhWUG7rFjQnGJhDXSj4eRarZxEVEs4iTAyccpGEboey
+         mVjWfAifnh6mriCsuGm7lUCAenCELKxMHueLVQEBhyQFBVkSr48bN1OLLzzzvdHUMILV
+         ECeQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795186851; x=1795791651;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=7/iYOhMINhvEOk0ds7NRqLPwYU2L0FMs7KPyj2Wr1b4=;
+        b=Uy3gJhdD18pBGpRrR5H/fcw528ECvPltDtbPEUIGxcH0YPPnrMSLtz8Gsz5ug3lS0I
+         s3mJHXnmUGFvtHwGwjPBEDPB28Qbui8kirJ8r+tb+Psyphe8vhrMF/06eYSbV7smpkHh
+         x25kZEBP0tQMI8T6XcYkf+RNdR5PfpJXR87iHUrZcPjD52jwg/4BLSuRc4uJ7Kalkdiw
+         VzTlo37Uk5KPqTbwuVP/rKiQLC/wXpOfj46f6bbKzBO/bHkk8YwQKph53emtN4WLwUxZ
+         qN85R2rOQ0RXOanmkiRTLPiviSSJVCtCTqzM38X4EdfnP/hrPUTncsAgbxGc0/agxSFr
+         HMbA==
+X-Forwarded-Encrypted: i=1; AL+hErEQJMe6BDUWPJzpzj4ldB7erOXMpwBHOJJ+ZvwbaCrr5M+nr60EgFXAOl444+c93ASWMqEiOYRuou5h@vger.kernel.org
+X-Gm-Message-State: APuU4Z+Jtw+vPRYtpUEqjRMpvD8BbmkX7HaNGOK6DG5PnULlXzspCfTa
+	dKSjc3CoecTLSUVs+2Aal+CwOF07rR1QssNoaEt5ACc1Uh8uIL5368OH
+X-Gm-Gg: AZFdTZc1oHf3Mk+QOgMWHhcYfgx8nt9tJ8ucpU2RYXH2lqlmxalNd8XNMAKwWF8Qw/b
+	mtRGMkZsU6u56r6Th/lG/0s44gGg5aYp8tvFjXbkKgdB6dsT77+Glg8GY4ZeRvx5hGUeEqG3mqq
+	FYP6LadMeT47MOMeUquuls/NmIDoo5dGoOFeQVmU1AusevuDv4UkFVsv3hU17F4a6htBDZYC3nq
+	S7hQfBOgpsgrZBeLIYZGezQzuf3OOvuWp6NKwrdi4ZMDC2j0ERPinenXJ+l8/BE4jvoqu3OtwCG
+	djWRbMAcRhpOV/NY7ns8ggx5MoPkRSWbOz6rL7MJTUEDLkGMatpQWfBcUckQRmvzVeJ8pjMrjOf
+	gYtbI4xn4K0l2qq+T/8E8stGtIiB0PaPvZZXTIGmGl6HK0vkmujJ5cHzVrBKAX8jM8DzU0Im4OR
+	pZyAfL9pO2kexcc9+XV64ZoZsuP9zwTc9ShOVNoIIi2JMg1rIN+t2sJdY5Ynm3JLTNxWo+46QVW
+	Q31+TgvGFSFjTrMJkJNRDa6sWAFZBrhaFMfIG6vVZZpN2/khFSdklVsSft44utqy8nX2vGRkhjd
+	vbMfM/kuYkin6fh0/UvHRpbKCEBbNhuou8XHOzffvVZAmN0BXYdeMDy5GKJK32wB1q6D
+X-Received: by 2002:a17:90b:2688:b0:3b3:cde6:d8c8 with SMTP id 98e67ed59e1d1-3b41c955b9dmr2998636a91.46.1795186850600;
+        Fri, 20 Nov 2026 07:00:50 -0800 (PST)
+Received: from localhost.localdomain ([115.73.20.187])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b405d96bd3sm7851802a91.12.2026.11.20.07.00.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 20 Nov 2026 07:00:50 -0800 (PST)
+From: Nhat Tran <nhat.tranminhk2@gmail.com>
+To: Russell King <linux@armlinux.org.uk>,
+	Andrzej Hajda <andrzej.hajda@intel.com>,
+	Neil Armstrong <neil.armstrong@linaro.org>,
+	Robert Foss <rfoss@kernel.org>
+Cc: Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
+	Jonas Karlman <jonas@kwiboo.se>,
+	Jernej Skrabec <jernej.skrabec@gmail.com>,
+	Luca Ceresoli <luca.ceresoli@bootlin.com>,
+	Hans Verkuil <hverkuil@kernel.org>,
+	Linus Walleij <linusw@kernel.org>,
+	dri-devel@lists.freedesktop.org,
+	linux-gpio@vger.kernel.org,
+	linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Nhat Tran <nhat.tranminhk2@gmail.com>,
+	stable@vger.kernel.org
+Subject: [PATCH] drm/bridge: tda998x: Fix CEC calibration with lazy IRQ disable
+Date: Fri, 20 Nov 2026 22:00:04 +0700
+Message-Id: <20261120150004.64033-1-nhat.tranminhk2@gmail.com>
+X-Mailer: git-send-email 2.25.1
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -56,26 +107,76 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261102180300.3966399-1-Frank.Li@oss.nxp.com>
+Content-Transfer-Encoding: 8bit
 
-On Mon, Nov 02, 2026 at 01:02:56PM -0500, Frank.Li@oss.nxp.com wrote:
-> From: Frank Li <Frank.Li@nxp.com>
-> 
-> Replace open-coded assignments to callback, callback_result, and
-> callback_param fields of struct dma_async_tx_descriptor with calls
-> to the dmaengine_desc_set_callback() helper.
-> 
-> No functional change intended. Prepare to make struct
-> dma_async_tx_descriptor private to the DMA engine.
-> 
-> Signed-off-by: Frank Li <Frank.Li@nxp.com>
-> ---
->  drivers/usb/musb/musb_cppi41.c   | 7 +++----
->  drivers/usb/musb/tusb6010_omap.c | 3 +--
->  drivers/usb/musb/ux500_dma.c     | 3 +--
->  drivers/usb/renesas_usbhs/fifo.c | 3 +--
->  4 files changed, 6 insertions(+), 10 deletions(-)
+The CEC oscillator calibration pulses the TDA998x interrupt line low for
+10ms through the "nxp,calib" GPIO. Before driving the line,
+tda998x_cec_calibration() calls disable_irq() so that gpiolib allows the
+GPIO, which is also used as an interrupt, to be switched to an output.
 
-Does not apply to the usb-testing branch :(
+gpiolib only allows that once the interrupt is actually disabled at the
+GPIO controller. Since commit a8173820f441 ("gpio: gpiolib: Allow GPIO
+IRQs to lazy disable"), disable_irq() is lazy on GPIO controllers that
+do not implement .irq_disable, such as gpio-omap: the line is not masked
+and gpiolib still considers the interrupt enabled. The direction change
+is refused and the calibration pulse is never generated. On a
+BeagleBone Black this happens on every boot:
+
+  tda998x 0-0070: found TDA19988
+  gpio-537 (nxp,calib): gpiod_direction_output_nonotify: tried to set a GPIO tied to an IRQ as output
+  tda9950 0-0034: TDA9950 CEC interface, hardware version 3.3
+
+Set IRQ_DISABLE_UNLAZY for the duration of the calibration so that
+disable_irq() masks the line immediately, and clear it again once the
+interrupt has been re-enabled.
+
+Tested on a BeagleBone Black without an HDMI sink connected: the error
+is gone, the GPIO is back to an input used as an interrupt afterwards,
+no spurious interrupts are raised, and rebinding tda9950 repeatedly
+reruns the calibration cleanly. CEC communication with a sink was not
+tested.
+
+Fixes: a8173820f441 ("gpio: gpiolib: Allow GPIO IRQs to lazy disable")
+Cc: stable@vger.kernel.org
+Signed-off-by: Nhat Tran <nhat.tranminhk2@gmail.com>
+---
+ drivers/gpu/drm/bridge/tda998x_drv.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/bridge/tda998x_drv.c b/drivers/gpu/drm/bridge/tda998x_drv.c
+index 0b966c9844e7..0815ce283f49 100644
+--- a/drivers/gpu/drm/bridge/tda998x_drv.c
++++ b/drivers/gpu/drm/bridge/tda998x_drv.c
+@@ -495,8 +495,16 @@ static void tda998x_cec_calibration(struct tda998x_priv *priv)
+ 	struct gpio_desc *calib = priv->calib;
+ 
+ 	mutex_lock(&priv->edid_mutex);
+-	if (priv->hdmi->irq > 0)
++	if (priv->hdmi->irq > 0) {
++		/*
++		 * The pulse is driven on the IRQ line itself, and gpiolib
++		 * refuses to drive a GPIO whose interrupt is still enabled.
++		 * Make disable_irq() mask the line right away instead of
++		 * lazily, so that the GPIO can be switched to an output.
++		 */
++		irq_set_status_flags(priv->hdmi->irq, IRQ_DISABLE_UNLAZY);
+ 		disable_irq(priv->hdmi->irq);
++	}
+ 	gpiod_direction_output(calib, 1);
+ 	tda998x_cec_set_calibration(priv, true);
+ 
+@@ -508,8 +516,10 @@ static void tda998x_cec_calibration(struct tda998x_priv *priv)
+ 
+ 	tda998x_cec_set_calibration(priv, false);
+ 	gpiod_direction_input(calib);
+-	if (priv->hdmi->irq > 0)
++	if (priv->hdmi->irq > 0) {
+ 		enable_irq(priv->hdmi->irq);
++		irq_clear_status_flags(priv->hdmi->irq, IRQ_DISABLE_UNLAZY);
++	}
+ 	mutex_unlock(&priv->edid_mutex);
+ }
+ 
+-- 
+2.25.1
+
