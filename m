@@ -1,103 +1,69 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.41
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795186852;
-	b=TJk/aS8QLwjdAJ1kO+Q3nLFy3TUtaKIXl3CDM1P7xNjzv0tz4+PCp33VNZe2i2CVmHAz
-	 iIp3T6P/h8Pw7z8mxbrKJ+N27roDkYJIp041wArrboefyqAjte0++2MMxDkMS3zfJjDH8
-	 wnSI/1ycpSni1njqXLuLRg0XC9pdaC/RF0CVLQ1O/dJUzn7hWmk4jTTEDwcXD9hkN/cD+
-	 QoBJt22KHVZM0kvy00dlCdee5wUIQ2qcImx5BHzuo+y3OvaB/kxgu6jGCQdZiDmZMvTsX
-	 viOiGQuh5/TPCu9gJsElbEfmGiJtXylKe43EPNWxSsvUlbpX2OIb68CebB4Bt1Gb6sA==
+	t=1795193820;
+	b=ZZr8Em7DpOv7IyKnav81CXxwMOgL8T/7XT6ndtYI8whgNBeCEYidsDTJtiUyvrlAe38F
+	 ErkmLGCPvqc3BABStke5Xk54sX83r7ScmVeDIOewg/OMjRhjj5CXusFznahA7dLJV/urj
+	 fOQ6z+u0fszvOMu/tWyxGh9SGB6etTqQ5fzvmn+LTFqhIvHRl71KofP/78nvBgaM8ABGX
+	 5Z8w7WMH5pp6WZ9VO6FDH0pOZ9/icbDnNa0BB/0ybwBQQ/rZ+T+Ls7d53+Hm5Y+6iR67b
+	 OUPBGDsFFYHRdhokJcbbvIZE0cNKgdepIHjLL1uRpVvwacK9IkF5JwacjwRS8ak/AlA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795186852;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 From:To:Cc:Subject:Date:Message-Id:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=7/iYOhMINhvEOk0ds7NRqLPwYU2L0FMs7KPyj2Wr1b4=;
-	b=kEv165MiWdmI20iLvUGEGR3CkTMVXNCIBPQ6t7tUUmFEWsSLnSllsfgk5XzMnx/ZJaeo
-	 j8d2ZpO4FShTSdbfGccx4qcNdnZvLrDLQO/8qf4/gYzjfSbge6lDXwrTEeJXiGIBKcrN4
-	 TfyIr9HLyQmm0xF8Ahg0qQT1Qy78UIXy4QZ1d7WMEdN7MeSzahxpJ6QxDiw4Jmj8VCWuu
-	 WRof4mOem3ujZucshw402+2AMQN/zbGVZalcyW3b8igvgXMu2HABTWg4r1UWF8qucRPdN
-	 iAJ+Z3w1i6G0ISGrG7x/crlUTu+/1VSZRl7XICsydl3bekTyDrkVj86/ANef3XRxTcg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795193820;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To:
+	 User-Agent;
+	bh=DJ8cIXCRUOB9I2+njuBlGE2LdGi0WFfh6HrV7BoGga0=;
+	b=fgU3qwe5PRLTQGsv87AR67Mi/pV5F++ByEdXfQu1ro/YS1iVsa9FsDS142QrxwLAmMAq
+	 4C2OcOv5cSgP/lee8IUXeRWS2VIhDgry7qSET+9ZxGdmmAkh8z+NlJTABMFHH8kVYMIQR
+	 RxidA9h39diUO79KtdikHs9pI0k+qycXTdwqwuWTYx0GpblLM6sKjboNrjNmGm1AgustI
+	 s0svMTb8TT4tslSg2ZAauOO/tB4egbs7brZ2Qz4Ei6WmeB4wKhFOjSjf+bJxXkHgVcQ13
+	 XaR8kxJ7PEUxYGjNhVQtMNjArhYYTP8qE/LsVfV0rO1N8jXcnvV3hKc3HjRh/DnVASw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=TiD8fojx;
-	arc=none smtp.remote-ip=209.85.216.41
-Received: from mail-pj1-f41.google.com (mail-pj1-f41.google.com [209.85.216.41])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IvjL9tvT;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5668E60A2630
-	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2026 15:00:51 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 5668E60A2630
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33D2B60A2602;
+	Fri, 20 Nov 2026 16:56:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=TiD8fojx
-Received: by mail-pj1-f41.google.com with SMTP id 98e67ed59e1d1-3b40d23e1adso842704a91.0
-        for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2026 07:00:51 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1795186851; x=1795791651; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=7/iYOhMINhvEOk0ds7NRqLPwYU2L0FMs7KPyj2Wr1b4=;
-        b=TiD8fojx05fpXLGJd9ptfNKTEs7T1NdcBKTFQxZJA32CsSSfGN14cPiJwznki7FzKp
-         sYCDFhKNdWYAR4j94D8GcjDNCD3r8lxF7c6NGErd6hf3MVTC4WMkKuYsQt94gqQkhUWr
-         MihaNqOWjJWrvDn3GNcuFd/k3TpcDgEwbCcAexgxqFVfPteP1mQto3nS5rTd2nRu7q2i
-         vwj5dSKkcafKqAkZ5ZT4xxEyZVhWUG7rFjQnGJhDXSj4eRarZxEVEs4iTAyccpGEboey
-         mVjWfAifnh6mriCsuGm7lUCAenCELKxMHueLVQEBhyQFBVkSr48bN1OLLzzzvdHUMILV
-         ECeQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795186851; x=1795791651;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=7/iYOhMINhvEOk0ds7NRqLPwYU2L0FMs7KPyj2Wr1b4=;
-        b=Uy3gJhdD18pBGpRrR5H/fcw528ECvPltDtbPEUIGxcH0YPPnrMSLtz8Gsz5ug3lS0I
-         s3mJHXnmUGFvtHwGwjPBEDPB28Qbui8kirJ8r+tb+Psyphe8vhrMF/06eYSbV7smpkHh
-         x25kZEBP0tQMI8T6XcYkf+RNdR5PfpJXR87iHUrZcPjD52jwg/4BLSuRc4uJ7Kalkdiw
-         VzTlo37Uk5KPqTbwuVP/rKiQLC/wXpOfj46f6bbKzBO/bHkk8YwQKph53emtN4WLwUxZ
-         qN85R2rOQ0RXOanmkiRTLPiviSSJVCtCTqzM38X4EdfnP/hrPUTncsAgbxGc0/agxSFr
-         HMbA==
-X-Forwarded-Encrypted: i=1; AL+hErEQJMe6BDUWPJzpzj4ldB7erOXMpwBHOJJ+ZvwbaCrr5M+nr60EgFXAOl444+c93ASWMqEiOYRuou5h@vger.kernel.org
-X-Gm-Message-State: APuU4Z+Jtw+vPRYtpUEqjRMpvD8BbmkX7HaNGOK6DG5PnULlXzspCfTa
-	dKSjc3CoecTLSUVs+2Aal+CwOF07rR1QssNoaEt5ACc1Uh8uIL5368OH
-X-Gm-Gg: AZFdTZc1oHf3Mk+QOgMWHhcYfgx8nt9tJ8ucpU2RYXH2lqlmxalNd8XNMAKwWF8Qw/b
-	mtRGMkZsU6u56r6Th/lG/0s44gGg5aYp8tvFjXbkKgdB6dsT77+Glg8GY4ZeRvx5hGUeEqG3mqq
-	FYP6LadMeT47MOMeUquuls/NmIDoo5dGoOFeQVmU1AusevuDv4UkFVsv3hU17F4a6htBDZYC3nq
-	S7hQfBOgpsgrZBeLIYZGezQzuf3OOvuWp6NKwrdi4ZMDC2j0ERPinenXJ+l8/BE4jvoqu3OtwCG
-	djWRbMAcRhpOV/NY7ns8ggx5MoPkRSWbOz6rL7MJTUEDLkGMatpQWfBcUckQRmvzVeJ8pjMrjOf
-	gYtbI4xn4K0l2qq+T/8E8stGtIiB0PaPvZZXTIGmGl6HK0vkmujJ5cHzVrBKAX8jM8DzU0Im4OR
-	pZyAfL9pO2kexcc9+XV64ZoZsuP9zwTc9ShOVNoIIi2JMg1rIN+t2sJdY5Ynm3JLTNxWo+46QVW
-	Q31+TgvGFSFjTrMJkJNRDa6sWAFZBrhaFMfIG6vVZZpN2/khFSdklVsSft44utqy8nX2vGRkhjd
-	vbMfM/kuYkin6fh0/UvHRpbKCEBbNhuou8XHOzffvVZAmN0BXYdeMDy5GKJK32wB1q6D
-X-Received: by 2002:a17:90b:2688:b0:3b3:cde6:d8c8 with SMTP id 98e67ed59e1d1-3b41c955b9dmr2998636a91.46.1795186850600;
-        Fri, 20 Nov 2026 07:00:50 -0800 (PST)
-Received: from localhost.localdomain ([115.73.20.187])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b405d96bd3sm7851802a91.12.2026.11.20.07.00.46
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 20 Nov 2026 07:00:50 -0800 (PST)
-From: Nhat Tran <nhat.tranminhk2@gmail.com>
-To: Russell King <linux@armlinux.org.uk>,
-	Andrzej Hajda <andrzej.hajda@intel.com>,
-	Neil Armstrong <neil.armstrong@linaro.org>,
-	Robert Foss <rfoss@kernel.org>
-Cc: Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
-	Jonas Karlman <jonas@kwiboo.se>,
-	Jernej Skrabec <jernej.skrabec@gmail.com>,
-	Luca Ceresoli <luca.ceresoli@bootlin.com>,
-	Hans Verkuil <hverkuil@kernel.org>,
-	Linus Walleij <linusw@kernel.org>,
-	dri-devel@lists.freedesktop.org,
-	linux-gpio@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Nhat Tran <nhat.tranminhk2@gmail.com>,
-	stable@vger.kernel.org
-Subject: [PATCH] drm/bridge: tda998x: Fix CEC calibration with lazy IRQ disable
-Date: Fri, 20 Nov 2026 22:00:04 +0700
-Message-Id: <20261120150004.64033-1-nhat.tranminhk2@gmail.com>
-X-Mailer: git-send-email 2.25.1
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=IvjL9tvT
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 536F91F000C6;
+	Fri, 20 Nov 2026 16:56:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795193819;
+	bh=DJ8cIXCRUOB9I2+njuBlGE2LdGi0WFfh6HrV7BoGga0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=IvjL9tvTQiaHmCAeq33bh7cFtxbf7C0P3W2mb5u/sHTjg5ZZ1TlTASaX589CHUTBE
+	 SYhMFA7GBcFTiBF20NyZfjJPAWMj+S0i8HfaMniF3IF2WrIfG39DkDkl+w4Sc8ZSJl
+	 rl25wzQXY04GQrpJ5sIp1JoOy4BarvUDAgeh2SV0OI4PtT/XqTzTcCFVSs5n0Gp702
+	 WcMHxkybAkagD/kGHlIKYRRGjjQmpBseVg1sWbGRqUN3sw7wkBD+EhCrxFCrBOLCX1
+	 +pLkiqN1sUQPvCj1nzfaOGFY7AsjZCp5JUOyeollaCp+tKvu0tI8pBJ/5/r8oB7XOb
+	 U7IUN3yMvsNyg==
+Date: Fri, 20 Nov 2026 11:56:53 -0500
+From: Brian Masney <masneyb@kernel.org>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Paul Walmsley <paul@pwsan.com>, Stephen Boyd <sboyd@kernel.org>,
+	Brian Masney <bmasney+clk@redhat.com>,
+	Jerome Brunet <jbrunet+clk@baylibre.com>,
+	Sandy Huang <hjc@rock-chips.com>,
+	Heiko =?iso-8859-1?Q?St=FCbner?= <heiko@sntech.de>,
+	Andy Yan <andyshrk@163.com>, Ulf Hansson <ulfh@kernel.org>,
+	linux-clk@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	linux-rockchip@lists.infradead.org, linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	dri-devel@lists.freedesktop.org, linux-pm@vger.kernel.org
+Subject: Re: [PATCH 1/6] clk: Remove unused clk.dev
+Message-ID: <awB71ckHyTRIfy0p@x1g10>
+References: <cover.1795094688.git.geert+renesas@glider.be>
+ <a896e5bdb29c7c6de39df9b28b11d55614f2ec2d.1795094688.git.geert+renesas@glider.be>
+ <179513882271.284394.17357508909448455391.b4-review@b4>
+ <CAMuHMdWJ8zK+kzcznM7FJ3JCo1xWzjRZ5MQz9jhSUcYQfO5rBA@mail.gmail.com>
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -107,76 +73,37 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAMuHMdWJ8zK+kzcznM7FJ3JCo1xWzjRZ5MQz9jhSUcYQfO5rBA@mail.gmail.com>
+User-Agent: Mutt/2.4.3 (2026-10-09)
 
-The CEC oscillator calibration pulses the TDA998x interrupt line low for
-10ms through the "nxp,calib" GPIO. Before driving the line,
-tda998x_cec_calibration() calls disable_irq() so that gpiolib allows the
-GPIO, which is also used as an interrupt, to be switched to an output.
+On Fri, Nov 20, 2026 at 08:44:29AM +0100, Geert Uytterhoeven wrote:
+> On Fri, 20 Nov 2026 at 02:40, Brian Masney <masneyb@kernel.org> wrote:
+> > > This basically reverts commit efa850487a6b6742 ("clk: Inform the core
+> > > about consumer devices").
+> > >
+> > > This commit added a struct device pointer member to struct clk and a
+> > > parameter to clk_hw_create_clk(), but the new member was never used
+> > > beyond setting.
+> > >
+> > > Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+> 
+> > > --- a/drivers/clk/clk.h
+> > > +++ b/drivers/clk/clk.h
+> > > @@ -5,8 +5,6 @@
+> > >   */
+> > >
+> > >  struct clk_hw;
+> > > -struct device;
+> > > -struct of_phandle_args;
+> >
+> > Did you mean to remove of_phandle_args?
+> 
+> Yes, it was added by efa850487a6b6742, too (although it was
+> used in that header file before). Currently it's not used.
 
-gpiolib only allows that once the interrupt is actually disabled at the
-GPIO controller. Since commit a8173820f441 ("gpio: gpiolib: Allow GPIO
-IRQs to lazy disable"), disable_irq() is lazy on GPIO controllers that
-do not implement .irq_disable, such as gpio-omap: the line is not masked
-and gpiolib still considers the interrupt enabled. The direction change
-is refused and the calibration pulse is never generated. On a
-BeagleBone Black this happens on every boot:
+OK, I see that.
 
-  tda998x 0-0070: found TDA19988
-  gpio-537 (nxp,calib): gpiod_direction_output_nonotify: tried to set a GPIO tied to an IRQ as output
-  tda9950 0-0034: TDA9950 CEC interface, hardware version 3.3
-
-Set IRQ_DISABLE_UNLAZY for the duration of the calibration so that
-disable_irq() masks the line immediately, and clear it again once the
-interrupt has been re-enabled.
-
-Tested on a BeagleBone Black without an HDMI sink connected: the error
-is gone, the GPIO is back to an input used as an interrupt afterwards,
-no spurious interrupts are raised, and rebinding tda9950 repeatedly
-reruns the calibration cleanly. CEC communication with a sink was not
-tested.
-
-Fixes: a8173820f441 ("gpio: gpiolib: Allow GPIO IRQs to lazy disable")
-Cc: stable@vger.kernel.org
-Signed-off-by: Nhat Tran <nhat.tranminhk2@gmail.com>
----
- drivers/gpu/drm/bridge/tda998x_drv.c | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/gpu/drm/bridge/tda998x_drv.c b/drivers/gpu/drm/bridge/tda998x_drv.c
-index 0b966c9844e7..0815ce283f49 100644
---- a/drivers/gpu/drm/bridge/tda998x_drv.c
-+++ b/drivers/gpu/drm/bridge/tda998x_drv.c
-@@ -495,8 +495,16 @@ static void tda998x_cec_calibration(struct tda998x_priv *priv)
- 	struct gpio_desc *calib = priv->calib;
- 
- 	mutex_lock(&priv->edid_mutex);
--	if (priv->hdmi->irq > 0)
-+	if (priv->hdmi->irq > 0) {
-+		/*
-+		 * The pulse is driven on the IRQ line itself, and gpiolib
-+		 * refuses to drive a GPIO whose interrupt is still enabled.
-+		 * Make disable_irq() mask the line right away instead of
-+		 * lazily, so that the GPIO can be switched to an output.
-+		 */
-+		irq_set_status_flags(priv->hdmi->irq, IRQ_DISABLE_UNLAZY);
- 		disable_irq(priv->hdmi->irq);
-+	}
- 	gpiod_direction_output(calib, 1);
- 	tda998x_cec_set_calibration(priv, true);
- 
-@@ -508,8 +516,10 @@ static void tda998x_cec_calibration(struct tda998x_priv *priv)
- 
- 	tda998x_cec_set_calibration(priv, false);
- 	gpiod_direction_input(calib);
--	if (priv->hdmi->irq > 0)
-+	if (priv->hdmi->irq > 0) {
- 		enable_irq(priv->hdmi->irq);
-+		irq_clear_status_flags(priv->hdmi->irq, IRQ_DISABLE_UNLAZY);
-+	}
- 	mutex_unlock(&priv->edid_mutex);
- }
- 
--- 
-2.25.1
+Reviewed-by: Brian Masney <masneyb@kernel.org>
 
