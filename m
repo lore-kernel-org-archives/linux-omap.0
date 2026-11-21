@@ -1,72 +1,95 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=44.202.169.35
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.214.175
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795202449;
-	b=YznzK+PKy1tHEXWEfSkrEU49ySuhn05DJWZHtnCwBSO2B1UKxCMd/U0cPUd6DCB4YGo8
-	 bOSYSjzKLSjVGTlHWn2npGvjdUfDJI93RmUjZTst4F5tNVOyTqG7x5MPl4XYSap+oyJI/
-	 MWLj1x/+cdcdZpN/xrHMUfKzOWdiqbCUjt4GzCchIUGOxW8r/3o5VplSXHSpMpuoyStqH
-	 Yl6JMKKtqMfCfNSMVAxA7mllpGD5HgDm3bPtQOBlE1RCfD0P3rtAubL4cGVpdyq4WxB58
-	 GpR7d7VW9YiBrToLwjrSL3CngFEcvHJ6W6kQs/EGybAjAVZyrYloQqO6LEJlbhqxC6Q==
+	t=1795239050;
+	b=BvKZ352nq9hymdULhL76uXoQR35cKhH78aBaormUs0VT/YB9fmoVQae5RwUZCGkqjnSG
+	 ZthXh3DcE7SGgN9Z+929P5Rh4LtE0UhDz+BrwSYWWsXD4A7W89L+AjSMlMNvYXgh9VzK/
+	 T+2QMDOx4X1Shr19zDfV+DAWyVBidQnazfeRTuoSBHAWYZeBjEYm1+Sgx+j1g0pU5iTga
+	 tzrdn7oIFgRUF5RNA1KjIJZdDVID8PItNwfvCjNLREvE+8mic/LP1jSnlzqjol9rKZYJT
+	 ZLuJ2P5r13o0cUPnCs3qignAASqTV7n6D+mjkha7ZIqGFjgVUfR3LQ+hKCsog5ZrwfQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795202449;
-	h=DMARC-Filter:Received:Received:X-Authority-Analysis:DKIM-Signature:
-	 Received:Message-ID:Date:MIME-Version:User-Agent:Subject:To:Cc:
-	 References:Content-Language:From:Autocrypt:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding:X-AntiAbuse:X-AntiAbuse:X-AntiAbuse:
-	 X-AntiAbuse:X-AntiAbuse:X-BWhitelist:X-Source-IP:X-Source-L:X-Exim-ID:
-	 X-Source:X-Source-Args:X-Source-Dir:X-Source-Sender:X-Source-Auth:
-	 X-Email-Count:X-Org:X-Source-Cap:X-Local-Domain:X-CMAE-Envelope;
-	bh=5n7hU92/hTAahTaIujkTsWGLRtB7NISm8chiqkmyJDg=;
-	b=uuMvrkqGGXf3WZ9pgRa3zC8K2yIgmftz/mIW6HZilkbX7Gj92lJxS7CCggb2MhT3ADjE
-	 wxhHZ/rNq/s+pssY+KOEf1nmxv0A+m/9wMwIo7IkCcklKsz3bIfdQnlYMRUPEfNXp/s4H
-	 NPFB9JJNI+Snb/eVQRUZ+d264nHUi1n/81uJzAiN+1lBYuEPY9VLpyCNB3EICMlXrQebK
-	 BP6vR+Q+X2O5AIaxawAg8ziM0bba5UyPKek0w44sF2r+tUlKMNgDyKFZylk+wAj+OYEeA
-	 UJZqsFRhFUT1eIS3wUshN7Cu/ZnNGnqJ+wsM1xrjwRWl2ci64gZWqzMJdieMht6NDwg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795239050;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-Id:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=6h7S1Z/Yg4pL1JyrxjPN4A6nDLlEh5v9NxEZIV677W4=;
+	b=gPcEcUWfVWG/JHJKErQwlsmbWfA2C0DjKw+03FISzXPwcx3LKYTNONzB9w2/AFH1i0Wr
+	 UeGTSABfbfcXx4dCJx7PEphQemX6/2TbLu/2P1s0Px1hGBe7/a+j06Cj82TRpiog3vjI3
+	 CFm7o8BD1AweVsxepcEVic+SzAEuz5HrVWks0Y3Irzhc4JML1qTvRIE4nEjP7Ph/x8fSu
+	 ssZz8IPVUoEq/50fsbzLYG3fsmTnhnIfjDWnK0X4t4f8Jns4EEFk7qCPhuBzUC1LwMDvd
+	 kjzLwrGWqRpvv6LhCobeSD5hesSxaJk/I/WDXH3KBLvrSkG38muU036u2j6EOOod/0g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=roeck-us.net;
-	spf=fail smtp.mailfrom=roeck-us.net;
-	dkim=pass header.d=roeck-us.net header.i=@roeck-us.net header.a=rsa-sha256 header.s=default header.b=mWUIpTKB;
-	arc=none smtp.remote-ip=44.202.169.35
-Received: from omta036.useast.a.cloudfilter.net (omta036.useast.a.cloudfilter.net [44.202.169.35])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=HDGIGh8X;
+	arc=none smtp.remote-ip=209.85.214.175
+Received: from mail-pl1-f175.google.com (mail-pl1-f175.google.com [209.85.214.175])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A73860A2604
-	for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2026 19:20:46 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1A73860A2604
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=roeck-us.net
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 139A2606A6AB
+	for <linux-omap@vger.kernel.org>; Sat, 21 Nov 2026 05:30:49 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 139A2606A6AB
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=roeck-us.net header.i=@roeck-us.net header.a=rsa-sha256 header.s=default header.b=mWUIpTKB
-Received: from eig-obgw-5007b.ext.cloudfilter.net ([10.0.29.167])
-	by cmsmtp with ESMTPS
-	id UQlixjn9Z4vCDUUAAxtQHr; Fri, 20 Nov 2026 19:20:46 +0000
-Received: from 162-215-252-36.unifiedlayer.com ([208.91.199.152])
-	by cmsmtp with ESMTPS
-	id UUA9xUcg3xqjjUUAAx2UNw; Fri, 20 Nov 2026 19:20:46 +0000
-X-Authority-Analysis: v=2.4 cv=bZxrUPPB c=1 sm=1 tr=0 ts=6b009d8e
- a=QNED+QcLUkoL9qulTODnwA==:117 a=2cfIYNtKkjgZNaOwnGXpGw==:17
- a=H1xHdJbw_7IDupmx:21 a=IkcTkHD0fZMA:10 a=zJRp6_cAMcgA:10 a=M0FbrtG7MMAA:10
- a=kXaYdxMDRVOPY9whCecA:9 a=QEXdDO2ut3YA:10 a=zgiPjhLxNE0A:10
- a=KPbNTLLc3YvdawN95zVk:22
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=roeck-us.net; s=default; h=Content-Transfer-Encoding:Content-Type:
-	In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender
-	:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-	List-Unsubscribe:List-Unsubscribe-Post:List-Subscribe:List-Post:List-Owner:
-	List-Archive; bh=5n7hU92/hTAahTaIujkTsWGLRtB7NISm8chiqkmyJDg=; b=mWUIpTKBK8cp
-	uU2skt3T4IAFceK6GL5mPGPVxfgiexxQYUmBu3a75swLgWJk1J/qCd5Beq8bdgOPwYMiNwZOpugXN
-	YMlNi7uWgp0iL1ERt4XZqdM8GD6SNvCyMsJSPHzCcfwgoy1xeFYa1vYUvXgH2M0S/Ye7z5xFGeG9E
-	pd8wAA8G/6VRF2G0d7pIOgYi/WPM9tOX8inlbbU9mg2QsmBHye4illg4+WgHVpygJlja76otE1uXR
-	rIy2MO1CGGHSN5bN5H46KLd7GZOM/x//MDGn5R92QigylNvKmedEtSTedJVkJzJC0HKgD0N+7R26S
-	slqW5f6At9BWAGjXQJhJzw==;
-Received: from 108-223-40-66.lightspeed.sntcca.sbcglobal.net ([108.223.40.66]:35344)
-	by bh-25.webhostbox.net with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.100.1)
-	(envelope-from <linux@roeck-us.net>)
-	id 1xUUA9-00000001V67-1ka0;
-	Sat, 21 Nov 2026 00:50:45 +0530
-Message-ID: <38e5fb82-c883-4e49-9fe4-b77a122a586f@roeck-us.net>
-Date: Fri, 20 Nov 2026 11:20:44 -0800
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=HDGIGh8X
+Received: by mail-pl1-f175.google.com with SMTP id d9443c01a7336-2f046b0adc0so7112735ad.1
+        for <linux-omap@vger.kernel.org>; Fri, 20 Nov 2026 21:30:49 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1795239049; x=1795843849; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=6h7S1Z/Yg4pL1JyrxjPN4A6nDLlEh5v9NxEZIV677W4=;
+        b=HDGIGh8XXuu6yFs5aKL2Y/+U8+5jXNrGXkzEe0/GwzpL/UTmJWLhS7qFFSs8ym2AfQ
+         DbHqnJ5ZwZHpzx0eNkroFT9fd4xzei1MuSH5OL6YnyzbxsFUj9CDnjQO5rqbG3PNPXtk
+         KRsryNkz7TqJ9bTVw4zPmpzSm9Qr/y74HZSfMAccWQwylHRQUoRVbFhwFc6RlPqvOHLU
+         YXLu2BoGm8Z5UervBGgFhGiRjcriO+KbWDi0ggPNI8+ycvFEw8mSALPMRKrTRrQku3P6
+         qP6sqX5lLXmE0ZW98Qdt+ZaIKpAdeVEWdqh4uSIeD5qh4EB1cotryl2Fcc/x5gmynWS9
+         +CJA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795239049; x=1795843849;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=6h7S1Z/Yg4pL1JyrxjPN4A6nDLlEh5v9NxEZIV677W4=;
+        b=omRKA7DDibSJlwMPIR0dDBQ49yBu7XuFMWmFh+jAvRNsjNNV6qVe0bz2uZ3/KzOgWk
+         hZivAqmsnTJ9BPxSsB8+hZE8pE95s3FU+jCouYX8kQ2bHN6NMYZ0jKzY80ev8HqY3IUk
+         FP19HvcrAqLesNBYX7sihI2uPBo85UpoDEIo6r7oIxcSYq0O44nMZ8FAY4vMAQaa2s/e
+         Xl0W22srjOk8/oWwi1crksKIAbR4Wla96cGbJNnxD/4nN5oE8mwELdyV0azP1SHEwscO
+         bn11vNMa7zmBtEHMapxG9ZdY9gdlpm4QKxtugvPy5mRYyQfKhX1ta6WihPyPzy31UeKU
+         r62Q==
+X-Forwarded-Encrypted: i=1; AL+hErG+o6ougtfL09EpjCYV35S8PCtLZoJEfoBs00wOwynLijlX1LbDS0b7u924tBmHPGOFLfUAEi1zPjp8@vger.kernel.org
+X-Gm-Message-State: APuU4Z9E/f2xAajpTBZ16+Nm0ANWREYsiVpvDuKyblOpBYMguzAW2vX5
+	PTsvZtmxO5u6NwZEPYjNT0tM7ARmn8Ta29v/SbvOMUIRngWUHLooOmtm
+X-Gm-Gg: AZFdTZd2Xys6OGXbE3DGulHVHXky59FcD2uoyG0pp/L56YKAjJLzI+EXy3HgYgYvfSW
+	80A0e2rwW7mqt3uMcR8I1B1QScI0zXdj1v2dOl+VWosM1FR9dNjSxT2dvouDECI7c2499KH2pGs
+	im30DJA3QY6dUgbRq04PFCBL0LqpoNoKJgsKS8qadz7hvLqUkebkJahwFejk5zLhpvfTidITrAG
+	kOHriHd8Fs/NpofBW94YxhMvzVB8U0Vka7QUMAcE0cK1OAeffQDj/tFU83kBzly9bvNVHgGucbF
+	i7f35RGd5mqWeKdK/C+TIssI8P2cenyaZsQ2HOXQ6gTrjKLrvredWofRV61n18VLdq7YbD9mrbj
+	HDxA3/s4989D35Vo4DJP/tDGtEejwegRcl0kIZ5e4IJU4AQ0vOPZzoPASCYkwe5A0KOKDAIaM5r
+	/uL05tPeKxgWKvpyplyIkE5ggrP/1Gn83VpI4eOga+fxcNZ7/zR/hOCDz9hMlycYfxc499QmcJn
+	B/csHTAgfm9a/+oXYvUqGKouNTCdPBAcWG+yDhbS+SlnmN4oIdSfRZ2Uico6kiR3hXOrZaR0Ia7
+	/jCi9gbgRyjyvJhvynb2ASWVZxqnk+pu3O/TiKf3FDVsl5Q2
+X-Received: by 2002:a17:903:298c:b0:2e9:5714:6075 with SMTP id d9443c01a7336-2f03f117c82mr51260805ad.17.1795239049247;
+        Fri, 20 Nov 2026 21:30:49 -0800 (PST)
+Received: from localhost.localdomain ([115.73.20.187])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2f0433a3a43sm18751085ad.62.2026.11.20.21.30.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 20 Nov 2026 21:30:48 -0800 (PST)
+From: Nhat Tran <nhat.tranminhk2@gmail.com>
+To: Wim Van Sebroeck <wim@linux-watchdog.org>,
+	Guenter Roeck <linux@roeck-us.net>
+Cc: Lars Poeschel <poeschel@lemonage.de>,
+	linux-watchdog@vger.kernel.org,
+	linux-omap@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Nhat Tran <nhat.tranminhk2@gmail.com>,
+	stable@vger.kernel.org
+Subject: [PATCH v2] watchdog: core: Don't report time left for a stopped watchdog
+Date: Sat, 21 Nov 2026 12:29:50 +0700
+Message-Id: <20261121052950.287506-1-nhat.tranminhk2@gmail.com>
+X-Mailer: git-send-email 2.25.1
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -76,104 +99,85 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] watchdog: omap: Do not read the counter while the
- watchdog is stopped
-To: Nhat Tran <nhat.tranminhk2@gmail.com>,
- Wim Van Sebroeck <wim@linux-watchdog.org>
-Cc: linux-watchdog@vger.kernel.org, linux-omap@vger.kernel.org,
- linux-kernel@vger.kernel.org, stable@vger.kernel.org
-References: <20261120124009.24264-1-nhat.tranminhk2@gmail.com>
-Content-Language: en-US
-From: Guenter Roeck <linux@roeck-us.net>
-Autocrypt: addr=linux@roeck-us.net; keydata=
- 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
- np3900V20aS7eD9K8GTU0TGC1pyz6IVJwIE=
-In-Reply-To: <20261120124009.24264-1-nhat.tranminhk2@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - bh-25.webhostbox.net
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - roeck-us.net
-X-BWhitelist: no
-X-Source-IP: 108.223.40.66
-X-Source-L: No
-X-Exim-ID: 1xUUA9-00000001V67-1ka0
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
-X-Source-Sender: 108-223-40-66.lightspeed.sntcca.sbcglobal.net [108.223.40.66]:35344
-X-Source-Auth: guenter@roeck-us.net
-X-Email-Count: 3
-X-Org: HG=direseller_whb_net_legacy;ORG=directi;
-X-Source-Cap: cm9lY2s7YWN0aXZzdG07YmgtMjUud2ViaG9zdGJveC5uZXQ=
-X-Local-Domain: yes
-X-CMAE-Envelope: MS4xfHvJRUhkeOaUBGBWCZgsbWXPjPFVLKsPDrGEOIaUI0W63EGI8pID7/diNanFP+o0l0vPXmH3g6AUhdo0u7y4OXhIHjhLY6HcduEhvty+sjzJXj7awEE2
- GBM268uoQtJTtqqJh+l96r9N5k4SvgCvR90wu8lJDNn+auaekNaRzH05620TZ7KC8aY4T0X6gWp0aTAARKBcnYnoNs/Sy91zMNoYJRn5E2u1xaU6T3vtSHUr
+Content-Transfer-Encoding: 8bit
 
-On 11/20/26 04:40, Nhat Tran wrote:
-> omap_wdt only holds a runtime PM reference between omap_wdt_start() and
-> omap_wdt_stop(), so the module is idle and its clock gated whenever the
-> watchdog is not running. omap_wdt_get_timeleft() reads the WCRR register
-> unconditionally, but the watchdog core calls ->get_timeleft() from the
-> sysfs timeleft attribute without checking whether the watchdog is
-> active.
-> 
-> With CONFIG_WATCHDOG_SYSFS=y the attribute is world readable, so any
+watchdog_get_timeleft() calls the driver's ->get_timeleft() regardless
+of whether the watchdog is running. It is reachable through the sysfs
+timeleft attribute, which is world readable with CONFIG_WATCHDOG_SYSFS=y,
+and through WDIOC_GETTIMELEFT, also after the watchdog was stopped with
+WDIOS_DISABLECARD while the device is still open.
 
-The watchdog can also be stopped while the watchdog device is open, so the
-problem is a bit broader than that.
+Drivers may not be able to access the hardware while the watchdog is
+stopped. omap_wdt only holds a runtime PM reference while the watchdog
+is running, so on a BeagleBone Black (AM335x) reading the counter of a
+stopped watchdog triggers an external abort. Any unprivileged user can
+hit it through sysfs:
 
-> unprivileged user can trigger an external abort on a stopped watchdog.
-> On a BeagleBone Black (AM335x), with panic_on_oops set:
-> 
+  $ cat /sys/class/watchdog/watchdog0/timeleft
+  Unhandled fault: external abort on non-linefetch (0x1028) at 0xf9e35028
+  Internal error: : 1028 [#1] SMP ARM
+  PC is at omap_wdt_get_timeleft+0x4/0x14
+  LR is at watchdog_get_timeleft+0x24/0x130
+  Call trace:
+   omap_wdt_get_timeleft from watchdog_get_timeleft+0x24/0x130
+   watchdog_get_timeleft from timeleft_show+0x3c/0x80
+   timeleft_show from dev_attr_show+0x18/0x4c
+   dev_attr_show from sysfs_kf_seq_show+0xa0/0x138
+   ...
 
-Seems to me the proper generic fix should be in watchdog_get_timeleft(),
-which should return either return the configured timeout or maybe 0
-(I am open to suggestions) if the watchdog is not running.
+and the same happens with WDIOS_DISABLECARD followed by
+WDIOC_GETTIMELEFT on the open device, once the module has idled:
 
-Thanks,
-Guenter
+  Call trace:
+   omap_wdt_get_timeleft from watchdog_get_timeleft+0x24/0x130
+   watchdog_get_timeleft from watchdog_ioctl+0x494/0x668
+   watchdog_ioctl from sys_ioctl+0x128/0xbcc
+   sys_ioctl from ret_fast_syscall+0x0/0x54
+
+If the ioctl comes before the module has idled, the read succeeds but
+reports 59 seconds left for a watchdog that is stopped.
+
+A stopped watchdog will not reboot the system, so report 0 time left
+when neither WDOG_ACTIVE nor WDOG_HW_RUNNING is set, without calling
+into the driver. This matches the software fallback for drivers without
+->get_timeleft(), which already decays to 0 once the watchdog is no
+longer pinged.
+
+Tested on a BeagleBone Black: with the watchdog stopped, both the sysfs
+attribute and WDIOC_GETTIMELEFT after WDIOS_DISABLECARD return 0; with
+the watchdog started through /dev/watchdog0, timeleft counts down as
+before (59, then 56 three seconds later).
+
+Fixes: 452fafed839e ("watchdog: omap_wdt: implement get_timeleft")
+Cc: stable@vger.kernel.org
+Suggested-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Nhat Tran <nhat.tranminhk2@gmail.com>
+---
+v1->v2:
+- Moved the check from omap_wdt into watchdog_get_timeleft(), as
+  suggested by Guenter, so it covers all drivers
+- Return 0 for a stopped watchdog; this also covers WDIOC_GETTIMELEFT
+  after WDIOS_DISABLECARD on an open device
+
+v1: https://lore.kernel.org/all/20261120124009.24264-1-nhat.tranminhk2@gmail.com/
+---
+ drivers/watchdog/watchdog_dev.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/watchdog/watchdog_dev.c b/drivers/watchdog/watchdog_dev.c
+index e8c1fcb53c56..b67a68316bda 100644
+--- a/drivers/watchdog/watchdog_dev.c
++++ b/drivers/watchdog/watchdog_dev.c
+@@ -435,6 +435,9 @@ static void watchdog_get_timeleft(struct watchdog_device *wdd,
+ {
+ 	*timeleft = 0;
+ 
++	if (!watchdog_active(wdd) && !watchdog_hw_running(wdd))
++		return;
++
+ 	if (wdd->ops->get_timeleft) {
+ 		*timeleft = wdd->ops->get_timeleft(wdd);
+ 	} else {
+-- 
+2.25.1
 
