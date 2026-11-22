@@ -1,79 +1,45 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795369834;
-	b=4Y3MKmbgVgj2cPra7VkUo4nkGtRKsSjohpjDoXXHiu5BX3Aghch64LT2DWQls1Zs6Fq4
-	 1TqXIvgr0XhfEQHGK9HHVYjMa8Q5Qza84PR3IzYnUf2lS9ZwAy2g28MaOh22OaYnZz4Dk
-	 nEFfN/t1Nt9QNgrzE6l8hZYfHx3hgP3uyKKH3aEuurGzix0XwybbjMIVBmieAAAlSsoca
-	 +clSGhK8GuAHKEYCryAqUa7oaPqS60iFV7MLzOABWbezmmL/YfKn2KYz7dP1+JnM5xp/G
-	 RSFXTxgwClwWZEKLsKk1Ivzg31kAxQ8ZwFtAKuDS0irnG+mMKriv0S+M7KML8LebCLw==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795369834;
-	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
-	 Content-Type:Message-Id:X-B4-Tracking:X-Change-ID:To:Cc:X-Mailer:
-	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
-	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=vg5mqRfKEizGuvpEqsvZFuLvCHSXkGqnwv+4/yviyV8=;
-	b=d4ropl/WGnLsbmdxeteOxCUVbDYX/MLy9pFBFADWr/+EMLj9whbXNtypYwuLQJc+U5YO
-	 xnOlV6Cc/Xyps9NOBbe1TXAlddk+2jaqLLrFjoKLHMV4aF1dEpz4csXnOaccRMRcZ2tvf
-	 hC2GrAEiSIY96hLCDaB+8xCHKAWuAwbhwmMYEUWc+KFTsj0lFtDP/BCjkr3XnZ+l3xjKl
-	 jnzbbk8GB0l4HQOuLaNb9fII9xlO6kIPTtR7x+Ca3b8SFtjq3qeWvpDlUjphHzTTM/A3O
-	 ZKaAWb/FaiyIXEmcrmEK3dyG5ZG6UVo/GCz9Yl5eRLHOaB4jc/m4T66t/lPX80WZ3cw==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=G7wzDdFN;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1795384942;
+	b=pBEACgA36xFSDDxXG+1RQfD522q8s3R/vqcG1WpafCscgR4wsKojkM91+EearyjAlLpN
+	 udKJMpbydgO+5NkAPmhk+pQEYepZvWd0NMdFuRBAdiHmttCwxYF1JO0NRNgQBng4BznUC
+	 SO+oFFLm98opsX+QMraPG7YcuZOfK3Vle/+Pduacu1gzoSGz5hIp3h/vyPhyD3iGcGv3o
+	 RbLOeAZinykQ+Dlf/BcHUICvuC52CXFlaOoO2xI6Ev3ElIaRmZ6waBGRnZM4SQGmHWHDe
+	 DMOuO5kvASvd5ZHFy+Z1hpP34IJFyOD7xOfv/vP2gO4/syNVJdYwnVas5cXsRK78C0g==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795384942;
+	h=Received:DKIM-Signature:Mime-Version:Content-Transfer-Encoding:
+	 Content-Type:Date:Message-Id:Subject:Cc:To:From:References:
+	 In-Reply-To;
+	bh=sTtlSSaGTpDBtcMHiOircAIvmiTH+Ctop/XsFzGC1x4=;
+	b=YrgCw7fc82efjOJR6aqKPcSwalSW3k8vQUHIYDJVI37d9CBiToehWm/1ktwwymQWL6Au
+	 svoB7yp+0z1su71Hd0PFrG5Nz0ensrulMD/zKBsuvTb4eZkW4szYQKpqve8SdVqOhaNC9
+	 rpXHgTRZ0G5Hg9lObkmlBU8Tx36zXCsAu90qa2oSdJ1RpKVfZn2VTpdKMJellxju98pBd
+	 lQ7x4g3dBPSLJkeB4pX7VQTWEnhJIBU8fqJl3690tWQtBED2+6yS5r5cH/ivr2aZa7umF
+	 oaG5QKUfA4/qFx5fhDpAyRJVmhYyRytxOTiVWaI8Cmn0IGGlcCD4X9b3p1tq8Kfh2TA==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=k2Hc6xFR;
+	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00008606A33D;
-	Sun, 22 Nov 2026 17:50:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92C7D606A31A;
+	Sun, 22 Nov 2026 22:02:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=G7wzDdFN
-Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
-ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
-	t=1795369833;
-	b=mFwoIFT8+/NL4JLA5OCDeOMU7wSLgnwWyZNK+8KsXJcYgr8YzlvL1hWwLEgEWOz0Y2pm
-	 imNtT31Pfz048tDA8+9IIoGd+h/ZTxT0uXrMS0T7dqaIaJF7/faX82l7ns22erN85nkmO
-	 +nZ6tzs84adJvpeta3yBmvbll5D5lxeP0PnEnw6db0YHs6AU5xm4h4cif6d26EVOJc1Xk
-	 q5qkKu1P/mhQbfhnil+7pcq/PsVk1HWLiwSB3GOMsSPYuEM4mrTNIF1T9Z18G1mY6+4GS
-	 9sH3H2y/oB13gNVfzPzpozFw4xDA123jb2ZLfrcp5fRq52kVwPRDyO//8rU4rWRH2uA==
-ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
-	c=relaxed/relaxed; t=1795369833;
-	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
-	 Message-Id:X-B4-Tracking:X-Change-ID:To:Cc:X-Mailer:
-	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
-	 X-Original-From:Reply-To:Content-Transfer-Encoding;
-	bh=vg5mqRfKEizGuvpEqsvZFuLvCHSXkGqnwv+4/yviyV8=;
-	b=XSGmgSEWC5fvY1jge7uzpjNm1sI8TURCp7BDVi7jWlp3wtxad6d/I6EPHx/Yxw96Nrfz
-	 iHJnxmYPiLnFITnjWC9aQs88OKFIf7emJEOa43Q2XPZdTFQeCkIgeAZ13FkS2IBKTV5ax
-	 XL/dLdJ7RqTjgIEk7MxH0Wy1pvRdRu3jQiCwtjuDm6pke/Iw9sWqhmCnumt2RdVrl3Urw
-	 H9YLsX/C9WRhAuJ6+nq7KeoLxRP1fCndXE1A0JF5MnAC6CSwo7MAVDrkWFbh4Xnurp2Rl
-	 73eHFYYUtionu3djVayPb9VLg9st70RdZHUSCThut+jwbpBroeH0WAmRoEM0/4FGlng==
-ARC-Authentication-Results: i=1; smtp.kernel.org; 
-	arc=none smtp.remote-ip=100.80.115.77
-Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
-	(No client certificate requested)
-	by smtp.kernel.org (Postfix) with ESMTPS id 039101F000C6;
-	Sun, 22 Nov 2026 17:50:28 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=k2Hc6xFR
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26DB11F000C6;
+	Sun, 22 Nov 2026 22:02:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795369833;
-	bh=vg5mqRfKEizGuvpEqsvZFuLvCHSXkGqnwv+4/yviyV8=;
-	h=From:Date:Subject:To:Cc:Reply-To;
-	b=G7wzDdFNGrsF0uYtbxTF1Rhb9QLt69/jvzCykJNAbkSQvBCcWwgH+lzdRNdvcmuam
-	 AjSUzHqRrZUR+EzJfz+vKqkfiYMMW3jip3jfhQOzUIHkakW+fNxmumGoiy1WLM28j+
-	 zg3MRCwcR5TXRGa1h+oHXirx0DsG2+UIgOFHg/vvKFOUw5Go57F1+4nAFGUKGLpEyP
-	 iZh2Lo+FYulPSWx4L7XZgGZYzS0FGHzvcY9hUxEkZW5OGzOa9zEM4zakG3y0oDJp25
-	 b8o7vu71H8d9pT9zGI1NQuAO4VcymWuYF+1v6dIxVP4ntOJgUM/mV0MgiliGgZbrch
-	 hMZzDSG6gcqhQ==
-Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
-	by lkml.kernel.org (Postfix) with ESMTP id 5774D4C159;
-	Sun, 22 Nov 2026 17:50:27 +0000 (UTC)
-From: Jerome Berclaz via B4 Relay <devnull+jerome.berclaz.proton.me@kernel.org>
-Date: Sun, 22 Nov 2026 09:50:09 -0800
-Subject: [PATCH] regulator: tps65910: keep external control of always-on
- rails at shutdown
+	s=k20260515; t=1795384942;
+	bh=sTtlSSaGTpDBtcMHiOircAIvmiTH+Ctop/XsFzGC1x4=;
+	h=Date:Subject:Cc:To:From:References:In-Reply-To;
+	b=k2Hc6xFRtkicPKFvuKT7zGdEMFSb//oYzAC6yGi4WET4vMctzGLV95ptNtrt42XPr
+	 WQXnncoUOn8vCWB5V+5BOCSO1YRgvEGvWFlC6kSpFwx64JgBjdDeDjN8t0GAWjAHIl
+	 OTUhOZXnH51x9+wu6dE5+5xRqac3uNPyE7pzVVKvZEWUvPhn37jeV+RfXXnvGy2n+o
+	 5fpjybhz8GWsaKNEldr/b1vfp4LchA2oilYAZk48pyxh0hZg4h3t2J1QwAu6uVH9h7
+	 a22sYJ2GBWGWAOsKWbURM4twq7Z2FvgS7RP2m5XNLf/srWoFugU+HT+1vi7WOYs8uY
+	 PaUfPtPCWI/6w==
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -82,109 +48,104 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <20261122-tps65910-shutdown-ext-control-v1-1-e86b284e8c6c@proton.me>
-X-B4-Tracking: v=1; b=H4sIAAAAAAAC/yXMwQqDMAwA0F+RnBewATu6Xxk71JrNirTSRCeI/
- 75uO77LO0C4RBa4NQcU3qLEnCrMpYEw+vRijEM1UEvWGCLURWznTIsyrjrkd0LeFUNOWvKM1ru
- ro9B33hHUYyn8jPvvvz/+lrWfOOg3hfP8AOVGYhqBAAAA
-X-Change-ID: 20261122-tps65910-shutdown-ext-control-6a9792cb5a92
-To: Aaro Koskinen <aaro.koskinen@iki.fi>, 
- Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
- Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
- Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, 
- Laxman Dewangan <ldewangan@nvidia.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, 
- Svyatoslav Ryhel <clamor95@gmail.com>, linux-tegra@vger.kernel.org, 
- Jerome Berclaz <jerome.berclaz@proton.me>
-X-Mailer: b4 0.16.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=3138;
- i=jerome.berclaz@proton.me; h=from:subject:message-id;
- bh=JN0M5HQcPQw6/FlwvnDvfBLOUL9wzUHnN0zQax/4z04=;
- b=owGbwMvMwCVmvC9341tRgSLG02pJDNnM2kkXLp+XqzrA1T5JVj9XtGjRaa2e1XzLGVdH/BJh1
- DjA0pDXUcrCIMbFICumyMLaYJg6/wRbQKH+vEMwc1iZQIYwcHEKwESytRkZ5rz+JDr3oCd7wIWN
- eamT2lpUtx8PtHhQovjLbO8p11/LngBViJ7QnHPMj9FnQ5e7Md/5WUaGaWxuplu+RvaWWb/O2MY
- HAA==
-X-Developer-Key: i=jerome.berclaz@proton.me; a=openpgp;
- fpr=058031659FC80650712F9EC233BE6DB1ED151072
-X-Endpoint-Received: by B4 Relay for jerome.berclaz@proton.me/default with
- auth_id=1608
-X-Original-From: Jerome Berclaz <jerome.berclaz@proton.me>
-Reply-To: jerome.berclaz@proton.me
-Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Date: Sun, 22 Nov 2026 23:02:06 +0100
+Message-Id: <DN22U90WCTGB.1REAOP1PQUMIQ@kernel.org>
+Subject: Re: [PATCH v4 0/9] Add __must_init and require explicit
+ kobj_type::release
+Cc: "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>, "Kees Cook"
+ <kees@kernel.org>, "Miguel Ojeda" <ojeda@kernel.org>, "Rafael J . Wysocki"
+ <rafael@kernel.org>, "Madhavan Srinivasan" <maddy@linux.ibm.com>, "Srish
+ Srinivasan" <ssrish@linux.ibm.com>, "Michael Ellerman"
+ <mpe@ellerman.id.au>, "Nicholas Piggin" <npiggin@gmail.com>, "Christophe
+ Leroy" <chleroy@kernel.org>, "Nayna Jain" <nayna@linux.ibm.com>, "Mimi
+ Zohar" <zohar@linux.ibm.com>, "Yoshinori Sato"
+ <ysato@users.sourceforge.jp>, "Rich Felker" <dalias@libc.org>, "John Paul
+ Adrian Glaubitz" <glaubitz@physik.fu-berlin.de>, "Juergen Gross"
+ <jgross@suse.com>, "Stefano Stabellini" <sstabellini@kernel.org>,
+ "Oleksandr Tyshchenko" <oleksandr_tyshchenko@epam.com>, "Nathan Chancellor"
+ <nathan@kernel.org>, "Nick Desaulniers" <ndesaulniers@google.com>, "Viresh
+ Kumar" <viresh.kumar@linaro.org>, "Zhongqiu Han"
+ <zhongqiu.han@oss.qualcomm.com>, "Alexander Aring" <aahringo@redhat.com>,
+ "Felix Kuehling" <felix.kuehling@amd.com>, =?utf-8?q?Christian_K=C3=B6nig?=
+ <christian.koenig@amd.com>, "Zhihao Cheng" <chengzhihao1@huawei.com>,
+ "Sumanth Korikkar" <sumanthk@linux.ibm.com>, "Bill Wendling"
+ <morbo@google.com>, "Justin Stitt" <justinstitt@google.com>,
+ <driver-core@lists.linux.dev>, <llvm@lists.linux.dev>,
+ <linux-hardening@vger.kernel.org>, <linux-fsdevel@vger.kernel.org>,
+ <linux-doc@vger.kernel.org>, <linux-acpi@vger.kernel.org>,
+ <linux-pm@vger.kernel.org>, <linuxppc-dev@lists.ozlabs.org>,
+ <linux-sh@vger.kernel.org>, <linux-s390@vger.kernel.org>,
+ <gfs2@lists.linux.dev>, <xen-devel@lists.xenproject.org>,
+ <linux-mtd@lists.infradead.org>, <amd-gfx@lists.freedesktop.org>,
+ <dri-devel@lists.freedesktop.org>, <linux-kernel@vger.kernel.org>,
+ <agordeev@linux.ibm.com>, <airlied@gmail.com>, <alexander.deucher@amd.com>,
+ <catalin.marinas@arm.com>, <chao@kernel.org>, <deller@gmx.de>,
+ <dennis.dalessandro@cornelisnetworks.com>, <dmaengine@vger.kernel.org>,
+ <gor@linux.ibm.com>, <hca@linux.ibm.com>, <jaegeuk@kernel.org>,
+ <James.Bottomley@HansenPartnership.com>, <jgg@ziepe.ca>,
+ <jlbec@evilplan.org>, <johan@kernel.org>, <joseph.qi@linux.alibaba.com>,
+ <leon@kernel.org>, <lihuisong@huawei.com>, <linusw@kernel.org>,
+ <linux-arm-kernel@lists.infradead.org>, <linux-erofs@lists.ozlabs.org>,
+ <linux-f2fs-devel@lists.sourceforge.net>, <linux-fbdev@vger.kernel.org>,
+ <linux-omap@vger.kernel.org>, <linux-parisc@vger.kernel.org>,
+ <linux-rdma@vger.kernel.org>, <mark@fasheh.com>, <neescoba@cisco.com>,
+ <ocfs2-devel@lists.linux.dev>, <satishkh@cisco.com>, <simona@ffwll.ch>,
+ <sre@kernel.org>, <vkoul@kernel.org>, <will@kernel.org>, <xiang@kernel.org>
+To: "Ian Rogers" <irogers@google.com>
+From: "Danilo Krummrich" <dakr@kernel.org>
+References: <20261119192520.1983406-1-irogers@google.com>
+ <20261122215639.1178566-1-dakr@kernel.org>
+In-Reply-To: <20261122215639.1178566-1-dakr@kernel.org>
 
-From: Jerome Berclaz <jerome.berclaz@proton.me>
+(Cc: more people previously Cc'd on v2)
 
-tps65910_shutdown() clears the external (EN1/EN2/sleep) control of every
-regulator. On the Microsoft Surface RT (Tegra 30 + TPS65911), the CPU rail
-VDDCTRL is always-on and assigned to EN1, which is driven by the SoC's
-CPU_PWR_REQ, with a 0 V sleep voltage. Releasing that assignment drops the
-CPU supply while the CPU is still running this loop, so the system hangs
-before the PMIC receives the power-off (DEV_OFF) or restart (DEV_OFF_RST)
-command: the screen goes black, the PMIC stays on, and the power button
-has to be held to turn the device off.
+On Sun Nov 22, 2026 at 10:56 PM CET, Danilo Krummrich wrote:
+> On Thu, 19 Nov 2026 11:25:11 -0800, Ian Rogers wrote:
+>> [PATCH v4 0/9] Add __must_init and require explicit kobj_type::release
+>
+> Applied, thanks!
+>
+>   Branch: driver-core-testing
+>   Tree:   git://git.kernel.org/pub/scm/linux/kernel/git/driver-core/drive=
+r-core.git
+>
+> [1/9] Compiler Attributes: Add __must_init macro
+>       commit: b8a53320a885
+> [2/9] powerpc/secvar: Add missing kobject release callback to secvar_ktyp=
+e
+>       commit: 4d5d4dd2a2e2
+> [3/9] sh: sq: Add missing kobject release callback to ktype_percpu_entry
+>       commit: d19384f2f3c7
+> [4/9] cpufreq: governor: Initialize kobj_type release callback statically
+>       commit: 009365942c15
+> [5/9] dlm: Wait for kobject release before freeing dlm_ls
+>       commit: 48ae948f4285
+> [6/9] xen/sys-hypervisor: Add release callback to hyp_sysfs_kobj_type
+>       commit: ecaf88d385c1
+> [7/9] ubifs: sysfs: Use kset_create_and_add() for ubifs_kset
+>       commit: 25d952902dee
+> [8/9] drm/amdkfd: Free queue in procfs_queue_type kobject release callbac=
+k
+>       commit: 6d4ff4a020cf
+> [9/9] kobject: Require explicit initialization of struct kobj_type::relea=
+se
+>       commit: 45eeed1f8094
+>
+> The patches will appear in the next linux-next integration (typically wit=
+hin 24
+> hours on weekdays).
+>
+> The patches are in the driver-core-testing branch and will be promoted to
+> driver-core-next after validation.
 
-Skip always-on regulators that have external control. They power the SoC
-that is still executing, and the final power-off or restart resets the
-PMIC anyway.
+I've now picked this up; I will keep this series in driver-core-testing for=
+ a
+few more days before moving it to driver-core-next. Please let me know if t=
+here
+are any concerns with the series, particularly the comments in patch 9.
 
-The hang was traced with netconsole and initcall_debug: the last message
-was the clearing of regulator 4 (vddctrl, ext=0x1).
-
-Tested on a Surface RT with a 7.3.1-based kernel (libre-tegra tree):
-poweroff and reboot complete, booted either through the vendor UEFI or
-through U-Boot. Mainline does not have a Surface RT device tree yet.
-
-The problem was investigated, and this change and its description written,
-with the help of an AI coding assistant (Claude); I reviewed the change and
-tested it on my device as described above.
-
-Fixes: 1e0c66f49762 ("regulator: tps65910: Sleep control through external inputs")
-Signed-off-by: Jerome Berclaz <jerome.berclaz@proton.me>
----
-Found while bringing up Linux on a Microsoft Surface RT (libre-tegra kernel
-tree, https://codeberg.org/libre-tegra/linux/pulls/10). The Surface RT
-device tree is not in mainline yet; the maintainer of that tree suggested
-sending this fix here.
-
-Since then, one incomplete shutdown was seen once, with cpuidle enabled
-on the U-Boot boot path; it did not reproduce in 16 consecutive reboots
-and 2 shutdowns, and I am keeping an eye on it.
----
- drivers/regulator/tps65910-regulator.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
-
-diff --git a/drivers/regulator/tps65910-regulator.c b/drivers/regulator/tps65910-regulator.c
-index 6b14c39e42de..db1f637fbdc0 100644
---- a/drivers/regulator/tps65910-regulator.c
-+++ b/drivers/regulator/tps65910-regulator.c
-@@ -1237,6 +1237,19 @@ static void tps65910_shutdown(struct platform_device *pdev)
- 		if (!pmic->rdev[i])
- 			continue;
- 
-+		/*
-+		 * Keep external control on always-on rails: they power the
-+		 * SoC that is still executing this code. On the Microsoft
-+		 * Surface RT the CPU rail (VDDCTRL) is controlled by EN1 and
-+		 * its sleep voltage is 0, so releasing EN1 here drops the CPU
-+		 * supply before the PMIC can be told to power off or restart,
-+		 * leaving the system hung with the PMIC still on.
-+		 */
-+		if (pmic->board_ext_control[i] &&
-+		    pmic->rdev[i]->constraints &&
-+		    pmic->rdev[i]->constraints->always_on)
-+			continue;
-+
- 		err = tps65910_set_ext_sleep_config(pmic, i, 0);
- 		if (err < 0)
- 			dev_err(&pdev->dev,
-
----
-base-commit: 4843f6873f7c4835e62f2c73ba0fd538e57a2f22
-change-id: 20261122-tps65910-shutdown-ext-control-6a9792cb5a92
-
-Best regards,
---  
-Jerome Berclaz <jerome.berclaz@proton.me>
-
-
+Thanks,
+Danilo
