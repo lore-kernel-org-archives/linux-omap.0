@@ -1,61 +1,79 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=178.238.236.174
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795334194;
-	b=YBZaXXTneMHkU9xx8tyTWpNZw+sHgEep8UXERsde6dDAnIjlx/3fjEYErgHjCijL5wUW
-	 Ft39gNPOqiwEs7/tL7pG+kQOUpiwT2p0b3MFuwv3KCuzpVMfLAWB5DdTC/TLOQzknPtVa
-	 VvM8CfrURXm//QeMtdYiw8YZBxuAg6NWjNS7h3z1IWC72DH5QwUyFR2EsjC9ZX2e63RSx
-	 tij/kqCvdkVEpTirxugtZQ7K24ldCcCTokAycVAbe1L9Ka1Z1rzIDEPkVnu4DMcjtJt2B
-	 hkEZqxR4OPUQns+UwAhajeHgbY4urmI/Udx8j1z8sJLNRWs4VA7Z8zkXLD0rE6FzeEw==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795334194;
-	h=DMARC-Filter:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 In-Reply-To:References:X-Mailer:MIME-Version:Content-Type:
-	 Content-Transfer-Encoding;
-	bh=qd3Iy0gK6elNVfdZMyUtCcq4GMv3WywAgl2WNQQdHhA=;
-	b=3RELYMl9ERuRTWGYocSBiqGmI2s8BsYy6LB9/BnUxAwDKU+EaKY3zgwahJhX2syNp2jj
-	 SYwEOaTI0NbBfHAtIWUgcSJOGzinChlownIiYlgaIh7pkgaTN5nHSq/e6MOSah/BcgwGt
-	 VxwCHO9HNK78mTE5LRRx7PzE9LOmN1k9ieqJHDxJKZtGNAoai4HXECjtr7igAVV/XTIfx
-	 39nJ6t5L3hvnDqjV2LXoDnJq4KBbsUFtOI017wHPwQw+nLsaBfNvqBDzN4GM3TGaPhUbu
-	 7gCAC1GL2gd/AKpCN8iiWUcT5zk5v0pKpxfeu7MEBBAs1ZfhldocBXB986GNKQaNvzQ==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=kemnade.info;
-	spf=pass smtp.mailfrom=kemnade.info;
-	dkim=pass header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=CKtdFnTp;
-	arc=none smtp.remote-ip=178.238.236.174
-Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1795369834;
+	b=4Y3MKmbgVgj2cPra7VkUo4nkGtRKsSjohpjDoXXHiu5BX3Aghch64LT2DWQls1Zs6Fq4
+	 1TqXIvgr0XhfEQHGK9HHVYjMa8Q5Qza84PR3IzYnUf2lS9ZwAy2g28MaOh22OaYnZz4Dk
+	 nEFfN/t1Nt9QNgrzE6l8hZYfHx3hgP3uyKKH3aEuurGzix0XwybbjMIVBmieAAAlSsoca
+	 +clSGhK8GuAHKEYCryAqUa7oaPqS60iFV7MLzOABWbezmmL/YfKn2KYz7dP1+JnM5xp/G
+	 RSFXTxgwClwWZEKLsKk1Ivzg31kAxQ8ZwFtAKuDS0irnG+mMKriv0S+M7KML8LebCLw==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795369834;
+	h=Received:DKIM-Signature:Received:From:Date:Subject:MIME-Version:
+	 Content-Type:Message-Id:X-B4-Tracking:X-Change-ID:To:Cc:X-Mailer:
+	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
+	 X-Original-From:Reply-To:Content-Transfer-Encoding;
+	bh=vg5mqRfKEizGuvpEqsvZFuLvCHSXkGqnwv+4/yviyV8=;
+	b=d4ropl/WGnLsbmdxeteOxCUVbDYX/MLy9pFBFADWr/+EMLj9whbXNtypYwuLQJc+U5YO
+	 xnOlV6Cc/Xyps9NOBbe1TXAlddk+2jaqLLrFjoKLHMV4aF1dEpz4csXnOaccRMRcZ2tvf
+	 hC2GrAEiSIY96hLCDaB+8xCHKAWuAwbhwmMYEUWc+KFTsj0lFtDP/BCjkr3XnZ+l3xjKl
+	 jnzbbk8GB0l4HQOuLaNb9fII9xlO6kIPTtR7x+Ca3b8SFtjq3qeWvpDlUjphHzTTM/A3O
+	 ZKaAWb/FaiyIXEmcrmEK3dyG5ZG6UVo/GCz9Yl5eRLHOaB4jc/m4T66t/lPX80WZ3cw==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=G7wzDdFN;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C91E3606A320;
-	Sun, 22 Nov 2026 07:56:33 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C91E3606A320
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00008606A33D;
+	Sun, 22 Nov 2026 17:50:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=CKtdFnTp
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=kemnade.info; s=20220719; h=References:In-Reply-To:Subject:Cc:To:From:
-	Reply-To:Content-ID:Content-Description;
-	bh=qd3Iy0gK6elNVfdZMyUtCcq4GMv3WywAgl2WNQQdHhA=; t=1795334193; x=1796543793; 
-	b=CKtdFnTpYXAEWsY/25CYRR6uKgOGdGIxzTMxnWQgRezJHMgXZEdVgDciodU9saJMIs0q2mxIWvr
-	/D6hxGu4oLWg6/AzSwXoE47UAp09jmUIt7NKpLXzYSnL66VIiaPPl/TnLp13LNgTfsfIZ5MlHjHMT
-	TbR2lMRtFMbfur3pktnYaCxDPd/MbrtTNpFGr0CjNa+nXDFxya8a+XRqv8Lz6YQwJFw6kzZj9tWsX
-	aTY4iRErzDP/YpuEWuk2x8xU8LeSv/x86RM06vG1j+G+d5jTOW3A88Uj7wPC7L60IPf185M9RvQ64
-	ZsDuHvXLuaeEK4udBz5VPu6i2s/LCK1l09rg==;
-Date: Sun, 22 Nov 2026 08:56:10 +0100
-From: Andreas Kemnade <andreas@kemnade.info>
-To: Jonathan Cameron <jic23@kernel.org>
-Cc: Wanhui Fu <fuwh1120@163.com>, dlechner@baylibre.com, nuno.sa@analog.com,
- andy@kernel.org, dakr@kernel.org, kees+treewide@kernel.org,
- giorgitchankvetadze1997@gmail.com, u.kleine-koenig@baylibre.com,
- linux-iio@vger.kernel.org, linux-omap@vger.kernel.org
-Subject: Re: [PATCH] iio: twl6030-gpadc: Add error handling path in
- twl6030_gpadc_probe()
-Message-ID: <20261122085610.4a630af0@kemnade.info>
-In-Reply-To: <20261121192448.78041532@jic23-hlaptop>
-References: <20261121082419.376423-1-fuwh1120@163.com>
-	<20261121192448.78041532@jic23-hlaptop>
-X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=G7wzDdFN
+Authentication-Results: smtp.kernel.org; arc=none smtp.remote-ip=100.80.115.77
+ARC-Seal: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256; cv=none;
+	t=1795369833;
+	b=mFwoIFT8+/NL4JLA5OCDeOMU7wSLgnwWyZNK+8KsXJcYgr8YzlvL1hWwLEgEWOz0Y2pm
+	 imNtT31Pfz048tDA8+9IIoGd+h/ZTxT0uXrMS0T7dqaIaJF7/faX82l7ns22erN85nkmO
+	 +nZ6tzs84adJvpeta3yBmvbll5D5lxeP0PnEnw6db0YHs6AU5xm4h4cif6d26EVOJc1Xk
+	 q5qkKu1P/mhQbfhnil+7pcq/PsVk1HWLiwSB3GOMsSPYuEM4mrTNIF1T9Z18G1mY6+4GS
+	 9sH3H2y/oB13gNVfzPzpozFw4xDA123jb2ZLfrcp5fRq52kVwPRDyO//8rU4rWRH2uA==
+ARC-Message-Signature: i=1; d=kernel.org; s=arc20260519; a=rsa-sha256;
+	c=relaxed/relaxed; t=1795369833;
+	h=DKIM-Signature:Received:From:Date:Subject:MIME-Version:Content-Type:
+	 Message-Id:X-B4-Tracking:X-Change-ID:To:Cc:X-Mailer:
+	 X-Developer-Signature:X-Developer-Key:X-Endpoint-Received:
+	 X-Original-From:Reply-To:Content-Transfer-Encoding;
+	bh=vg5mqRfKEizGuvpEqsvZFuLvCHSXkGqnwv+4/yviyV8=;
+	b=XSGmgSEWC5fvY1jge7uzpjNm1sI8TURCp7BDVi7jWlp3wtxad6d/I6EPHx/Yxw96Nrfz
+	 iHJnxmYPiLnFITnjWC9aQs88OKFIf7emJEOa43Q2XPZdTFQeCkIgeAZ13FkS2IBKTV5ax
+	 XL/dLdJ7RqTjgIEk7MxH0Wy1pvRdRu3jQiCwtjuDm6pke/Iw9sWqhmCnumt2RdVrl3Urw
+	 H9YLsX/C9WRhAuJ6+nq7KeoLxRP1fCndXE1A0JF5MnAC6CSwo7MAVDrkWFbh4Xnurp2Rl
+	 73eHFYYUtionu3djVayPb9VLg9st70RdZHUSCThut+jwbpBroeH0WAmRoEM0/4FGlng==
+ARC-Authentication-Results: i=1; smtp.kernel.org; 
+	arc=none smtp.remote-ip=100.80.115.77
+Received: from lkml.kernel.org (nexus.subspace.kernel.org [100.80.115.77])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	(No client certificate requested)
+	by smtp.kernel.org (Postfix) with ESMTPS id 039101F000C6;
+	Sun, 22 Nov 2026 17:50:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795369833;
+	bh=vg5mqRfKEizGuvpEqsvZFuLvCHSXkGqnwv+4/yviyV8=;
+	h=From:Date:Subject:To:Cc:Reply-To;
+	b=G7wzDdFNGrsF0uYtbxTF1Rhb9QLt69/jvzCykJNAbkSQvBCcWwgH+lzdRNdvcmuam
+	 AjSUzHqRrZUR+EzJfz+vKqkfiYMMW3jip3jfhQOzUIHkakW+fNxmumGoiy1WLM28j+
+	 zg3MRCwcR5TXRGa1h+oHXirx0DsG2+UIgOFHg/vvKFOUw5Go57F1+4nAFGUKGLpEyP
+	 iZh2Lo+FYulPSWx4L7XZgGZYzS0FGHzvcY9hUxEkZW5OGzOa9zEM4zakG3y0oDJp25
+	 b8o7vu71H8d9pT9zGI1NQuAO4VcymWuYF+1v6dIxVP4ntOJgUM/mV0MgiliGgZbrch
+	 hMZzDSG6gcqhQ==
+Received: from nexus.subspace.kernel.org (localhost [IPv6:::1])
+	by lkml.kernel.org (Postfix) with ESMTP id 5774D4C159;
+	Sun, 22 Nov 2026 17:50:27 +0000 (UTC)
+From: Jerome Berclaz via B4 Relay <devnull+jerome.berclaz.proton.me@kernel.org>
+Date: Sun, 22 Nov 2026 09:50:09 -0800
+Subject: [PATCH] regulator: tps65910: keep external control of always-on
+ rails at shutdown
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -65,48 +83,108 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+Message-Id: <20261122-tps65910-shutdown-ext-control-v1-1-e86b284e8c6c@proton.me>
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/yXMwQqDMAwA0F+RnBewATu6Xxk71JrNirTSRCeI/
+ 75uO77LO0C4RBa4NQcU3qLEnCrMpYEw+vRijEM1UEvWGCLURWznTIsyrjrkd0LeFUNOWvKM1ru
+ ro9B33hHUYyn8jPvvvz/+lrWfOOg3hfP8AOVGYhqBAAAA
+X-Change-ID: 20261122-tps65910-shutdown-ext-control-6a9792cb5a92
+To: Aaro Koskinen <aaro.koskinen@iki.fi>, 
+ Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
+ Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
+ Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, 
+ Laxman Dewangan <ldewangan@nvidia.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ Svyatoslav Ryhel <clamor95@gmail.com>, linux-tegra@vger.kernel.org, 
+ Jerome Berclaz <jerome.berclaz@proton.me>
+X-Mailer: b4 0.16.0
+X-Developer-Signature: v=1; a=openpgp-sha256; l=3138;
+ i=jerome.berclaz@proton.me; h=from:subject:message-id;
+ bh=JN0M5HQcPQw6/FlwvnDvfBLOUL9wzUHnN0zQax/4z04=;
+ b=owGbwMvMwCVmvC9341tRgSLG02pJDNnM2kkXLp+XqzrA1T5JVj9XtGjRaa2e1XzLGVdH/BJh1
+ DjA0pDXUcrCIMbFICumyMLaYJg6/wRbQKH+vEMwc1iZQIYwcHEKwESytRkZ5rz+JDr3oCd7wIWN
+ eamT2lpUtx8PtHhQovjLbO8p11/LngBViJ7QnHPMj9FnQ5e7Md/5WUaGaWxuplu+RvaWWb/O2MY
+ HAA==
+X-Developer-Key: i=jerome.berclaz@proton.me; a=openpgp;
+ fpr=058031659FC80650712F9EC233BE6DB1ED151072
+X-Endpoint-Received: by B4 Relay for jerome.berclaz@proton.me/default with
+ auth_id=1608
+X-Original-From: Jerome Berclaz <jerome.berclaz@proton.me>
+Reply-To: jerome.berclaz@proton.me
 Content-Transfer-Encoding: 7bit
 
-On Sat, 21 Nov 2026 19:24:48 +0000
-Jonathan Cameron <jic23@kernel.org> wrote:
+From: Jerome Berclaz <jerome.berclaz@proton.me>
 
-> On Sat, 21 Nov 2026 16:24:19 +0800
-> Wanhui Fu <fuwh1120@163.com> wrote:
-> 
-> > Add an error handling path to call twl6030_gpadc_disable_irq(),
-> > as twl6030_gpadc_remove() does.
-> > 
-> > Signed-off-by: Wanhui Fu <fuwh1120@163.com>  
-> Fix is fine, but I'd rather not make already ugly code uglier.
-> There is an oddity in here though that makes a simple cleanup trickier.
-> 
-> Why is in remove is the interrupt disabled before the userspace interfaces
-> are removed?  Looking back at the history (lore search for the
-> disable function) it seems that the driver was way off on ordering,
-> most of it got fixed up back 2013 but this one didn't.
-> https://lore.kernel.org/all/1376910580-7545-1-git-send-email-oleksandr.kozaruk@ti.com/
-> 
-> Given how old it was I doubt this ordering was intentional.
-> 
-> So...  Lets do the more significant cleanup.
-> 
-> First add a devm_add_action_or_reset() to remove the manual handling
-> of the interrupt disable (which is equivalent of this fix) then convert
-> the only remaining call to devm_iio_device_register() in a follow up
-> patch.
-> 
-> Long shot, but last real change to this driver was in 2022 by Andreas
-> so if anyone is likely to have hardware to test probably Andreas.
-> +CC.  Given it's remove path anyway and that would be rarely used
-> for a soc ADC driver, I'm not that concerned if we can't test this
-> change.
-> 
-Not only me. A new devicetree using this driver was just added this year.
-If we are about to clean up here, we could also remove the error messages,
-twl_i2c_write outputs enough.
-I see no reason to disable the interrupts before tearing down the
-userspace interfaces.
+tps65910_shutdown() clears the external (EN1/EN2/sleep) control of every
+regulator. On the Microsoft Surface RT (Tegra 30 + TPS65911), the CPU rail
+VDDCTRL is always-on and assigned to EN1, which is driven by the SoC's
+CPU_PWR_REQ, with a 0 V sleep voltage. Releasing that assignment drops the
+CPU supply while the CPU is still running this loop, so the system hangs
+before the PMIC receives the power-off (DEV_OFF) or restart (DEV_OFF_RST)
+command: the screen goes black, the PMIC stays on, and the power button
+has to be held to turn the device off.
 
-Regards,
-Andreas
+Skip always-on regulators that have external control. They power the SoC
+that is still executing, and the final power-off or restart resets the
+PMIC anyway.
+
+The hang was traced with netconsole and initcall_debug: the last message
+was the clearing of regulator 4 (vddctrl, ext=0x1).
+
+Tested on a Surface RT with a 7.3.1-based kernel (libre-tegra tree):
+poweroff and reboot complete, booted either through the vendor UEFI or
+through U-Boot. Mainline does not have a Surface RT device tree yet.
+
+The problem was investigated, and this change and its description written,
+with the help of an AI coding assistant (Claude); I reviewed the change and
+tested it on my device as described above.
+
+Fixes: 1e0c66f49762 ("regulator: tps65910: Sleep control through external inputs")
+Signed-off-by: Jerome Berclaz <jerome.berclaz@proton.me>
+---
+Found while bringing up Linux on a Microsoft Surface RT (libre-tegra kernel
+tree, https://codeberg.org/libre-tegra/linux/pulls/10). The Surface RT
+device tree is not in mainline yet; the maintainer of that tree suggested
+sending this fix here.
+
+Since then, one incomplete shutdown was seen once, with cpuidle enabled
+on the U-Boot boot path; it did not reproduce in 16 consecutive reboots
+and 2 shutdowns, and I am keeping an eye on it.
+---
+ drivers/regulator/tps65910-regulator.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/drivers/regulator/tps65910-regulator.c b/drivers/regulator/tps65910-regulator.c
+index 6b14c39e42de..db1f637fbdc0 100644
+--- a/drivers/regulator/tps65910-regulator.c
++++ b/drivers/regulator/tps65910-regulator.c
+@@ -1237,6 +1237,19 @@ static void tps65910_shutdown(struct platform_device *pdev)
+ 		if (!pmic->rdev[i])
+ 			continue;
+ 
++		/*
++		 * Keep external control on always-on rails: they power the
++		 * SoC that is still executing this code. On the Microsoft
++		 * Surface RT the CPU rail (VDDCTRL) is controlled by EN1 and
++		 * its sleep voltage is 0, so releasing EN1 here drops the CPU
++		 * supply before the PMIC can be told to power off or restart,
++		 * leaving the system hung with the PMIC still on.
++		 */
++		if (pmic->board_ext_control[i] &&
++		    pmic->rdev[i]->constraints &&
++		    pmic->rdev[i]->constraints->always_on)
++			continue;
++
+ 		err = tps65910_set_ext_sleep_config(pmic, i, 0);
+ 		if (err < 0)
+ 			dev_err(&pdev->dev,
+
+---
+base-commit: 4843f6873f7c4835e62f2c73ba0fd538e57a2f22
+change-id: 20261122-tps65910-shutdown-ext-control-6a9792cb5a92
+
+Best regards,
+--  
+Jerome Berclaz <jerome.berclaz@proton.me>
+
+
