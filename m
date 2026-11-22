@@ -1,81 +1,61 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=44.202.169.35
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=178.238.236.174
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795274781;
-	b=RhZq/dX1Qn6hHZ4pQxv29uqOMsD5TT/DE7YKJkQEHuWbAXQrbJCI0q8FRnx5c9D5r+ZU
-	 yYIKLznmMb/badlnuJ0Jsb+q9r6feUQHd+zl9cM+9qpKw4dr3P5YlPMGQ9S6ZaumoOcrn
-	 RsyyDeQLyI7NvJA1hFk/1L8r09S/sGJVHdNvXGuUz/otGasDHZPFd4dAkYAkqRLeBgz1u
-	 MPUapNq5HDPUmkunJA5WI8lpUyyQWOJmX7Xiu4+hcpDn6tB8AAlZQWzfsLJDZtmaKE3ZL
-	 5NskgA9uA5QaWZvWa6FtNhUGropueeJPRhHlLl1ZYXhgqf5q202D3DPPpIvKlynn6iQ==
+	t=1795334194;
+	b=YBZaXXTneMHkU9xx8tyTWpNZw+sHgEep8UXERsde6dDAnIjlx/3fjEYErgHjCijL5wUW
+	 Ft39gNPOqiwEs7/tL7pG+kQOUpiwT2p0b3MFuwv3KCuzpVMfLAWB5DdTC/TLOQzknPtVa
+	 VvM8CfrURXm//QeMtdYiw8YZBxuAg6NWjNS7h3z1IWC72DH5QwUyFR2EsjC9ZX2e63RSx
+	 tij/kqCvdkVEpTirxugtZQ7K24ldCcCTokAycVAbe1L9Ka1Z1rzIDEPkVnu4DMcjtJt2B
+	 hkEZqxR4OPUQns+UwAhajeHgbY4urmI/Udx8j1z8sJLNRWs4VA7Z8zkXLD0rE6FzeEw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795274781;
-	h=DMARC-Filter:Received:Received:X-Authority-Analysis:DKIM-Signature:
-	 Received:Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To:X-AntiAbuse:X-AntiAbuse:
-	 X-AntiAbuse:X-AntiAbuse:X-AntiAbuse:X-BWhitelist:X-Source-IP:
-	 X-Source-L:X-Exim-ID:X-Source:X-Source-Args:X-Source-Dir:
-	 X-Source-Sender:X-Source-Auth:X-Email-Count:X-Org:X-Source-Cap:
-	 X-Local-Domain:X-CMAE-Envelope;
-	bh=id4o5PzKM3zH5WOwNFoAsHmh451u7zQsm4VsNoJjbC0=;
-	b=Isyak4uRFEeI3NtG7tQUP517W4JKTZc/Z+kLk/ROIO647ODal1Jj4W0gsIj66AEMsGrE
-	 X6gbT3WMsQNKqSDoLwXNMTzf4HlHOVRWafrG0PfPjZCMLrLgva7H9fBY+dc52AEclCkgk
-	 1sJsxNRF9v+UXPI0+nmfZV3TvUJ4QVAUzDiYM1QQkcExYliDI4ucQgfoNNpWF8caXlMLI
-	 YdOw6ZpSagO6yecVzaqLhDVHDyFhG2BnvH+9fPrIzPMoQrT+4TXDayeHZGs9WGhAUgvER
-	 dzLgvDOTZkGvK6M9xGd8tZBZkfFIwNYjKHJ/cVhgU/ztmzlTCq/ZRmw8wWTBi/07r2w==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795334194;
+	h=DMARC-Filter:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 In-Reply-To:References:X-Mailer:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding;
+	bh=qd3Iy0gK6elNVfdZMyUtCcq4GMv3WywAgl2WNQQdHhA=;
+	b=3RELYMl9ERuRTWGYocSBiqGmI2s8BsYy6LB9/BnUxAwDKU+EaKY3zgwahJhX2syNp2jj
+	 SYwEOaTI0NbBfHAtIWUgcSJOGzinChlownIiYlgaIh7pkgaTN5nHSq/e6MOSah/BcgwGt
+	 VxwCHO9HNK78mTE5LRRx7PzE9LOmN1k9ieqJHDxJKZtGNAoai4HXECjtr7igAVV/XTIfx
+	 39nJ6t5L3hvnDqjV2LXoDnJq4KBbsUFtOI017wHPwQw+nLsaBfNvqBDzN4GM3TGaPhUbu
+	 7gCAC1GL2gd/AKpCN8iiWUcT5zk5v0pKpxfeu7MEBBAs1ZfhldocBXB986GNKQaNvzQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=roeck-us.net;
-	spf=fail smtp.mailfrom=roeck-us.net;
-	dkim=pass header.d=roeck-us.net header.i=@roeck-us.net header.a=rsa-sha256 header.s=default header.b=SmcTfL65;
-	arc=none smtp.remote-ip=44.202.169.35
-Received: from omta036.useast.a.cloudfilter.net (omta036.useast.a.cloudfilter.net [44.202.169.35])
-	(using TLSv1.2 with cipher ECDHE-ECDSA-AES256-GCM-SHA384 (256/256 bits))
+	dmarc=pass header.from=kemnade.info;
+	spf=pass smtp.mailfrom=kemnade.info;
+	dkim=pass header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=CKtdFnTp;
+	arc=none smtp.remote-ip=178.238.236.174
+Received: from mail.andi.de1.cc (mail.andi.de1.cc [178.238.236.174])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A78B7606A680
-	for <linux-omap@vger.kernel.org>; Sat, 21 Nov 2026 15:26:20 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A78B7606A680
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=roeck-us.net
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C91E3606A320;
+	Sun, 22 Nov 2026 07:56:33 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C91E3606A320
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=kemnade.info
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kemnade.info
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=roeck-us.net header.i=@roeck-us.net header.a=rsa-sha256 header.s=default header.b=SmcTfL65
-Received: from eig-obgw-5002b.ext.cloudfilter.net ([10.0.29.226])
-	by cmsmtp with ESMTPS
-	id UmuxxoIWt4vCDUmykxyqpB; Sat, 21 Nov 2026 15:26:14 +0000
-Received: from 162-215-252-36.unifiedlayer.com ([208.91.199.152])
-	by cmsmtp with ESMTPS
-	id Umyjxk7u1b2qJUmykxDvev; Sat, 21 Nov 2026 15:26:14 +0000
-X-Authority-Analysis: v=2.4 cv=A7tsP7WG c=1 sm=1 tr=0 ts=6b01b816
- a=QNED+QcLUkoL9qulTODnwA==:117 a=2cfIYNtKkjgZNaOwnGXpGw==:17
- a=kj9zAlcOel0A:10 a=zJRp6_cAMcgA:10 a=M0FbrtG7MMAA:10 a=VwQbUJbxAAAA:8
- a=_jlGtV7tAAAA:8 a=pGLkceISAAAA:8 a=ryv-YxDhWCmM8qAHW4sA:9 a=CjuIK1q_8ugA:10
- a=nlm17XC03S6CtCLSeiRr:22 a=KPbNTLLc3YvdawN95zVk:22
+	dkim=pass (2048-bit key, unprotected) header.d=kemnade.info header.i=@kemnade.info header.a=rsa-sha256 header.s=20220719 header.b=CKtdFnTp
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=roeck-us.net; s=default; h=In-Reply-To:Content-Type:MIME-Version:References
-	:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding
-	:Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-	Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
-	List-Unsubscribe-Post:List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=id4o5PzKM3zH5WOwNFoAsHmh451u7zQsm4VsNoJjbC0=; b=SmcTfL65i9WV5hm2yGgZHKnRXA
-	eH1/TkNSZdfFsUlKo+yR5GQHjNnZJ5RG0/jdiS/J4CrKsDdpdQtg5EVCndq6wCB03fBbSRQqMhJy8
-	vCL5hqSkY7QsN2Ta/NOxVql19/W6umBS73a2BnWkxVAYUWrPOpvfN9/8PxTQLrpHT8W37wL8sHz68
-	AzdgxtP7nCs6gH3lJNmrJ0JINAdNpCD/6QpNuloB6g/LO+/wg5gz2vQZGkD3fEI/4NE8wl58/tLU9
-	OZZW7AF7kEiMaCoS6L9EHOIZwYqCTjThitQVXRSarbpITjXDmj8pBdfjb8EWrBctI8ggRRQfFmd9r
-	K3x5BM6Q==;
-Received: from 108-223-40-66.lightspeed.sntcca.sbcglobal.net ([108.223.40.66]:50930 helo=server.roeck-us.net)
-	by bh-25.webhostbox.net with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.100.1)
-	(envelope-from <linux@roeck-us.net>)
-	id 1xUmyj-0000000112x-2dFW;
-	Sat, 21 Nov 2026 20:56:13 +0530
-Date: Sat, 21 Nov 2026 07:26:12 -0800
-From: Guenter Roeck <linux@roeck-us.net>
-To: Nhat Tran <nhat.tranminhk2@gmail.com>
-Cc: Wim Van Sebroeck <wim@linux-watchdog.org>,
-	Lars Poeschel <poeschel@lemonage.de>,
-	linux-watchdog@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH v2] watchdog: core: Don't report time left for a stopped
- watchdog
-Message-ID: <08729e0f-874f-41cb-b6ee-bff6207c1cb4@roeck-us.net>
-References: <20261121052950.287506-1-nhat.tranminhk2@gmail.com>
+	d=kemnade.info; s=20220719; h=References:In-Reply-To:Subject:Cc:To:From:
+	Reply-To:Content-ID:Content-Description;
+	bh=qd3Iy0gK6elNVfdZMyUtCcq4GMv3WywAgl2WNQQdHhA=; t=1795334193; x=1796543793; 
+	b=CKtdFnTpYXAEWsY/25CYRR6uKgOGdGIxzTMxnWQgRezJHMgXZEdVgDciodU9saJMIs0q2mxIWvr
+	/D6hxGu4oLWg6/AzSwXoE47UAp09jmUIt7NKpLXzYSnL66VIiaPPl/TnLp13LNgTfsfIZ5MlHjHMT
+	TbR2lMRtFMbfur3pktnYaCxDPd/MbrtTNpFGr0CjNa+nXDFxya8a+XRqv8Lz6YQwJFw6kzZj9tWsX
+	aTY4iRErzDP/YpuEWuk2x8xU8LeSv/x86RM06vG1j+G+d5jTOW3A88Uj7wPC7L60IPf185M9RvQ64
+	ZsDuHvXLuaeEK4udBz5VPu6i2s/LCK1l09rg==;
+Date: Sun, 22 Nov 2026 08:56:10 +0100
+From: Andreas Kemnade <andreas@kemnade.info>
+To: Jonathan Cameron <jic23@kernel.org>
+Cc: Wanhui Fu <fuwh1120@163.com>, dlechner@baylibre.com, nuno.sa@analog.com,
+ andy@kernel.org, dakr@kernel.org, kees+treewide@kernel.org,
+ giorgitchankvetadze1997@gmail.com, u.kleine-koenig@baylibre.com,
+ linux-iio@vger.kernel.org, linux-omap@vger.kernel.org
+Subject: Re: [PATCH] iio: twl6030-gpadc: Add error handling path in
+ twl6030_gpadc_probe()
+Message-ID: <20261122085610.4a630af0@kemnade.info>
+In-Reply-To: <20261121192448.78041532@jic23-hlaptop>
+References: <20261121082419.376423-1-fuwh1120@163.com>
+	<20261121192448.78041532@jic23-hlaptop>
+X-Mailer: Claws Mail 4.3.1 (GTK 3.24.49; aarch64-unknown-linux-gnu)
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -85,84 +65,48 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20261121052950.287506-1-nhat.tranminhk2@gmail.com>
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - bh-25.webhostbox.net
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - roeck-us.net
-X-BWhitelist: no
-X-Source-IP: 108.223.40.66
-X-Source-L: No
-X-Exim-ID: 1xUmyj-0000000112x-2dFW
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
-X-Source-Sender: 108-223-40-66.lightspeed.sntcca.sbcglobal.net (server.roeck-us.net) [108.223.40.66]:50930
-X-Source-Auth: guenter@roeck-us.net
-X-Email-Count: 10
-X-Org: HG=direseller_whb_net_legacy;ORG=directi;
-X-Source-Cap: cm9lY2s7YWN0aXZzdG07YmgtMjUud2ViaG9zdGJveC5uZXQ=
-X-Local-Domain: yes
-X-CMAE-Envelope: MS4xfPNag9dw2ToxgV83YxSldMHp55PR2ExPBB3qJf8LJ2aOAkkn8ZTAj3RSpkokAdvm2SslorUZYnFWyfgpUZfob55SbOieYqWeWMeBiFxc4y7dfXZyYrAu
- b6+HGyqEcTXHgNAc4P6+o+Edg7y5XYYsRHxdlZEK5S/u6ycnT4gVuoD73lHc4+wyiimMVqyX22L+lvFrkKCq7Xi463o6x4PKgAlmESriPsHpFa8ZOEnahVHG
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Sat, Nov 21, 2026 at 12:29:50PM +0700, Nhat Tran wrote:
-> watchdog_get_timeleft() calls the driver's ->get_timeleft() regardless
-> of whether the watchdog is running. It is reachable through the sysfs
-> timeleft attribute, which is world readable with CONFIG_WATCHDOG_SYSFS=y,
-> and through WDIOC_GETTIMELEFT, also after the watchdog was stopped with
-> WDIOS_DISABLECARD while the device is still open.
-> 
-> Drivers may not be able to access the hardware while the watchdog is
-> stopped. omap_wdt only holds a runtime PM reference while the watchdog
-> is running, so on a BeagleBone Black (AM335x) reading the counter of a
-> stopped watchdog triggers an external abort. Any unprivileged user can
-> hit it through sysfs:
-> 
->   $ cat /sys/class/watchdog/watchdog0/timeleft
->   Unhandled fault: external abort on non-linefetch (0x1028) at 0xf9e35028
->   Internal error: : 1028 [#1] SMP ARM
->   PC is at omap_wdt_get_timeleft+0x4/0x14
->   LR is at watchdog_get_timeleft+0x24/0x130
->   Call trace:
->    omap_wdt_get_timeleft from watchdog_get_timeleft+0x24/0x130
->    watchdog_get_timeleft from timeleft_show+0x3c/0x80
->    timeleft_show from dev_attr_show+0x18/0x4c
->    dev_attr_show from sysfs_kf_seq_show+0xa0/0x138
->    ...
-> 
-> and the same happens with WDIOS_DISABLECARD followed by
-> WDIOC_GETTIMELEFT on the open device, once the module has idled:
-> 
->   Call trace:
->    omap_wdt_get_timeleft from watchdog_get_timeleft+0x24/0x130
->    watchdog_get_timeleft from watchdog_ioctl+0x494/0x668
->    watchdog_ioctl from sys_ioctl+0x128/0xbcc
->    sys_ioctl from ret_fast_syscall+0x0/0x54
-> 
-> If the ioctl comes before the module has idled, the read succeeds but
-> reports 59 seconds left for a watchdog that is stopped.
-> 
-> A stopped watchdog will not reboot the system, so report 0 time left
-> when neither WDOG_ACTIVE nor WDOG_HW_RUNNING is set, without calling
-> into the driver. This matches the software fallback for drivers without
-> ->get_timeleft(), which already decays to 0 once the watchdog is no
-> longer pinged.
-> 
-> Tested on a BeagleBone Black: with the watchdog stopped, both the sysfs
-> attribute and WDIOC_GETTIMELEFT after WDIOS_DISABLECARD return 0; with
-> the watchdog started through /dev/watchdog0, timeleft counts down as
-> before (59, then 56 three seconds later).
-> 
-> Fixes: 452fafed839e ("watchdog: omap_wdt: implement get_timeleft")
-> Cc: stable@vger.kernel.org
-> Suggested-by: Guenter Roeck <linux@roeck-us.net>
-> Signed-off-by: Nhat Tran <nhat.tranminhk2@gmail.com>
+On Sat, 21 Nov 2026 19:24:48 +0000
+Jonathan Cameron <jic23@kernel.org> wrote:
 
-Applied, and thanks for testing with WDIOS_DISABLECARD/WDIOC_GETTIMELEFT.
+> On Sat, 21 Nov 2026 16:24:19 +0800
+> Wanhui Fu <fuwh1120@163.com> wrote:
+> 
+> > Add an error handling path to call twl6030_gpadc_disable_irq(),
+> > as twl6030_gpadc_remove() does.
+> > 
+> > Signed-off-by: Wanhui Fu <fuwh1120@163.com>  
+> Fix is fine, but I'd rather not make already ugly code uglier.
+> There is an oddity in here though that makes a simple cleanup trickier.
+> 
+> Why is in remove is the interrupt disabled before the userspace interfaces
+> are removed?  Looking back at the history (lore search for the
+> disable function) it seems that the driver was way off on ordering,
+> most of it got fixed up back 2013 but this one didn't.
+> https://lore.kernel.org/all/1376910580-7545-1-git-send-email-oleksandr.kozaruk@ti.com/
+> 
+> Given how old it was I doubt this ordering was intentional.
+> 
+> So...  Lets do the more significant cleanup.
+> 
+> First add a devm_add_action_or_reset() to remove the manual handling
+> of the interrupt disable (which is equivalent of this fix) then convert
+> the only remaining call to devm_iio_device_register() in a follow up
+> patch.
+> 
+> Long shot, but last real change to this driver was in 2022 by Andreas
+> so if anyone is likely to have hardware to test probably Andreas.
+> +CC.  Given it's remove path anyway and that would be rarely used
+> for a soc ADC driver, I'm not that concerned if we can't test this
+> change.
+> 
+Not only me. A new devicetree using this driver was just added this year.
+If we are about to clean up here, we could also remove the error messages,
+twl_i2c_write outputs enough.
+I see no reason to disable the interrupts before tearing down the
+userspace interfaces.
 
-Thanks,
-Guenter
+Regards,
+Andreas
