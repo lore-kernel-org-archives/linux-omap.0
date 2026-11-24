@@ -1,45 +1,45 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795531695;
-	b=u2ri/22AabyZ83qxc7/JtPjqG8cLrhPvk+siQq2yk6aqs1iw9w0gRcPoCENifnjjJu0R
-	 jLk3oEOKL5OhR3RTn+R34V6/UQOJ6joPWdGtlRM5fappXfWSSQSN4S2zS5Lx7OJfBRbGw
-	 1mt5sUhL6+czgDPFIDW92wnnzaS3vnq29RxNXIKwrwy8dg/A4+K80QrwQUM/7gNM1H+oA
-	 xdy4EVunbFqQ/cRSgnvIq/CA6EbwWgDxlKkpsLHq46iFKtmjZxemcNOcZFxAvBhWs/YwE
-	 vCuXRTWotfVrpjSYEtTASaORxQPXzCq4Jo9Jg7/+/zGhoClZpukooZO3fnAKmGWqvDw==
+	t=1795531705;
+	b=feLgigcZv4ts95GHPG+p7nRwov1TVZ86hHiqgQToyzUCaCw/R0HZImzfVKvae14Zpb3k
+	 oQbZL19Hg5/s4rEB3vK8O7p7TmEQo4FN1N6DylQHat9WWnAJ3lnTM0UOC+YNJ46kj2NvF
+	 NjfOUDwQ9xVo+vSg0gCVPf7MAJb2A5aXnDy6l3J0610hKPjoaLHuIRj2C9h2DLqSn8LaS
+	 mR1PwrIYEL2dEHPYRanQ4jgvf4s/TZmatgIDA0J2O6Y70la3lMu5maDfUp6yjcxDwmleQ
+	 P1V0TTUgdgkzYN8YyLqtapQX0AdRH/y41QKVAq7ds6a1UFRymMGKmfxjmH8G1Z7jEKQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795531695;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795531705;
 	h=Received:DKIM-Signature:MIME-Version:Content-Type:
 	 Content-Transfer-Encoding:Subject:From:To:Cc:In-Reply-To:References:
 	 Date:Message-Id:X-Mailer:X-Developer-Signature:X-Developer-Key;
-	bh=lyUEGhLGDykIVP/ED9acLT2Z8Hu6snwbttemda4QuYE=;
-	b=gHuj80VRL1QJJyS2GWjhxdWD2bDHpSAyi/sa/1Xpq78wWSgz92jUIpgBVn/Uoz2QThHE
-	 YGmBnAdBB6bcs84BfwjyXEvS8uA4ViPFTyWdln9BIOIftV8aXih0f3SffcvRL7d6dgW6r
-	 qk7BCcszLSjIoOvD+EcxTyqOtU89LBQ92DJN8zw/w9jroqTg01mIgaWJRol7Q51zxhYab
-	 eieWtF8LzEibpzQyTZwxQVWd/+tJbSbq9I/CXQs6WzngWoeDUmFrKf0IPwvvTGGChiP+p
-	 oQl1QOgKnhGGX5yvAosngFTK7KMo/2hf9RITilVTmizzUetNYSk6r4lZaky75KDk07g==
+	bh=NmzeHjQpwb8xr6UOoWnMTNzzDHjAarvzlglxmIf5kC8=;
+	b=0Bet5eBOlot5Bz/Vbyk2SsI0Ky1/k9iPpapGTEVnVTwAipPU7SYufvz/NsXKU/niPHO1
+	 44qSgwKDsxlc67FTJ82SFkcgQTJhX8pBCVldTXICRbyqgvn5V75MT0tjk3Wv+6ltCi6Ya
+	 3HN+1Ko6UN5fAY7WKDATKMAeDaPvb4ntmR2nGNQ7vjUx0q3Yyv7kcCc/rgCcvmB1kcBqr
+	 iPXcuF7Q291l3pcog9ps8EpfRv+hNXd6UX0juew/nZCUtiX7/OD/pqpJgDEdtNvnoeLna
+	 DlHHDbFDDS69s7lU67qwwX6n1SA+1UFpEGi1bFViDT+FTk2OQNJmEmHh6r8RpUVRLog==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YXEQb5dc;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YPf2do13;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7ECB8606A321;
-	Tue, 24 Nov 2026 14:48:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CB13606A31E;
+	Tue, 24 Nov 2026 14:48:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YXEQb5dc
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D0881F000CF;
-	Tue, 24 Nov 2026 14:48:06 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=YPf2do13
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3C2A1F000CF;
+	Tue, 24 Nov 2026 14:48:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795531694;
-	bh=lyUEGhLGDykIVP/ED9acLT2Z8Hu6snwbttemda4QuYE=;
+	s=k20260515; t=1795531704;
+	bh=NmzeHjQpwb8xr6UOoWnMTNzzDHjAarvzlglxmIf5kC8=;
 	h=Subject:From:To:Cc:In-Reply-To:References:Date;
-	b=YXEQb5dcxm1JxN5d6fK6F4oynjusGJRZv8vCmoMzvS89AoMaYdInrCBv05fE+jHUW
-	 fTL5hjlNbYu8MXPYgWqWC4eo9o2KkDFOle2aTYKqkJK4qy3nX8SBCSSwjqahRFLSyL
-	 vFuOzEKh6o1aUUCsfRe8eiUVb7F5DuD0xSpmiJwJPEqfu8qobdmLgHz1G6sOu3pUBf
-	 EKvY/YSA4Xj+O9LAOr4qg8BCOnQ2T3hT87mcHfZ6ODxe1m40otGD2ltuAVkkji8MkJ
-	 mrFY403fHKdzIXtXKhU01DwLQfwSTq1hFdb920DI5qMZvALxpZoiF4WWFstZjFZsHm
-	 MT6fjrxfaRT9Q==
+	b=YPf2do13UJY/NFUdq6FHPxFG8KZoWIt2yCsrXBO2YGch4P96BCx+vrisjtTER57tA
+	 J4z4KxtgbX0OKi/41M5AqCZF7w99rrwZVkDQB1mHeXCv5a+SrnexPld9IOSVBXImU/
+	 fCC6I2KpmISBjjyMgs3pdTMEMPZqWNueh3SpSfFgMCBfsmOJLHLW+ERUIjCLzj5rhs
+	 /exN9lHQkb2ARVCNNWvJLebtQ3b7rlLXt/RnIJ39/8IF7I+EX9WKq21IcT91/vOEkD
+	 i07N6sSUja/WQO9HwFz+oIWETeIyOePxlUIjeRY7csqWeug+aJeZD9yCE+AkSTUZ3o
+	 xExZtPvui9egQ==
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -51,7 +51,8 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH v2 05/20] ASoC: codecs: pcm1754: Add PCM1773 support
+Subject: Re: [PATCH v2 07/20] ASoC: ti: omap3pandora: Convert sound card to
+ DT
 From: Mark Brown <broonie@kernel.org>
 To: "H. Nikolaus Schaller" <hns@goldelico.com>
 Cc: Linus Walleij <linus.walleij@linaro.org>, 
@@ -78,40 +79,32 @@ Cc: Linus Walleij <linus.walleij@linaro.org>,
  linux-sound@vger.kernel.org, linux-omap@vger.kernel.org, 
  linux-arm-kernel@lists.infradead.org, linux-pwm@vger.kernel.org, 
  linux-fbdev@vger.kernel.org, letux-kernel@openphoenux.org, 
- kernel@pyra-handheld.com, Grond <grond66@riseup.net>
-In-Reply-To: <7e12ac0772314b256a253314a24b9d0ad50ba5f3.1795505160.git.hns@goldelico.com>
+ kernel@pyra-handheld.com, Stefan Leichter <sle85276@gmx.de>, 
+ Grond <grond66@riseup.net>
+In-Reply-To: <57d9a8b26bd2282deb9188d6913976cfee41aee9.1795505160.git.hns@goldelico.com>
 References: <cover.1795505160.git.hns@goldelico.com>
- <7e12ac0772314b256a253314a24b9d0ad50ba5f3.1795505160.git.hns@goldelico.com>
+ <57d9a8b26bd2282deb9188d6913976cfee41aee9.1795505160.git.hns@goldelico.com>
 Date: Tue, 24 Nov 2026 14:48:03 +0000
-Message-Id: <179553168322.264265.14757755735561826656.b4-review@b4>
+Message-Id: <179553168323.264265.7045861860225672057.b4-review@b4>
 X-Mailer: b4 0.17-dev
-X-Developer-Signature: v=1; a=openpgp-sha256; l=930; i=broonie@kernel.org;
- h=from:subject:message-id; bh=ShazBqroLpfTImF2hfJrbg+0pBRZfzBJNJtZVfX1368=;
- b=owGbwMvMwCWm/754w+YLFp2Mp9WSGLJZFy/haI4yjItITLqY+Ty2yyZD584RZlGJmvZmw0XPf
- X+VhF3tKGVhEONikBVTZInL4n5ZX/J6Dd/BhW0wc1iZQIYwcHEKwET6bBn+KR+6tNuJ1zepu2mZ
- 1uoD51dGqZ/7e+NXo8bE7DKP3tdtRowM1yabiC52qP0vZvkoWqj6eZrRTTEj7tkbn79Lujp14rF
- kPgA=
+X-Developer-Signature: v=1; a=openpgp-sha256; l=473; i=broonie@kernel.org;
+ h=from:subject:message-id; bh=O+rxne3vfbE84eTyYkF7T4fTftOwK7+9DZzNOJ+HZzk=;
+ b=owGbwMvMwCWm/754w+YLFp2Mp9WSGLJZFy8x+dXb7LL+HKf1wXKuIz81p8++sCJJKZWD9TSn0
+ rfClbtrOkpZGMS4GGTFFFnisrhf1pe8XsN3cGEbzBxWJpAhDFycAjCRdY4M/8ytHs5iDcsvmLh0
+ YcYOxydMZY4LfGfsfGA/c+r3NWGXPDcxMpy59iWt6P6TdwapdvPZb+UIJU1sidvM9fdryqElzQm
+ KN/gB
 X-Developer-Key: i=broonie@kernel.org; a=openpgp;
  fpr=3F2568AAC26998F9E813A1C5C3F436CA30F5D8EB
 
-> Extend the PCM1754 codec driver to support the related PCM1773 DAC.
-> Select the DAI name, supported formats and sample rate limits per
-> variant. Handle the different FMT pin polarity and an optional format
-> GPIO, avoiding GPIO writes when the format pin is not controlled by the
-> driver. Add an optional enable GPIO for the PCM1773 power-down input,
-> controlled by a DAPM supply event to enable the DAC after power-up and
-> disable it before power-down.
+> Convert the OpenPandora ASoC machine driver to bind through a Device
+> Tree sound-card node instead of creating a platform device from board-
+> specific setup code. Describe the CPU and codec DAIs and audio routes
+> through DT, including the external PCM1773 playback DAC.
 
-> +	case SND_SOC_DAIFMT_LEFT_J:
-> +		if (priv->variant != &pcm1773_variant ||
-> +		    (params_width(params) != 16 && params_width(params) != 24))
-> +			return -EINVAL;
-> +		format = 0;
->  		break;
+> +	DAILINK_COMP_ARRAY(COMP_CODEC("pcm1773-codec", "pcm1773")),
 
-If you've got a struct describing the variant it is obviously not
-tasteful to open code a check based on the address of the variant struct
-rather than looking at something inside the description of the variant.
+You've added the external CODEC but not updated the Kconfig dependencies
+for that.
 
 -- 
 Mark Brown <broonie@kernel.org>
