@@ -1,46 +1,46 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795521887;
-	b=4KkthwvzqiM6u/9O7fAH3ZPTDVQjzyi/ctXTkHxMz9YAgkLV3HT7AcIvCUkH0N301ikj
-	 tLPbvi1WSj4LindQ7ohK4R+4bMlpZHYYJA3aKLf18a/+j8Ql4svuG2ADrge0OyXqbtnFK
-	 TPLPgi2JCLftXCY2Cu1V97ggblsKSOnApEcv2e6JOaOYYQYyJ6fuSvaRAISq1Pp6qjdIo
-	 WYDGHHn1QKVF2yRaLTq1dOgUo+k5MYzWpJaieYc0aoy2EEVVnJ9ppgYlCBEd3ysZ3hIvS
-	 KMDiSs8d94UhJvRJB/qh0COIedxj/R8Y0YUagjUX06kB/tiisum5uJ2jvatKTPyYbKw==
+	t=1795521957;
+	b=VbHzNeZxpHuDCFxrNNyEf/ClNtfG2r7S8eZoMi3f4c5f2ACAGJV/ETxjZPOHT4IhGkOm
+	 nhfVPgKjHLdU96zdlRCaRYtMD7SM+x2pXiWrPlRzYfo7EhFfE5KIcLcOIgqKeNtPZMnPG
+	 K/ILMgwQzd4zLNWJulurk0TkqrfAc2Le/rYKDNRLxMQQ8AAblEjLturqmLmh+q9x6+5Cs
+	 uXmHByBfQwIBtzpzqH2GPAvI+MhZwF13RlIr42TRhtL+gG3dLfHRB15mh8gxY3yPGDPoc
+	 wAd0YuQoRp7hSEk5hXAf9ATOn/GMA+hBZMzngtm0btVpOEvc5YXua9Ra8s7sIbBXhfQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795521887;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795521957;
 	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
 	 Mail-Followup-To:References:MIME-Version:Content-Type:
 	 Content-Disposition:In-Reply-To:X-Cookie;
-	bh=+M6+ZCCIkRa8fbkv07qcInuQEah/247vguNP+jafsWQ=;
-	b=NC66W1KX8wXFHVtdAj3LER7K4IeDAo9ozQYcn4uTIuJrIwPQ5rOpjw6QN+zLfjEhxACE
-	 Lxur372CAgyFEdN8hPB+ryB4Rfc9kkCpEJPdZZgmmFNxGtijTmGDDoGWMODI2Up93ZURt
-	 8TYftHgd2VPEjA6G99mXuo3RqRufmCMB6GdR1E1/01mZ22dCRsUgvQQwGxa4HwPIVCRu5
-	 8TKwG6XwZ0SNynJ606xR+p8ilhLB6BRF+UBKoofwFtfiBgGKnGVn2QOJtaffZMqhasnO9
-	 ViW90Qgl4596eR6mF2FvrlCb3BgB+OSHeyhuZ9hHriCnx2y0VllTYAArFzYaNkYiQcw==
+	bh=0ARS0v6hibJb4Knj3M+C/3JdOmgCFDQR3VObQHYAdrs=;
+	b=VhpmiSqwyEKgXejoUrX73tUdfNgoD47zTMG8J5PfVoKqOKdFoZcDgZ2wX8jsyiaLLtma
+	 XVy7GCJIsWaU/IPI4i6VDFi70J5LPnO+0eUbh+u1O2IizwbYbq0pk9PKvOoai64zWHPxS
+	 mK5AqRkAQ2yEmoZ85PCVbHjh3mEa0nrapsLn1bNPec4DhO10BkggMnThKvGE3UoZzHhEi
+	 ZjG7lsj1W5/M34/G+3WNKoWoiv3n0K064ZbiO/eBc4O1F2fh7JsUe5RDHI5mQTRANA3kF
+	 7ZRTjYh3b90wm58BwXyxNl64ydgTy9TCO6IjuKsTfjrsmxvW/wc1TNqkCoThQzV1PFA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=m1MQfmss;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JtVddkaI;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77A53606A33B;
-	Tue, 24 Nov 2026 12:04:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65F1E606A321;
+	Tue, 24 Nov 2026 12:05:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=m1MQfmss
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE7681F000C4;
-	Tue, 24 Nov 2026 12:04:38 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=JtVddkaI
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 580E41F000C4;
+	Tue, 24 Nov 2026 12:05:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795521886;
-	bh=+M6+ZCCIkRa8fbkv07qcInuQEah/247vguNP+jafsWQ=;
+	s=k20260515; t=1795521956;
+	bh=0ARS0v6hibJb4Knj3M+C/3JdOmgCFDQR3VObQHYAdrs=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=m1MQfmssaNaFtc2SVz5nm/8E4cRYpNtMQ1cfMrhMdc+T1BG1aSt2apFBSZdnv6vPx
-	 6L1q8khrbGMvY5L0M7E7qsYlVXMyI7sGvJ8kEE9bf5ePqJ4O74P7VfQMedAKwYRXW4
-	 3mADxW91HRgPZhtIpXt+3VsMHdljHhACgYJVI49jePIy5MWIcAR1WwXTbUchILrB8C
-	 oiZZxvm27YiNGscVwU46MoKKDeSe/bp2BbiLG8HPTlNHf/Y88m0/2LbJKMEoaWwkwb
-	 gAKUZce9JKX+iTA1Ja7f4ueDrb9YUPdQDlcbqKqjSn/+TPw2tZdcTQuDD0/s8MP5ga
-	 5DEf4DbTpUh3A==
-Date: Tue, 24 Nov 2026 12:04:36 +0000
+	b=JtVddkaIAO32sQA+hsx1h4/JcGjCV7sOarJQrXEhjbyVDCLNYagX4d216uvTWUv3U
+	 rD4Df9LCD4DyeLmzK+GOoVu4mtQZOjT5nI8gl0EytgWkEAPmIx2QBydDw3KW/BXW8d
+	 fbAGUobxtTpELM6KCQyiW7y4ig0oYZQ5TbqxgqJ4OwQltVUEAhTlVGnEn9BeZ+NqOU
+	 UPZz4x0WHwaPMNzMh23H3IiaBEYukjqhd7fSeN0AtlUi8PFXilT9je5n1l0u8CtbIj
+	 SFlbzs7DeHznmpCEzjp6SGr0YNSkmU9+S7JkWVKSUqEmONXVDRpUEsj4x6VumlYx80
+	 uY66Y0gtK2aSw==
+Date: Tue, 24 Nov 2026 12:05:46 +0000
 From: Mark Brown <broonie@kernel.org>
 To: "H. Nikolaus Schaller" <hns@goldelico.com>
 Cc: Linus Walleij <linus.walleij@linaro.org>,
@@ -73,9 +73,8 @@ Cc: Linus Walleij <linus.walleij@linaro.org>,
 	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
 	linux-pwm@vger.kernel.org, linux-fbdev@vger.kernel.org,
 	letux-kernel@openphoenux.org, kernel@pyra-handheld.com
-Subject: Re: [PATCH v2 06/20] dt-bindings: sound: Document OpenPandora sound
- card
-Message-ID: <271fc308-817e-43eb-872e-67cf4e342c00@sirena.org.uk>
+Subject: Re: [PATCH v2 04/20] dt-bindings: sound: pcm1754: Describe PCM1773
+Message-ID: <608d13a4-6634-406e-aba8-b48114895cc0@sirena.org.uk>
 Mail-Followup-To: "H. Nikolaus Schaller" <hns@goldelico.com>,
 	Linus Walleij <linus.walleij@linaro.org>,
 	Bartosz Golaszewski <brgl@kernel.org>,
@@ -108,7 +107,7 @@ Mail-Followup-To: "H. Nikolaus Schaller" <hns@goldelico.com>,
 	linux-pwm@vger.kernel.org, linux-fbdev@vger.kernel.org,
 	letux-kernel@openphoenux.org, kernel@pyra-handheld.com
 References: <cover.1795505160.git.hns@goldelico.com>
- <5c6f7deca16f70f1f19cb40c57d70e30068d6000.1795505160.git.hns@goldelico.com>
+ <a92d44c4ba920358003d475d4cac7541af037f41.1795505160.git.hns@goldelico.com>
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -119,20 +118,19 @@ List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="uuPL/vWJ8gpBO2/v"
+	protocol="application/pgp-signature"; boundary="Lm8vroyyHW3AIhzz"
 Content-Disposition: inline
-In-Reply-To: <5c6f7deca16f70f1f19cb40c57d70e30068d6000.1795505160.git.hns@goldelico.com>
+In-Reply-To: <a92d44c4ba920358003d475d4cac7541af037f41.1795505160.git.hns@goldelico.com>
 X-Cookie: Real Users never use the Help key.
 
 
---uuPL/vWJ8gpBO2/v
+--Lm8vroyyHW3AIhzz
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Nov 24, 2026 at 08:25:46AM +0100, H. Nikolaus Schaller wrote:
-> The OpenPandora audio subsystem describes the routing links between the
-> OMAP3 McBSP interface, the external PCM1773 DAC, and the TWL4030 audio
-> codec, alongside amplifiers and power supplies.
+On Tue, Nov 24, 2026 at 08:25:44AM +0100, H. Nikolaus Schaller wrote:
+> Extend the PCM1754 device tree binding to describe the related
+> PCM1773 stereo DAC.
 
 Please submit patches using subject lines reflecting the style for the
 subsystem, this makes it easier for people to identify relevant patches.
@@ -140,19 +138,19 @@ Look at what existing commits in the area you're changing are doing and
 make sure your subject lines visually resemble what they're doing.
 There's no need to resubmit to fix this alone.
 
---uuPL/vWJ8gpBO2/v
+--Lm8vroyyHW3AIhzz
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmsFfVMACgkQJNaLcl1U
-h9A/9wf/bewyPvKKERGxwebE/8gZWsJyo/QfqgyTiJAAEhPRC9n66F8TduLm/PaK
-JzYBcXrO+BemacpAPeAAFowFxoyvCP8YAp8yrvh4DJh5qcLAenIvMXFmmo8tCjjy
-HBONuyEzrD2hRre4lCtzRG3utxWZtlV1vo6aR2dYOvxEj/xTKVlJuAqHmo+8nWBE
-FnZwgc83dKFND8t6kl30S/hRu3ttiV7gVknY4JlXJ6Gu00lvaN2DaLl3cfRRn3xM
-Df3t1SC938uezOlyU0AUZzmGgxbttqnFLSDybQDCn3G8mTV6LWGRGFKpPQ/TFmbJ
-wENvF5OUuKyp84S4bCZhzspjeM1UEg==
-=Nj9l
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmsFfZoACgkQJNaLcl1U
+h9DhAQf+ILG2LleXAdzUJxA3hqS5WnJ0Cy1v4TXb/eWcYXraujstqUqC/WkBrPJF
+1jm5ac0s0BM2yOF8OeMd+NZTic2OwQM665medO5X0orp1gH6FtoWYSd6KUScXDYj
+BLMOMa81R9qZ0Iy/7vV9aV7pyhxZvOz2qJzmDdPnFn9RMyjcz1a3rg2aMUHPA5zy
+TwsfM2Aq4Gi0Z4DgJZSBxwDKqBATI8zqVX2i1F2JXbk/ajufHZtQJC4bm+WBAvx9
+rzQg69Yt5QJb9kCku5+t4+97Ei5FaQm0qD3gWz8Djb+GpK+7jNTEuK9o0nac12u5
+/8CFTKpyGVx0NdLYRUDx42dLwrklRA==
+=oiP8
 -----END PGP SIGNATURE-----
 
---uuPL/vWJ8gpBO2/v--
+--Lm8vroyyHW3AIhzz--
