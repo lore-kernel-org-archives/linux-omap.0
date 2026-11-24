@@ -1,113 +1,56 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=101.71.155.101
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795527502;
-	b=TgHV/IPKgeWqZIzA3z9UnJi7Fafh5kCkWImENc4/iyoUBpYVW4jm3LRDjzP0mcFbyc63
-	 DJSa3b9XYkuvcX+G0VvStnNO8ULoCWTWeOzve7cHcqiVmA/2U8rzFW8VEykFSWTUfx8U8
-	 0OyY8h5kdo3jvpEZdc7v8kQ4IJImyqSykd1kv2VduR9Zre1XaiujlxMGbQ31wbowijlUZ
-	 dkyvVbdX7K/OdWwYpfn4DEcqse6d6jTLVO3qihhy/UXGx7FSyqWK5CEeFVKvET96JyIKu
-	 zuzxoGdiDOXTY6Oo/4dEUq5Ozv+oadE8Q6f6l6gb7tyVt25qEp+zpTYzXykCVzuleyQ==
+	t=1795528730;
+	b=wRKhfdLzqF41HJMWinoBc8mM2gbxXRonwY10hv9N4ecjKBdnJv34T+rY2I3M4dbX5Zb+
+	 HAJHGrQS0uFCWsQI69LG+96b36yUFqANWwGzW5bo4hKeyEYvG0+P/BttHwuFr97ujlN2R
+	 KzDb1I/1JyVo/8DT1CELJWPiyAJTyLvhg3TxJ1i0xfq5Ck9JMQvHDeVQlQp0p9DBygdZO
+	 XurRb/4+NWNAXldh1qegRKCbclc/oDi5CwMGLHVf+HhlaKMPVnRFEZKdZUxOKBVlijTQN
+	 xcvG/OYRw/dvJUOY6UVdLssF5KVXhfxr3rKQboWXalmd9UbVrGvkgR6n86pmYv8yQ0A==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795527502;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 Mail-Followup-To:References:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To:X-Cookie;
-	bh=hBb7CziwmaEve0HjYdLhPP8A5dGN2yZ/4+i68vOpPLA=;
-	b=vJuqxpx/TtiGo1GNlwXIoKnW47ZGRw8Sqd2uXwbCVuJbBERu+3bOJxqeJr/J1uocHSuw
-	 Da6yHVEGPOjcCdtyBUhYJenLG2t4RN/ANWGiVK4NtMT5+3M8hPM+5G74o9e1rvC9tUd6w
-	 f3vqd1mv/lq0h7By4s2Ez6AATF3szGhqeDeRNAQ0hHrspD5G1h6A3+18ZjEKoQ5LdVk3s
-	 oX/uY6mZk1nXXVUwnbnmRduWRa+EVOdkWscfywwgNXz5gDvWQZNpn8sAia1sj7g+9oKYQ
-	 NlRZLF9+H3b9yHDl1h36ENYDE/gN0YZ1lbOkU+B7KhXwqPZ/vjYCLuAGCNK0cdqhkCQ==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795528730;
+	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
+	 MIME-Version:Content-Type:Content-Transfer-Encoding:X-HM-Tid:
+	 X-HM-MType:X-HM-Spam-Status:DKIM-Signature;
+	bh=xyKoEJ5FjRS+4OPkOgOKrVMWDVJZ2fDT0agRmE2qKng=;
+	b=k0gL4hGm43SChkQ2hGAvrxs4r3V24SZmuDRB3COOR8Sfty/VlZ+H2vG2yAUk6nck9+bk
+	 xHtoTdNF3diyOoDaszNaAgwOLdxIcGxOinjv9J0h2+yZ1HCm1i2K8Q5koxnEherAthkTU
+	 QVvIQx38jRhXfnb2CmddLRqIcdGHL7iyB20Ri+ly+n9+OtsHwY/RmIJwsOlc4qh31lZkw
+	 35/s/0eGAppLVDe0uuUNnRoF2mucZudHVuJg5QZjjpPlwUsOALXufLqCIRmU8+e3PSO7u
+	 zeTavRQlHUJ5z2t49AXYfCx4fum8gbC+2xmSDXytXB6n/P8FTftPqdelIGGdVuolQcw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=oEvA9JlK;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=mail.sdu.edu.cn;
+	spf=pass smtp.mailfrom=mail.sdu.edu.cn;
+	dkim=pass header.d=mail.sdu.edu.cn header.i=@mail.sdu.edu.cn header.a=rsa-sha256 header.s=default header.b=PGd1cMaw;
+	arc=none smtp.remote-ip=101.71.155.101
+Received: from mail-m155101.qiye.163.com (mail-m155101.qiye.163.com [101.71.155.101])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 100E1606A321;
-	Tue, 24 Nov 2026 13:38:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B085606A336;
+	Tue, 24 Nov 2026 13:58:47 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 4B085606A336
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mail.sdu.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mail.sdu.edu.cn
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=oEvA9JlK
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C48451F000C0;
-	Tue, 24 Nov 2026 13:38:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795527501;
-	bh=hBb7CziwmaEve0HjYdLhPP8A5dGN2yZ/4+i68vOpPLA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=oEvA9JlKinpj4CLa0YM6Nnu6QLmPew7urXHJpo4ZY1RapqnGsMeZoiTJ7ejlAh1wB
-	 z/4fG12dJSX006iBcFfaePI0M82vQ/1lbBDsYhXFPYLKOy6787YEbjgE2NTsh2LOnd
-	 YYS8P8FaEZ84WtS/L5EnxkSVgHxjjzXXJgJzz7UaNIBflVYxmWx/jPSoJ67DFMin7B
-	 48FH10YLDBmkTcl4sT4odtP5IxcWGp7FR81EE+8XK88PyG8uKCTLcwZHYiH8ilxH3V
-	 D8dFdk3x8iZiHSxDB1qrRh2eAI+U+TXTP3MiPubiQm0VUBtbo99xI2tQapnHz6R5jC
-	 CTkpyiMWVUWdg==
-Date: Tue, 24 Nov 2026 13:38:09 +0000
-From: Mark Brown <broonie@kernel.org>
-To: "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>, Lee Jones <lee@kernel.org>,
-	Daniel Thompson <danielt@kernel.org>,
-	Jingoo Han <jingoohan1@gmail.com>, Pavel Machek <pavel@kernel.org>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	dkim=pass (1024-bit key) header.d=mail.sdu.edu.cn header.i=@mail.sdu.edu.cn header.a=rsa-sha256 header.s=default header.b=PGd1cMaw
+Received: from lgs.. (unknown [101.76.249.61])
+	by smtp.qiye.163.com (Hmail) with ESMTP id 55d4cdb9d;
+	Tue, 24 Nov 2026 21:58:38 +0800 (GMT+08:00)
+From: Guangshuo Li <liguangshuo@mail.sdu.edu.cn>
+To: Lee Jones <lee@kernel.org>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
 	Andreas Kemnade <andreas@kemnade.info>,
 	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
-	Russell King <linux@armlinux.org.uk>,
-	Neil Armstrong <neil.armstrong@linaro.org>,
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-	Maxime Ripard <mripard@kernel.org>,
-	Thomas Zimmermann <tzimmermann@suse.de>,
-	David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
-	Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <ukleinek@kernel.org>,
-	Helge Deller <deller@gmx.de>, Jaroslav Kysela <perex@perex.cz>,
-	Takashi Iwai <tiwai@suse.com>,
-	Peter Ujfalusi <peter.ujfalusi@gmail.com>,
-	Jarkko Nikula <jarkko.nikula@bitmer.com>,
-	Jessica Zhang <jessica.zhang@oss.qualcomm.com>,
-	linux-gpio@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-leds@vger.kernel.org, linux-sound@vger.kernel.org,
-	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-pwm@vger.kernel.org, linux-fbdev@vger.kernel.org,
-	letux-kernel@openphoenux.org, kernel@pyra-handheld.com
-Subject: Re: [PATCH v2 00/20] ARM: omap3: pandora: Modernize audio and
- backlight to use Device Tree to finally remove pdata-quirks
-Message-ID: <f31b5adb-f6e8-4cab-8d92-17645bf1b69a@sirena.org.uk>
-Mail-Followup-To: "H. Nikolaus Schaller" <hns@goldelico.com>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Bartosz Golaszewski <brgl@kernel.org>,
-	Rob Herring <robh@kernel.org>,
-	Krzysztof Kozlowski <krzk+dt@kernel.org>,
-	Conor Dooley <conor+dt@kernel.org>, Lee Jones <lee@kernel.org>,
-	Daniel Thompson <danielt@kernel.org>,
-	Jingoo Han <jingoohan1@gmail.com>, Pavel Machek <pavel@kernel.org>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Andreas Kemnade <andreas@kemnade.info>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
-	Russell King <linux@armlinux.org.uk>,
-	Neil Armstrong <neil.armstrong@linaro.org>,
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-	Maxime Ripard <mripard@kernel.org>,
-	Thomas Zimmermann <tzimmermann@suse.de>,
-	David Airlie <airlied@gmail.com>, Simona Vetter <simona@ffwll.ch>,
-	Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <ukleinek@kernel.org>,
-	Helge Deller <deller@gmx.de>, Jaroslav Kysela <perex@perex.cz>,
-	Takashi Iwai <tiwai@suse.com>,
-	Peter Ujfalusi <peter.ujfalusi@gmail.com>,
-	Jarkko Nikula <jarkko.nikula@bitmer.com>,
-	Jessica Zhang <jessica.zhang@oss.qualcomm.com>,
-	linux-gpio@vger.kernel.org, devicetree@vger.kernel.org,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-leds@vger.kernel.org, linux-sound@vger.kernel.org,
-	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-pwm@vger.kernel.org, linux-fbdev@vger.kernel.org,
-	letux-kernel@openphoenux.org, kernel@pyra-handheld.com
-References: <cover.1795505160.git.hns@goldelico.com>
+	Roger Quadros <rogerq@kernel.org>,
+	Tony Lindgren <tony@atomide.com>,
+	linux-omap@vger.kernel.org,
+	mfd@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: [PATCH v2] mfd: palmas: Fix potential IRQ action leaks on removal
+Date: Tue, 24 Nov 2026 21:58:36 +0800
+Message-ID: <20261124135836.2275740-1-liguangshuo@mail.sdu.edu.cn>
+X-Mailer: git-send-email 2.43.0
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -117,52 +60,207 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="nSbMoxGlmoiutN4J"
-Content-Disposition: inline
-In-Reply-To: <cover.1795505160.git.hns@goldelico.com>
-X-Cookie: Real Users never use the Help key.
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-HM-Tid: 0aa20dd9f85003a1kunm03365dc23424a0
+X-HM-MType: 10
+X-HM-Spam-Status: e1kfGhgUHx5ZQUpXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
+	tZV1koWUFITzdXWRgWCB1ZQUpXWS1ZQUlXWQ8JGhUIEh9ZQVkaTR9PVh8eQx9MGk9MQkpOTlYeHw
+	5VEwETFhoSFyQUDg9ZV1kYEgtZQVlKS0pVTE1VSU9CVU1KWVdZFhoPEhUdFFlBWU9LSFVKS0lCQ0
+	NMVUpLS1VLWQY+
+DKIM-Signature: a=rsa-sha256;
+	b=PGd1cMawoZKsYb1f8JOOvPrGsuoUmw7ompaf472pTRs1ui73niardRRuwKnJJvNZjoh8ZvcN3rpV897sok8USV+nToGwNU92cdikbMx4Dy+ZSqpe3HEs19+bpnUVOodpypMNm+fvLm+EDm1s23RcjZ1lyYxz3Glu1TPPk+I/onE=; c=relaxed/relaxed; s=default; d=mail.sdu.edu.cn; v=1;
+	bh=xyKoEJ5FjRS+4OPkOgOKrVMWDVJZ2fDT0agRmE2qKng=;
+	h=date:mime-version:subject:message-id:from;
 
+The remove callback deletes the IRQ chip before managed OF children
+are removed. Their later free_irq() calls cannot find the disposed IRQ
+descriptors, potentially leaking interrupt actions.
 
---nSbMoxGlmoiutN4J
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Use managed registration for the IRQ chip and auxiliary I2C clients so
+the children are removed first. Manage the power-off handler cleanup
+as well and drop the remove callback and explicit error unwinding.
 
-On Tue, Nov 24, 2026 at 08:25:40AM +0100, H. Nikolaus Schaller wrote:
-> PATCH V2 2026-11-24 08:26:00:
-> Changes in V2:
-> The series has been reworked and expanded from 16 to 20 patches,
-> addressing review feedback and issues identified during hardware testing.
+This issue was found by our static analysis tool under development.
 
-> Audio and power management:
-> ===========================
+Fixes: 124e9deb1c40 ("mfd: palmas: Use devm_of_platform_populate()")
+Cc: stable@vger.kernel.org
+Signed-off-by: Guangshuo Li <liguangshuo@mail.sdu.edu.cn>
+---
+Changes in v2:
+  - Use managed IRQ-chip and auxiliary I2C-client registration.
+    Manage the power-off cleanup as well and remove the remove callback.
 
-> PWM and backlight:
-> ==================
+ drivers/mfd/palmas.c | 74 +++++++++++++++++---------------------------
+ 1 file changed, 28 insertions(+), 46 deletions(-)
 
-> Device Tree and general cleanup:
-> ================================
+diff --git a/drivers/mfd/palmas.c b/drivers/mfd/palmas.c
+index 00332bd4f1c6..14ca8c05f35b 100644
+--- a/drivers/mfd/palmas.c
++++ b/drivers/mfd/palmas.c
+@@ -463,6 +463,14 @@ static void palmas_power_off(void)
+ 				__func__, ret);
+ }
+ 
++static void palmas_clear_power_off(void *data)
++{
++	if (palmas_dev == data) {
++		pm_power_off = NULL;
++		palmas_dev = NULL;
++	}
++}
++
+ struct palmas_driver_data {
+ 	unsigned int features;
+ 	const struct regmap_irq_chip *irq_chip;
+@@ -520,14 +528,14 @@ static int palmas_i2c_probe(struct i2c_client *i2c)
+ 		if (i == 0)
+ 			palmas->i2c_clients[i] = i2c;
+ 		else {
+-			palmas->i2c_clients[i] =
+-					i2c_new_dummy_device(i2c->adapter,
+-							i2c->addr + i);
++			palmas->i2c_clients[i] = devm_i2c_new_dummy_device(&i2c->dev,
++									   i2c->adapter,
++									   i2c->addr + i);
+ 			if (IS_ERR(palmas->i2c_clients[i])) {
+ 				dev_err(palmas->dev,
+ 					"can't attach client %d\n", i);
+ 				ret = PTR_ERR(palmas->i2c_clients[i]);
+-				goto err_i2c;
++				return ret;
+ 			}
+ 			palmas->i2c_clients[i]->dev.of_node = of_node_get(node);
+ 		}
+@@ -538,7 +546,7 @@ static int palmas_i2c_probe(struct i2c_client *i2c)
+ 			dev_err(palmas->dev,
+ 				"Failed to allocate regmap %d, err: %d\n",
+ 				i, ret);
+-			goto err_i2c;
++			return ret;
+ 		}
+ 	}
+ 
+@@ -557,7 +565,7 @@ static int palmas_i2c_probe(struct i2c_client *i2c)
+ 			reg);
+ 	if (ret < 0) {
+ 		dev_err(palmas->dev, "POLARITY_CTRL update failed: %d\n", ret);
+-		goto err_i2c;
++		return ret;
+ 	}
+ 
+ 	/* Change IRQ into clear on read mode for efficiency */
+@@ -567,11 +575,11 @@ static int palmas_i2c_probe(struct i2c_client *i2c)
+ 
+ 	regmap_write(palmas->regmap[slave], addr, reg);
+ 
+-	ret = regmap_add_irq_chip(palmas->regmap[slave], palmas->irq,
+-				  IRQF_ONESHOT | pdata->irq_flags, 0,
+-				  driver_data->irq_chip, &palmas->irq_data);
++	ret = devm_regmap_add_irq_chip(&i2c->dev, palmas->regmap[slave],
++				       palmas->irq, IRQF_ONESHOT | pdata->irq_flags,
++				       0, driver_data->irq_chip, &palmas->irq_data);
+ 	if (ret < 0)
+-		goto err_i2c;
++		return ret;
+ 
+ no_irq:
+ 	slave = PALMAS_BASE_TO_SLAVE(PALMAS_PU_PD_OD_BASE);
+@@ -582,11 +590,11 @@ static int palmas_i2c_probe(struct i2c_client *i2c)
+ 		reg = pdata->pad1;
+ 		ret = regmap_write(palmas->regmap[slave], addr, reg);
+ 		if (ret)
+-			goto err_irq;
++			return ret;
+ 	} else {
+ 		ret = regmap_read(palmas->regmap[slave], addr, &reg);
+ 		if (ret)
+-			goto err_irq;
++			return ret;
+ 	}
+ 
+ 	if (!(reg & PALMAS_PRIMARY_SECONDARY_PAD1_GPIO_0))
+@@ -617,11 +625,11 @@ static int palmas_i2c_probe(struct i2c_client *i2c)
+ 		reg = pdata->pad2;
+ 		ret = regmap_write(palmas->regmap[slave], addr, reg);
+ 		if (ret)
+-			goto err_irq;
++			return ret;
+ 	} else {
+ 		ret = regmap_read(palmas->regmap[slave], addr, &reg);
+ 		if (ret)
+-			goto err_irq;
++			return ret;
+ 	}
+ 
+ 	if (!(reg & PALMAS_PRIMARY_SECONDARY_PAD2_GPIO_4))
+@@ -644,7 +652,7 @@ static int palmas_i2c_probe(struct i2c_client *i2c)
+ 
+ 	ret = regmap_write(palmas->regmap[slave], addr, reg);
+ 	if (ret)
+-		goto err_irq;
++		return ret;
+ 
+ 	/*
+ 	 * If we are probing with DT do this the DT way and return here
+@@ -652,42 +660,17 @@ static int palmas_i2c_probe(struct i2c_client *i2c)
+ 	 */
+ 	if (node) {
+ 		ret = devm_of_platform_populate(&i2c->dev);
+-		if (ret < 0) {
+-			goto err_irq;
+-		} else if (pdata->pm_off && !pm_power_off) {
++		if (ret < 0)
++			return ret;
++		if (pdata->pm_off && !pm_power_off) {
+ 			palmas_dev = palmas;
+ 			pm_power_off = palmas_power_off;
++			ret = devm_add_action_or_reset(&i2c->dev,
++						       palmas_clear_power_off, palmas);
+ 		}
+ 	}
+ 
+ 	return ret;
+-
+-err_irq:
+-	regmap_del_irq_chip(palmas->irq, palmas->irq_data);
+-err_i2c:
+-	for (i = 1; i < PALMAS_NUM_CLIENTS; i++) {
+-		if (palmas->i2c_clients[i])
+-			i2c_unregister_device(palmas->i2c_clients[i]);
+-	}
+-	return ret;
+-}
+-
+-static void palmas_i2c_remove(struct i2c_client *i2c)
+-{
+-	struct palmas *palmas = i2c_get_clientdata(i2c);
+-	int i;
+-
+-	regmap_del_irq_chip(palmas->irq, palmas->irq_data);
+-
+-	for (i = 1; i < PALMAS_NUM_CLIENTS; i++) {
+-		if (palmas->i2c_clients[i])
+-			i2c_unregister_device(palmas->i2c_clients[i]);
+-	}
+-
+-	if (palmas == palmas_dev) {
+-		pm_power_off = NULL;
+-		palmas_dev = NULL;
+-	}
+ }
+ 
+ static const struct of_device_id of_palmas_match_tbl[] = {
+@@ -713,7 +696,6 @@ static struct i2c_driver palmas_i2c_driver = {
+ 		   .of_match_table = of_palmas_match_tbl,
+ 	},
+ 	.probe = palmas_i2c_probe,
+-	.remove = palmas_i2c_remove,
+ 	.id_table = palmas_i2c_id,
+ };
+ 
 
-This is dealing with several tangentially related topics over multiple
-subsystems in a single series, this makes it a lot less digestable and
-results in a huge series with an extremely large CC list and murky merge
-strategy.  Please split things out into separate serieses, even within
-the various subsystems there are batches of independent work which
-really do not need to be in the same series.
+base-commit: b6a9fa34ce4187cb69d3c588a4bbffc31ce5db8f
+-- 
+2.43.0
 
---nSbMoxGlmoiutN4J
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmsFk0AACgkQJNaLcl1U
-h9C5/gf8Cm0A5yFYJVQeo/T7StRW0pHrKh1EmIz06r7u8NK09DP+BhXT8qRk1I41
-F7QT+nveX8OD+3Wz+Zyw7iAN7DdNLpIpci7jqzm/9hHAIeCU9h5mbXgGLRZXlLLy
-MJ/MIEGdSDswMSbHdd1qbOAph080P7loJJrXcVFvWHRwH6+Gc6umpSBfu7uLM+D0
-W+mM6fRvvz0Ou0YBcV+gvdp/18n0MiQ11v7dn3UsQaFHkJfTZzKZh6WOuUZ3JdKr
-H1DtRqRYCJooQcaZpUWdRGDHEAMHXgW1+o7r3gEfGTklbsyY+xeOhXEBbU7jQLjd
-SS7bE1b2Y0pMX5XKGAjMXMyqtG/2dg==
-=LtHo
------END PGP SIGNATURE-----
-
---nSbMoxGlmoiutN4J--
