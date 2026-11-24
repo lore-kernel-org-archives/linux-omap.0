@@ -1,88 +1,88 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=81.169.146.177
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.remote-ip=81.169.146.177
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=fail;
 	t=1795505223;
-	b=LqTBseczPsLIp0RTbGkFvyzdc7lPXbmO+H0YE0BuhE1ZPZRCgYsPLYc4nWj0Oi2/UZMc
-	 VJHn6+SYpnMhiJoWXDNqapdM0trKECzGFLm5fp/KQjN1TcCTtnk3EZaCS7+VWu63eSlA0
-	 ypDMnmCDaSsMrzSkw6ofoz08RWV+3VN9DprP2N+pXMwQcxj3COY0U2OAhKqKSizNqmeRR
-	 s4ueT36GSUt2BynEnpp1Sk++tEToRyd6a1KFI6hXeMBorUagwlJ93bf+8+ICAXGMIiNaM
-	 XlBxGzgWahAaHgzdJtpuRR6yoXXjbIDdzghAJaNAlO9YaPM75WvLWpkb6yz20LRDFXw==
+	b=JnWRsWHMCC1UrrHr9et0yNAeAnyyNVr8JyP7uHE69y6qnxEBHNvP/6gJToq1Yda7zt04
+	 kELy79v36r0GNYF0wCiebR+xS+ckmawF7rfS7Z83ib7ty44vqSaMTlQzuhTOHcqmQctLx
+	 aqhlVskkmim2o3sXOb5UrbMtENryMOk+NPPCU1rqyaN2qZgL5fxo7aqYjvJueJEYEr172
+	 YzDDAxpDSi2ZzmQpABUhP+TGLjY3lJqmEgaRKQ3MEs3xwuWmcc97A+oizbH1oZ/ZXNtvR
+	 lcYselnJFAryhFyYF4wy/oqlkSNflfg5Ty8vAsc7XzcON3gB+WsCh4yTn/tj4jAQx0w==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1795505223;
 	h=DMARC-Filter:X-RZG-CLASS-ID:DKIM-Signature:DKIM-Signature:X-RZG-AUTH:
 	 Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:
-	 References:MIME-Version:Content-Transfer-Encoding:Content-Type;
-	bh=X1Fgh93jXfxGvJnocoZmU6fsG4UnK9XyHwZdxd2c24c=;
-	b=DwRaQ4ZL4uFscpFun+0tFg0DfV7QHCqFslghdUpvChYelvc0RZ10uzo9iI++pj1yUPbe
-	 e1ILhxhsuBP933d/SBI+4U4j7COsAcNSYPhvq4FV5nzM8aKz0qtNCD5FOvE6tjjK2WzTT
-	 95tiAEPG2B42rMOz9erQ2GfaXK8/6Ik1ThFpUrLCEFTOZ+ov82JfgP6uU667v9fpkYQZY
-	 WJgdEqKplvSowrfOYsgUtTPyIqsMOoeNea7xRJ59x908l/99jBgDot3kfuIpo2VhcTmgs
-	 YN66JOMyy+nijDOsvMdLKjKC+yxlUvu7obH46EifP5B1sjbgDfgNGDDpyX8CfDQfdjQ==
+	 References:MIME-Version:Content-Type:Content-Transfer-Encoding;
+	bh=d/XWg+z+3driH60oKg1jDoiUHNLVCm4AplbKyR0sUbM=;
+	b=hWWoA5sy+tvu7jJl+NGEGSmIy0hlgX5TfS4NxRztnhvBW17yjAYXSFnho2aYV77sudnI
+	 lc2O5VcHLvEaOycs6abNhuZ2ba4WaQ465KM2qiwZ029psPryS9CGQd2N9m5ooWAJmLQq1
+	 Lp8kEwKaKRCDsK0Q7KTuCNPreXWvp+z84n/vt5GilJ+Y9HQlH9aaA0bHDl/iEH8BBoJqb
+	 dKb859DcGCBxa92WSMw2zKkosekgSmmEg7e8SWkmHFXfNBf3wbdCCYYXW3EX0VdsQsuCl
+	 +uqDardhArqW/z9UihOcnt5fQzGThFnLWMK9dpfdEiktj0osTzXKnJZj8NRidHyA2yA==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=goldelico.com;
 	spf=pass smtp.mailfrom=goldelico.com;
-	dkim=pass header.d=goldelico.com header.i=@goldelico.com header.a=rsa-sha256 header.s=strato-dkim-0002 header.b="o/UP7hL3";
-	dkim=pass header.d=goldelico.com header.i=@goldelico.com header.a=ed25519-sha256 header.s=strato-dkim-0003 header.b=JRxdd0JJ;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=81.169.146.177
+	dkim=pass header.d=goldelico.com header.i=@goldelico.com header.a=rsa-sha256 header.s=strato-dkim-0002 header.b=EBSkkM5y;
+	dkim=pass header.d=goldelico.com header.i=@goldelico.com header.a=ed25519-sha256 header.s=strato-dkim-0003 header.b=6IXrjucF;
+	arc=fail smtp.remote-ip=81.169.146.177
 Received: from mo4-p04-ob.smtp.rzone.de (mo4-p04-ob.smtp.rzone.de [81.169.146.177])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7ADC0606A32D;
-	Tue, 24 Nov 2026 07:27:01 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7ADC0606A32D
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B1DD606A33C;
+	Tue, 24 Nov 2026 07:27:00 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6B1DD606A33C
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=goldelico.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.a=rsa-sha256 header.s=strato-dkim-0002 header.b=o/UP7hL3;
-	dkim=pass header.d=goldelico.com header.i=@goldelico.com header.a=ed25519-sha256 header.s=strato-dkim-0003 header.b=JRxdd0JJ
-ARC-Seal: i=1; a=rsa-sha256; t=1795505171; cv=none;
+	dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.a=rsa-sha256 header.s=strato-dkim-0002 header.b=EBSkkM5y;
+	dkim=pass header.d=goldelico.com header.i=@goldelico.com header.a=ed25519-sha256 header.s=strato-dkim-0003 header.b=6IXrjucF
+ARC-Seal: i=1; a=rsa-sha256; t=1795505186; cv=none;
     d=strato.com; s=strato-dkim-0002;
-    b=GjWxrkmCYDXAfLMjsPA/p8QJY52B8DjK4yc4H4mzSPwQBWFg06pX2Wwi6SKMuA4YsE
-    qtRT0tnNd5FTldJFS3cKzrVsM18OGXlfC9dHSudJPCK2tEYeGhjdwCgGT2bpUIxunAU8
-    p+HQmHVPBWGS03fg0H/kRugb8kkd8zuVypITIEMq/bRnADk1oBPOlHkyJ5mdNchXz5r5
-    ri3/oWDaMO2VidJzFqMX7XnNKUmtGBjeJ+4yD3nddvxI1qLdmYeZN1thFZWQl+2OpdMP
-    BmtWJ3lyWB82W8Tdl/5f4H4RTiaHSogcI8p2gYXkGNFCTqhyBdeh/3oZLOzT62qEV8Vf
-    /rKw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; t=1795505171;
+    b=AS9oXN5tsyXXd3U9WEVXr3jzIoOIwhGyA+Z5/H/QsuJvocdfDLuNXt+lF4dw5TOo6f
+    3oU+qAlrpxFceh8q5rI3/8HKdKKzMmwTxzQqxsP6lbpMrQHfROrfOkdFQkAx+KU6yYQq
+    HsruygDtVofAZIZLz+aBLt+0BC9du+UlPNOITeVBWb69McMV8679NdJl5h8br8Ulvmgq
+    yxeJ4nw8Vq9KrkptCchbQ6aABrJdDpZM3ETLE0K8bEZToAl0yBYpLT6NClQkCN9kPI9y
+    H+Hl0P5aXv/Yu9CEypS80Rla0aQji6t/IN4kgKEnLUDtQ9ZxKVuzVteE2F0G8XDnYoSP
+    geFg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; t=1795505186;
     s=strato-dkim-0002; d=strato.com;
     h=References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Cc:Date:
     From:Subject:Sender;
-    bh=X1Fgh93jXfxGvJnocoZmU6fsG4UnK9XyHwZdxd2c24c=;
-    b=GM9GwC+LsPqlWwQxhhlyf+ehOMf0piJaMZkgGvIcp4KEl3jtVvg1bHHguAUR0PmnbH
-    62aWw4SUiAPbkmnqpFa6c6S/gTWOV9cGz54+pXfJtmUz2NiW1+pBZLSOnLvbKCn53tFl
-    3c/UJvzdz2wZ9dkUq8fQZ6lUpfr7BqerUS8paZDXF2GstHEg0/i2uRKSehqQ8qvB2lia
-    dy5VAaW3MqsQeQC6PSfVB0z8gxyvk2EPXhYF1bv09GzzmQ/r4rTioy+5LALyems5/NpV
-    qp713bf6dnzW1xdI6wX/X7+tyzsdDy4M0rd8JVggWDGOMB3UDONIY9nB0dWIB609alcA
-    WR6g==
+    bh=d/XWg+z+3driH60oKg1jDoiUHNLVCm4AplbKyR0sUbM=;
+    b=C7GFpg4fmQ8v+KL0rIqMa6Nisk74GQZFmY6acThHF1MMiutn8d7c4+ULnreDYGGIJj
+    TvRLC2rpFyAliI1p8RlaMr5RqQoDPxRNjoyloJZ2aUFFfm3r3PpopvEjKFPo9cIt9GlW
+    AgmkbwGOGxOSTSTk8fBXE68ELTDNoeEyC0rjhWaEQw7IjFH5TOFyI/gG+biUJsxrQV7H
+    uqrYguv7f39dbC/TIIMKfqxoMMLHT9/u4co/2wvODDFUSQMkCa4MOmFej0Oizb1o5fO+
+    pIpbQg6KwlyewCpxDk4olHujyDtuUH+v4kz0s5qqqrVDIX/07qeYvMNu4TApf86VC9TX
+    l6Lg==
 ARC-Authentication-Results: i=1; strato.com;
     arc=none;
     dkim=none
 X-RZG-CLASS-ID: mo04
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1795505171;
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1795505186;
     s=strato-dkim-0002; d=goldelico.com;
     h=References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Cc:Date:
     From:Subject:Sender;
-    bh=X1Fgh93jXfxGvJnocoZmU6fsG4UnK9XyHwZdxd2c24c=;
-    b=o/UP7hL3NzaU7gQLSRdq7yGmqge1k31pF/TmN72zhLxfAMLLpKPESJdlztFvivTKMf
-    Tv61dgV0gH7Jv21X00ZLF2Ocm8agjM+hQ/zKYuba5FK+bos0NCajmwsYsCnz02tEm5UC
-    UDWwllOP+cwQP3Nt6LYlhj1nUKGrks1sJ/WcMSe76iIIQ5bny8q0kHVw1U5QUoUjoliv
-    QjCjdoZMXKt/nccvSfhMsZRX44FC4oWw47hIVLkef89fUbpm0BOAVVmdGq/Vcht0dTEB
-    T5FxgaR+Outaapaxdq4WaKz0OtiAFb+sD5dluJuSeNGbmsaORNmAXwjh2m34BFkpPU0f
-    mqSg==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1795505171;
+    bh=d/XWg+z+3driH60oKg1jDoiUHNLVCm4AplbKyR0sUbM=;
+    b=EBSkkM5yKvYGwF2v1DFNuZHwdJwTR9rFIneuFbamTLUnlgeVnphMAmt6XWXTUNrEe3
+    Z1zR7NSAt4ZnzG4L83roOk/IT0OlwIUu+fkR2xO74KzNUDO3t2JEZyaL89vtXNMfqCWl
+    m8Uxoy9uc29ryTZcK9Rfq8MFCRTWUvGUMdJIUG+deKrw4Zj/ZBjTeMXzHhaodV2hMBDL
+    ayzgKzYnsJA3Q1BAfHdaLfOpalg5oJ8yktV5WPtE79DXaEcUjJyXGtTvoHHlSG5BjdOD
+    xedjmZ5ScSNtg/sBVgwJXRmY8lOVqQExHW9ytB5AR0viCqy45lzPSltq2V8bNeiiZErQ
+    1uRg==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1795505186;
     s=strato-dkim-0003; d=goldelico.com;
     h=References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Cc:Date:
     From:Subject:Sender;
-    bh=X1Fgh93jXfxGvJnocoZmU6fsG4UnK9XyHwZdxd2c24c=;
-    b=JRxdd0JJ566NaO4dPGKkkX/ja5QYjFA7XdbUl1wdj628OqdzJFp02YvkbRfrOwZjCb
-    SEfJ+0DrWswxl52YO3Ag==
+    bh=d/XWg+z+3driH60oKg1jDoiUHNLVCm4AplbKyR0sUbM=;
+    b=6IXrjucF3IPHUcmaUIJSpxa5icjMafAAhdlobGZrizciH/X1yYPtp+Xu5LzOElTpA/
+    RszQ9kCHh4ZnvWZvHIBQ==
 X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMhflhwDubTJ9qVpwcQVkPW4I1HrV3poLlciNVTQoM6kVxzKyrKzkpjcAwdDfiN49"
 Received: from iMac.fritz.box
     by smtp.strato.de (RZmta 55.6.3 AUTH)
-    with ESMTPSA id Qb56a22AO7Q91HG
+    with ESMTPSA id Qb56a22AO7QO1HX
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256 bits))
 	(Client did not present a certificate);
-    Tue, 24 Nov 2026 08:26:09 +0100 (CET)
+    Tue, 24 Nov 2026 08:26:24 +0100 (CET)
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
 To: Linus Walleij <linus.walleij@linaro.org>,
 	Bartosz Golaszewski <brgl@kernel.org>,
@@ -126,11 +126,10 @@ Cc: Jessica Zhang <jessica.zhang@oss.qualcomm.com>,
 	linux-fbdev@vger.kernel.org,
 	letux-kernel@openphoenux.org,
 	kernel@pyra-handheld.com,
-	"H. Nikolaus Schaller" <hns@goldelico.com>,
-	Grond <grond66@riseup.net>
-Subject: [PATCH v2 05/20] ASoC: codecs: pcm1754: Add PCM1773 support
-Date: Tue, 24 Nov 2026 08:25:45 +0100
-Message-ID: <7e12ac0772314b256a253314a24b9d0ad50ba5f3.1795505160.git.hns@goldelico.com>
+	"H. Nikolaus Schaller" <hns@goldelico.com>
+Subject: [PATCH v2 19/20] backlight: Remove legacy Pandora driver
+Date: Tue, 24 Nov 2026 08:25:59 +0100
+Message-ID: <41a3bded8cc0a65d90c7ca6f41438f5c78ee3586.1795505160.git.hns@goldelico.com>
 X-Mailer: git-send-email 2.56.0
 In-Reply-To: <cover.1795505160.git.hns@goldelico.com>
 References: <cover.1795505160.git.hns@goldelico.com>
@@ -143,264 +142,241 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF8
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="us-ascii"
 
-Extend the PCM1754 codec driver to support the related PCM1773 DAC.
-Select the DAI name, supported formats and sample rate limits per
-variant. Handle the different FMT pin polarity and an optional format
-GPIO, avoiding GPIO writes when the format pin is not controlled by the
-driver. Add an optional enable GPIO for the PCM1773 power-down input,
-controlled by a DAPM supply event to enable the DAC after power-up and
-disable it before power-down.
+Remove the Pandora-specific backlight platform driver after its
+functionality has been replaced by the TWL4030 PWM provider and the
+generic pwm-backlight driver described in the device tree.
 
-Keep the DAI operations instance-specific so that different variants
-cannot overwrite each other's selectable formats.
+Remove its Kconfig and Makefile entries and the obsolete
+omap2plus_defconfig selection.
 
-Suggested-by: Grond <grond66@riseup.net>
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
 
 Notes:
     Changes against V1:
-    - The standalone PCM1773 driver reviewed by Mark Brown in V1 was
-      abandoned. His comments concerned error handling, comment style
-      and the distinction between memory and wire sample formats.
-      V2 extends the existing PCM1754 driver instead.
-    - Keep the per-instance DAI operations and variant-specific format
-      handling described explicitly in the commit message.
-    - Original PCM1773 implementation: bdcb6cad6be3 (Grond,
-      2021-12-15, original commit timezone -0800). The present patch
-      adapts that work to the existing upstream PCM1754 driver.
-    - Suggested-by acknowledges the historical contribution without
-      asserting a new DCO sign-off from Grond.
-    - Code and commit-message review assisted by ChatGPT.
+    - Daniel Thompson gave Reviewed-by for the V1 removal of
+      pandora_bl. V2 additionally removes the stale defconfig option;
+      the old Reviewed-by is documented here, not carried as a tag.
+    - Explain replacement by generic pwm-backlight and removal of the defconfig selection.
+    - Commit-message review assisted by ChatGPT.
 
- sound/soc/codecs/pcm1754.c | 122 +++++++++++++++++++++++++++++--------
- 1 file changed, 97 insertions(+), 25 deletions(-)
+ arch/arm/configs/omap2plus_defconfig |   1 -
+ drivers/video/backlight/Kconfig      |   7 --
+ drivers/video/backlight/Makefile     |   1 -
+ drivers/video/backlight/pandora_bl.c | 159 ---------------------------
+ 4 files changed, 168 deletions(-)
+ delete mode 100644 drivers/video/backlight/pandora_bl.c
 
-diff --git a/sound/soc/codecs/pcm1754.c b/sound/soc/codecs/pcm1754.c
-index 3d0708b7566c7..f2e16a25d1891 100644
---- a/sound/soc/codecs/pcm1754.c
-+++ b/sound/soc/codecs/pcm1754.c
-@@ -6,6 +6,7 @@
-  * Copyright (c) 2025 Stefan Kerkmann <s.kerkmann@pengutronix.de>
-  */
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index 5791953b75fff..ef5e8d1bf9da1 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -517,7 +517,6 @@ CONFIG_LCD_CLASS_DEVICE=y
+ CONFIG_LCD_PLATFORM=y
+ CONFIG_BACKLIGHT_CLASS_DEVICE=y
+ CONFIG_BACKLIGHT_PWM=m
+-CONFIG_BACKLIGHT_PANDORA=m
+ CONFIG_BACKLIGHT_GPIO=m
+ CONFIG_BACKLIGHT_LED=m
+ CONFIG_FRAMEBUFFER_CONSOLE=y
+diff --git a/drivers/video/backlight/Kconfig b/drivers/video/backlight/Kconfig
+index dbf4ca23a9b6d..040e6cc7e5a29 100644
+--- a/drivers/video/backlight/Kconfig
++++ b/drivers/video/backlight/Kconfig
+@@ -459,13 +459,6 @@ config BACKLIGHT_MP3309C
+ 	  To compile this driver as a module, choose M here: the module will
+ 	  be called mp3309c.
  
-+#include <linux/delay.h>
- #include <linux/gpio/consumer.h>
- #include <linux/module.h>
- #include <linux/regulator/consumer.h>
-@@ -13,10 +14,35 @@
- #include <sound/pcm_params.h>
- #include <sound/soc.h>
- 
-+struct pcm1754_variant {
-+	const char *dai_name;
-+	unsigned int rate_min;
-+	unsigned int rate_max;
-+	u64 selectable_formats;
-+};
-+
- struct pcm1754_priv {
- 	unsigned int format;
- 	struct gpio_desc *gpiod_mute;
- 	struct gpio_desc *gpiod_format;
-+	struct gpio_desc *gpiod_enable;
-+	const struct pcm1754_variant *variant;
-+};
-+
-+static const struct pcm1754_variant pcm1754_variant = {
-+	.dai_name = "pcm1754",
-+	.rate_min = 5000,
-+	.rate_max = 200000,
-+	.selectable_formats = SND_SOC_POSSIBLE_DAIFMT_I2S |
-+			      SND_SOC_POSSIBLE_DAIFMT_RIGHT_J,
-+};
-+
-+static const struct pcm1754_variant pcm1773_variant = {
-+	.dai_name = "pcm1773",
-+	.rate_min = 8000,
-+	.rate_max = 48000,
-+	.selectable_formats = SND_SOC_POSSIBLE_DAIFMT_I2S |
-+			      SND_SOC_POSSIBLE_DAIFMT_LEFT_J,
- };
- 
- static int pcm1754_set_dai_fmt(struct snd_soc_dai *codec_dai,
-@@ -40,31 +66,29 @@ static int pcm1754_hw_params(struct snd_pcm_substream *substream,
- 
- 	switch (priv->format & SND_SOC_DAIFMT_FORMAT_MASK) {
- 	case SND_SOC_DAIFMT_RIGHT_J:
--		switch (params_width(params)) {
--		case 16:
--			format = 1;
--			break;
--		default:
-+		if (priv->variant != &pcm1754_variant ||
-+		    params_width(params) != 16)
- 			return -EINVAL;
--		}
-+		format = 1;
-+		break;
-+	case SND_SOC_DAIFMT_LEFT_J:
-+		if (priv->variant != &pcm1773_variant ||
-+		    (params_width(params) != 16 && params_width(params) != 24))
-+			return -EINVAL;
-+		format = 0;
- 		break;
- 	case SND_SOC_DAIFMT_I2S:
--		switch (params_width(params)) {
--		case 16:
--			fallthrough;
--		case 24:
--			format = 0;
--			break;
--		default:
-+		if (params_width(params) != 16 && params_width(params) != 24)
- 			return -EINVAL;
--		}
-+		format = priv->variant == &pcm1773_variant ? 1 : 0;
- 		break;
- 	default:
- 		dev_err(component->dev, "Invalid DAI format\n");
- 		return -EINVAL;
- 	}
- 
--	gpiod_set_value_cansleep(priv->gpiod_format, format);
-+	if (priv->gpiod_format)
-+		gpiod_set_value_cansleep(priv->gpiod_format, format);
- 
- 	return 0;
- }
-@@ -73,23 +97,41 @@ static int pcm1754_mute_stream(struct snd_soc_dai *dai, int mute, int stream)
- {
- 	struct pcm1754_priv *priv = snd_soc_component_get_drvdata(dai->component);
- 
--	gpiod_set_value_cansleep(priv->gpiod_mute, mute);
-+	if (priv->gpiod_mute)
-+		gpiod_set_value_cansleep(priv->gpiod_mute, mute);
- 
- 	return 0;
- }
- 
--static const u64 pcm1754_selectable_formats =
--	SND_SOC_POSSIBLE_DAIFMT_I2S	|
--	SND_SOC_POSSIBLE_DAIFMT_RIGHT_J;
+-config BACKLIGHT_PANDORA
+-	tristate "Backlight driver for Pandora console"
+-	depends on TWL4030_CORE
+-	help
+-	  If you have a Pandora console, say Y to enable the
+-	  backlight driver.
 -
- static const struct snd_soc_dai_ops pcm1754_dai_ops = {
- 	.set_fmt = pcm1754_set_dai_fmt,
- 	.hw_params = pcm1754_hw_params,
- 	.mute_stream = pcm1754_mute_stream,
--	.auto_selectable_formats = &pcm1754_selectable_formats,
--	.num_auto_selectable_formats = 1,
- };
- 
-+static int pcm1754_enable_event(struct snd_soc_dapm_widget *w,
-+				struct snd_kcontrol *kcontrol, int event)
-+{
-+	struct snd_soc_component *component = snd_soc_dapm_to_component(w->dapm);
-+	struct pcm1754_priv *priv = snd_soc_component_get_drvdata(component);
-+
-+	if (!priv->gpiod_enable)
-+		return 0;
-+
-+	switch (event) {
-+	case SND_SOC_DAPM_POST_PMU:
-+		usleep_range(1000, 2000);
-+		gpiod_set_value_cansleep(priv->gpiod_enable, 1);
-+		break;
-+	case SND_SOC_DAPM_PRE_PMD:
-+		gpiod_set_value_cansleep(priv->gpiod_enable, 0);
-+		usleep_range(1000, 2000);
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
- static const struct snd_soc_dai_driver pcm1754_dai = {
- 	.name = "pcm1754",
- 	.playback = {
-@@ -106,6 +148,9 @@ static const struct snd_soc_dai_driver pcm1754_dai = {
- 
- static const struct snd_soc_dapm_widget pcm1754_dapm_widgets[] = {
- 	SND_SOC_DAPM_REGULATOR_SUPPLY("VCC", 0, 0),
-+	SND_SOC_DAPM_SUPPLY("Enable", SND_SOC_NOPM, 0, 0,
-+			    pcm1754_enable_event,
-+			    SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_PRE_PMD),
- 
- 	SND_SOC_DAPM_DAC("DAC1", "Channel 1 Playback", SND_SOC_NOPM, 0, 0),
- 	SND_SOC_DAPM_DAC("DAC2", "Channel 2 Playback", SND_SOC_NOPM, 0, 0),
-@@ -118,8 +163,9 @@ static const struct snd_soc_dapm_route pcm1754_dapm_routes[] = {
- 	{ "DAC1", NULL, "Playback" },
- 	{ "DAC2", NULL, "Playback" },
- 
--	{ "DAC1", NULL, "VCC" },
--	{ "DAC2", NULL, "VCC" },
-+	{ "DAC1", NULL, "Enable" },
-+	{ "DAC2", NULL, "Enable" },
-+	{ "Enable", NULL, "VCC" },
- 
- 	{ "VOUTL", NULL, "DAC1" },
- 	{ "VOUTR", NULL, "DAC2" },
-@@ -137,8 +183,14 @@ static int pcm1754_probe(struct platform_device *pdev)
- 	struct pcm1754_priv *priv;
- 	struct device *dev = &pdev->dev;
- 	struct snd_soc_dai_driver *dai_drv;
-+	struct snd_soc_dai_ops *dai_ops;
-+	const struct pcm1754_variant *variant;
- 	int ret;
- 
-+	variant = device_get_match_data(dev);
-+	if (!variant)
-+		return -ENODEV;
-+
- 	dai_drv = devm_kmemdup(dev, &pcm1754_dai, sizeof(*dai_drv), GFP_KERNEL);
- 	if (!dai_drv)
- 		return -ENOMEM;
-@@ -147,6 +199,8 @@ static int pcm1754_probe(struct platform_device *pdev)
- 	if (!priv)
- 		return -ENOMEM;
- 
-+	priv->variant = variant;
-+
- 	priv->gpiod_mute = devm_gpiod_get_optional(dev, "mute", GPIOD_OUT_HIGH);
- 	if (IS_ERR(priv->gpiod_mute))
- 		return dev_err_probe(dev, PTR_ERR(priv->gpiod_mute),
-@@ -157,6 +211,23 @@ static int pcm1754_probe(struct platform_device *pdev)
- 		return dev_err_probe(dev, PTR_ERR(priv->gpiod_format),
- 					 "failed to get format gpio");
- 
-+	priv->gpiod_enable = devm_gpiod_get_optional(dev, "enable", GPIOD_OUT_LOW);
-+	if (IS_ERR(priv->gpiod_enable))
-+		return dev_err_probe(dev, PTR_ERR(priv->gpiod_enable),
-+				     "failed to get enable gpio");
-+
-+	dai_ops = devm_kmemdup(dev, &pcm1754_dai_ops,
-+			       sizeof(*dai_ops), GFP_KERNEL);
-+	if (!dai_ops)
-+		return -ENOMEM;
-+
-+	dai_ops->auto_selectable_formats = &variant->selectable_formats;
-+	dai_ops->num_auto_selectable_formats = 1;
-+	dai_drv->ops = dai_ops;
-+	dai_drv->name = variant->dai_name;
-+	dai_drv->playback.rate_min = variant->rate_min;
-+	dai_drv->playback.rate_max = variant->rate_max;
-+
- 	dev_set_drvdata(dev, priv);
- 
- 	ret = devm_snd_soc_register_component(
-@@ -169,7 +240,8 @@ static int pcm1754_probe(struct platform_device *pdev)
- 
- #ifdef CONFIG_OF
- static const struct of_device_id pcm1754_of_match[] = {
--	{ .compatible = "ti,pcm1754" },
-+	{ .compatible = "ti,pcm1754", .data = &pcm1754_variant },
-+	{ .compatible = "ti,pcm1773", .data = &pcm1773_variant },
- 	{ }
- };
- MODULE_DEVICE_TABLE(of, pcm1754_of_match);
+ config BACKLIGHT_SKY81452
+ 	tristate "Backlight driver for SKY81452"
+ 	depends on MFD_SKY81452
+diff --git a/drivers/video/backlight/Makefile b/drivers/video/backlight/Makefile
+index 34469711c6cd9..c62c920e64b96 100644
+--- a/drivers/video/backlight/Makefile
++++ b/drivers/video/backlight/Makefile
+@@ -52,7 +52,6 @@ obj-$(CONFIG_BACKLIGHT_MAX8925)		+= max8925_bl.o
+ obj-$(CONFIG_BACKLIGHT_MP3309C)		+= mp3309c.o
+ obj-$(CONFIG_BACKLIGHT_MT6370)		+= mt6370-backlight.o
+ obj-$(CONFIG_BACKLIGHT_OMAP1)		+= omap1_bl.o
+-obj-$(CONFIG_BACKLIGHT_PANDORA)		+= pandora_bl.o
+ obj-$(CONFIG_BACKLIGHT_PWM)		+= pwm_bl.o
+ obj-$(CONFIG_BACKLIGHT_QCOM_WLED)	+= qcom-wled.o
+ obj-$(CONFIG_BACKLIGHT_RT4831)		+= rt4831-backlight.o
+diff --git a/drivers/video/backlight/pandora_bl.c b/drivers/video/backlight/pandora_bl.c
+deleted file mode 100644
+index e6889e2ac55e1..0000000000000
+--- a/drivers/video/backlight/pandora_bl.c
++++ /dev/null
+@@ -1,159 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * Backlight driver for Pandora handheld.
+- * Pandora uses TWL4030 PWM0 -> TPS61161 combo for control backlight.
+- * Based on pwm_bl.c
+- *
+- * Copyright 2009,2012 Gražvydas Ignotas <notasas@gmail.com>
+- */
+-
+-#include <linux/module.h>
+-#include <linux/kernel.h>
+-#include <linux/platform_device.h>
+-#include <linux/delay.h>
+-#include <linux/backlight.h>
+-#include <linux/mfd/twl.h>
+-#include <linux/err.h>
+-
+-#define TWL_PWM0_ON		0x00
+-#define TWL_PWM0_OFF		0x01
+-
+-#define TWL_INTBR_GPBR1		0x0c
+-#define TWL_INTBR_PMBR1		0x0d
+-
+-#define TWL_PMBR1_PWM0_MUXMASK	0x0c
+-#define TWL_PMBR1_PWM0		0x04
+-#define PWM0_CLK_ENABLE		BIT(0)
+-#define PWM0_ENABLE		BIT(2)
+-
+-/* range accepted by hardware */
+-#define MIN_VALUE 9
+-#define MAX_VALUE 63
+-#define MAX_USER_VALUE (MAX_VALUE - MIN_VALUE)
+-
+-struct pandora_private {
+-	unsigned old_state;
+-#define PANDORABL_WAS_OFF 1
+-};
+-
+-static int pandora_backlight_update_status(struct backlight_device *bl)
+-{
+-	int brightness = bl->props.brightness;
+-	struct pandora_private *priv = bl_get_data(bl);
+-	u8 r;
+-
+-	if (bl->props.power != BACKLIGHT_POWER_ON)
+-		brightness = 0;
+-	if (bl->props.state & BL_CORE_FBBLANK)
+-		brightness = 0;
+-	if (bl->props.state & BL_CORE_SUSPENDED)
+-		brightness = 0;
+-
+-	if ((unsigned int)brightness > MAX_USER_VALUE)
+-		brightness = MAX_USER_VALUE;
+-
+-	if (brightness == 0) {
+-		if (priv->old_state == PANDORABL_WAS_OFF)
+-			goto done;
+-
+-		/* first disable PWM0 output, then clock */
+-		twl_i2c_read_u8(TWL4030_MODULE_INTBR, &r, TWL_INTBR_GPBR1);
+-		r &= ~PWM0_ENABLE;
+-		twl_i2c_write_u8(TWL4030_MODULE_INTBR, r, TWL_INTBR_GPBR1);
+-		r &= ~PWM0_CLK_ENABLE;
+-		twl_i2c_write_u8(TWL4030_MODULE_INTBR, r, TWL_INTBR_GPBR1);
+-
+-		goto done;
+-	}
+-
+-	if (priv->old_state == PANDORABL_WAS_OFF) {
+-		/*
+-		 * set PWM duty cycle to max. TPS61161 seems to use this
+-		 * to calibrate it's PWM sensitivity when it starts.
+-		 */
+-		twl_i2c_write_u8(TWL_MODULE_PWM, MAX_VALUE, TWL_PWM0_OFF);
+-
+-		/* first enable clock, then PWM0 out */
+-		twl_i2c_read_u8(TWL4030_MODULE_INTBR, &r, TWL_INTBR_GPBR1);
+-		r &= ~PWM0_ENABLE;
+-		r |= PWM0_CLK_ENABLE;
+-		twl_i2c_write_u8(TWL4030_MODULE_INTBR, r, TWL_INTBR_GPBR1);
+-		r |= PWM0_ENABLE;
+-		twl_i2c_write_u8(TWL4030_MODULE_INTBR, r, TWL_INTBR_GPBR1);
+-
+-		/*
+-		 * TI made it very easy to enable digital control, so easy that
+-		 * it often triggers unintentionally and disabes PWM control,
+-		 * so wait until 1 wire mode detection window ends.
+-		 */
+-		usleep_range(2000, 10000);
+-	}
+-
+-	twl_i2c_write_u8(TWL_MODULE_PWM, MIN_VALUE + brightness, TWL_PWM0_OFF);
+-
+-done:
+-	if (brightness != 0)
+-		priv->old_state = 0;
+-	else
+-		priv->old_state = PANDORABL_WAS_OFF;
+-
+-	return 0;
+-}
+-
+-static const struct backlight_ops pandora_backlight_ops = {
+-	.options	= BL_CORE_SUSPENDRESUME,
+-	.update_status	= pandora_backlight_update_status,
+-};
+-
+-static int pandora_backlight_probe(struct platform_device *pdev)
+-{
+-	struct backlight_properties props;
+-	struct backlight_device *bl;
+-	struct pandora_private *priv;
+-	u8 r;
+-
+-	priv = devm_kmalloc_obj(&pdev->dev, *priv);
+-	if (!priv)
+-		return -ENOMEM;
+-
+-	memset(&props, 0, sizeof(props));
+-	props.max_brightness = MAX_USER_VALUE;
+-	props.type = BACKLIGHT_RAW;
+-	bl = devm_backlight_device_register(&pdev->dev, pdev->name, &pdev->dev,
+-					priv, &pandora_backlight_ops, &props);
+-	if (IS_ERR(bl)) {
+-		dev_err(&pdev->dev, "failed to register backlight\n");
+-		return PTR_ERR(bl);
+-	}
+-
+-	platform_set_drvdata(pdev, bl);
+-
+-	/* 64 cycle period, ON position 0 */
+-	twl_i2c_write_u8(TWL_MODULE_PWM, 0x80, TWL_PWM0_ON);
+-
+-	priv->old_state = PANDORABL_WAS_OFF;
+-	bl->props.brightness = MAX_USER_VALUE;
+-	backlight_update_status(bl);
+-
+-	/* enable PWM function in pin mux */
+-	twl_i2c_read_u8(TWL4030_MODULE_INTBR, &r, TWL_INTBR_PMBR1);
+-	r &= ~TWL_PMBR1_PWM0_MUXMASK;
+-	r |= TWL_PMBR1_PWM0;
+-	twl_i2c_write_u8(TWL4030_MODULE_INTBR, r, TWL_INTBR_PMBR1);
+-
+-	return 0;
+-}
+-
+-static struct platform_driver pandora_backlight_driver = {
+-	.driver		= {
+-		.name	= "pandora-backlight",
+-	},
+-	.probe		= pandora_backlight_probe,
+-};
+-
+-module_platform_driver(pandora_backlight_driver);
+-
+-MODULE_AUTHOR("Gražvydas Ignotas <notasas@gmail.com>");
+-MODULE_DESCRIPTION("Pandora Backlight Driver");
+-MODULE_LICENSE("GPL");
+-MODULE_ALIAS("platform:pandora-backlight");
 -- 
 2.56.0
 
