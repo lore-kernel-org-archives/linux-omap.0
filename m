@@ -1,88 +1,88 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=85.215.255.121
 ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
 	t=1795505231;
-	b=JxLNXxgQfFEy2LytXCYX/iMIriJ2iodcmMtyjn2t6rFCm/TmaqFnp8/lXC8M6EjPAGSL
-	 4CbRiGgp+rh6hC5xM6T2rfKGUnbCJE5wCANfATn3WB7s2PnCUgEEyaVpg7xAZLlSeosgN
-	 5EmW5shh/RE8ParIDQoF5o3h45nF0w+umhvhbzenxdTbCcbIIy0vghFgsVCllT8EQZiSB
-	 YzzwRb4VAab4E5WBCy1WToXXGGwKm26ZjOmqOkZaGsZjONW8ewccrepo1j7dlpggOGmSf
-	 iAkGLVkdW2DktNqutMGDUPRXdkMRaivEQEt/jPWHBoXFCcAjdG30B2WxRhYYjx7WSlg==
+	b=IasRUSiosjUMrzkWYG9FGsc75+NfxOBGl0fmd7jR87AmSoHz94ASHo39xpmpVnjh7Kyi
+	 5LY4eSCT9CpEeq0vXz1CDRW9EuBPD3qwMSaVLRuXD3MXuPpphIXtOKQtzhZmW5mGU/zdU
+	 8I6vRUf39mphNgeeavMT3lc9mKYSRPRw3OOruDDnvfCdOZlUOUBRxgN0WjsBuDUbLvXbR
+	 b8fV1bedLzc/ulyRTeB9l4iN8Lb315aFjoVQ26SrSzj8ZooATw34w8+hrr+QPbReuyO71
+	 cKsP5ix2CuJnMSbttXdFbmoOF7dAlizm4FL94exei5oREvruM+U49YPXjg1ZKHlIRVA==
 ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
 	a=rsa-sha256; c=relaxed/relaxed; t=1795505231;
 	h=DMARC-Filter:X-RZG-CLASS-ID:DKIM-Signature:DKIM-Signature:X-RZG-AUTH:
 	 Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:
 	 References:MIME-Version:Content-Transfer-Encoding:Content-Type;
-	bh=qOWnDIUirnp7niKKgcme9VVUTThomhs09luZ9kZoQDA=;
-	b=MA2rkMhsT/6b73HgE14FfB2rJ0BbU+aXtaKjYbYNAHRZXrv7B6gvskCuR6cPhafOUdoA
-	 2UmzozstvI+1MXX3QkFcQ4jdJFHJpLLmotNAsbh0XhcA1PiPO7Ni2yEYc+R5Cn2n9qG+k
-	 7ecR9pHMxQU2qVIoYBsnRjHpIu8IfYKPtN5RTEjCp0LFaSfmflh1WiZsMxBveiiKaBanb
-	 c6GI5nQKBW01fBEWeSliMOHXdny3wMtLjyA02R3in8PR+68GMBbbQYfTNn6gHfEyNPhho
-	 a++2vfms3HVO/GTxNhTsYReKQF0EBHjnj1wOtCCQkm/oGjF7DVOEw+UAPUi03Ict1+g==
+	bh=2BvTOQLxMfY709F9WzRxgyIMCfwQfGC0EhnVtClwW74=;
+	b=IT7Ztp/DeIMo/ZE21o4JwCne4CI0QlmP+ag3hSETOJN03Ab/K87C+Igihmbk6m0wn1cL
+	 iZLT0TUmuOVw1uzpqbC4suHYUoye10MJ4Z0rOad0Mcl20L71CBu7tCl138CtqTafKDqEw
+	 2C2kapBh0c10duoLmrihhjeXInd+pAMbOoblcoX1MmCtA6UGrI+lXBRbK3rHqs5+6VjqD
+	 ewoNCMqceMfC15COMyEX3/FW/nJebx94UH/6mAFJxRzc8e73papEZSmjcBjZ3J72TAii4
+	 a6E/4PmdZ1cf2QWIwwGK421pR1RBC8GaDygDzNEag3JAb8m9V09fpM65OPm9jPeMLcg==
 ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=goldelico.com;
 	spf=pass smtp.mailfrom=goldelico.com;
-	dkim=pass header.d=goldelico.com header.i=@goldelico.com header.a=rsa-sha256 header.s=strato-dkim-0002 header.b=Ppz3CK7G;
-	dkim=pass header.d=goldelico.com header.i=@goldelico.com header.a=ed25519-sha256 header.s=strato-dkim-0003 header.b=q3lqT7jd;
+	dkim=pass header.d=goldelico.com header.i=@goldelico.com header.a=rsa-sha256 header.s=strato-dkim-0002 header.b=okPRrsYt;
+	dkim=pass header.d=goldelico.com header.i=@goldelico.com header.a=ed25519-sha256 header.s=strato-dkim-0003 header.b=Jo1I4q7Y;
 	arc=pass header.oldest-pass=0 smtp.remote-ip=85.215.255.121
 Received: from mo4-p04-ob.smtp.rzone.de (mo4-p04-ob.smtp.rzone.de [85.215.255.121])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 677BA60A3821;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7962B60A3819;
 	Tue, 24 Nov 2026 07:27:09 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 677BA60A3821
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 7962B60A3819
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=goldelico.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.a=rsa-sha256 header.s=strato-dkim-0002 header.b=Ppz3CK7G;
-	dkim=pass header.d=goldelico.com header.i=@goldelico.com header.a=ed25519-sha256 header.s=strato-dkim-0003 header.b=q3lqT7jd
-ARC-Seal: i=1; a=rsa-sha256; t=1795505172; cv=none;
+	dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.a=rsa-sha256 header.s=strato-dkim-0002 header.b=okPRrsYt;
+	dkim=pass header.d=goldelico.com header.i=@goldelico.com header.a=ed25519-sha256 header.s=strato-dkim-0003 header.b=Jo1I4q7Y
+ARC-Seal: i=1; a=rsa-sha256; t=1795505177; cv=none;
     d=strato.com; s=strato-dkim-0002;
-    b=rnfMq0NIP64ben5wNgoxFUkpWi/QCqJTUvbvxmcALWU186r+XM1A8Jx70X4Q7naPlV
-    895nrgY6UdcnRTP/xtRpEbj0Tn+yP3xix3zTMF++sS0nmcUXyBDVn5TLiBP7zH1hKUcx
-    aGUkahLH9YH0oGj6OdXDklRDzwvDAVuPXXW0tESU+XB0m+kZBw+VgNzhqN2w1slY63ag
-    xmegAHB5gxQS3GrZzfzff4qhWg8PlsGC/pkg/ggiiwUQqNFAnFbINbY4tq0TlMH5Swec
-    DRi+N5IZV2jg49lgDVu3tuUwTF2Mj4XBX0XeMsn5XURyQcLNUn+uOgEAoCnHiqHWutYO
-    TYzA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; t=1795505172;
+    b=VXTMjt3g0e11IQFi8lbpnM90kxR8fJPktDpb0lzIhymeW2BaAz/gNLbSt5o9rbKImh
+    N4vLoM7bgxdkRJ48KtCRqdmb2qSGVQ7WVLAs5f1fvjd4b4esb5rGekxJB1OnvSnp5jdG
+    Z89PkrKOjdcJLFvesWXGCwBBv32S3qSBn6V4z7NkoFMmMSeYMLoLkOg3YwWqwZ2rPzFY
+    +6SQz+0iLO5z+KhW6GdFa/2Bb0MxmXzKEwXlBQJ0fxdI0zbDtr/we66me6iARxSH04ZY
+    i3w8qSG4/aV18ul+nou3zFDq+7b3AfWz+Dq/LKfWW/3xIihFKq1Tm46FaKBWMzg74zkw
+    vt7A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; t=1795505177;
     s=strato-dkim-0002; d=strato.com;
     h=References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Cc:Date:
     From:Subject:Sender;
-    bh=qOWnDIUirnp7niKKgcme9VVUTThomhs09luZ9kZoQDA=;
-    b=ctg1tfJhMBCY0UxGqdBv+lUs6wbDc1wXAA6SYcnxfz6oep7U0m4+6INj8onFO18gcs
-    WxWoySjSEtdrtmPBU0QcXCGFENFvAWlCdnmWnquGKkrUaplH91H1HK3m1d4kgQ08gKpA
-    yaY5T+SxNksdbrf1+6NMwl5xcXm83x5j+wQUTEJQeNUOeAIbczuEkjn8KTJl1u/1ZVe1
-    5s4s0yzCPwQEgLW1Y2EN6VmbKgI2rRDD/7jpyl0VxK/ou4a3x06be7tgt/vJ6sxXT3MC
-    Oicf2zPuHhdWk+9/gYG0h7LjgltTExfC94bwflDVVZel0H+QJ/wtNOMkC+anMEl4hBrw
-    sBLQ==
+    bh=2BvTOQLxMfY709F9WzRxgyIMCfwQfGC0EhnVtClwW74=;
+    b=k6h1H7uHmzk5j6a6wxfaPJQ50FX+NSAAQxYB+0y4nSmRFjj4vLiF4D7Z8PToSi6AzR
+    2LzG1rDW+ic7vPbSs8tVDNZ9kC7ifE54G3neo+1IC5edM0cTxHrA65QntNdi19H1G43g
+    Ljg4D+QZXsdYHAx8JHJ6g72vFl1ekicKajYR2lq/UG2cGjE0ma3N1iFN7WFbmufgklTL
+    UOqff6ImXMiB4A8t28TctVNeK7oxGKI5sChI8BybWz7aKsaj0q+0ktIZzlM+rZ8GyYMp
+    sRowlkNnA0P3hOMm0q0kGbhKgZw31CdjDmXthm09T2oawuhYZ0sAICRdr2hou/HZX6FJ
+    5ZJA==
 ARC-Authentication-Results: i=1; strato.com;
     arc=none;
     dkim=none
 X-RZG-CLASS-ID: mo04
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1795505172;
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1795505177;
     s=strato-dkim-0002; d=goldelico.com;
     h=References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Cc:Date:
     From:Subject:Sender;
-    bh=qOWnDIUirnp7niKKgcme9VVUTThomhs09luZ9kZoQDA=;
-    b=Ppz3CK7G8KlukLX4l8Ri8vE/AOw4vXQvrTCQLH+d/EmYXaoMgxgJdK7GgUeBrDfWtM
-    Fz7f/bIPbK88J7RPGnZN4ZBwf07qRHBCg/rkwv5/+xD0tgnS8XMddaa3kioHYAJ62/0O
-    2dcHbeABOa2zcfwpGQHPd7pPKSEb6MiICHzlnyqNOKcFpojASAmB9wUID36AmorYislc
-    MfbR4tC9aZeTcdvcoTvygIZ+GN76O9weUkNpc8B4rOndtsZHLbMjP7WJSOnW4qwC66nC
-    QzJsf69yGH6JOQ1XytRSfl4nmTnXadm/puZZemyrgHVdt6Q0HcqH1qdnFWkUyHrLZyJt
-    zsYQ==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1795505172;
+    bh=2BvTOQLxMfY709F9WzRxgyIMCfwQfGC0EhnVtClwW74=;
+    b=okPRrsYtuLzyS1CA5INIv9j+2KYUBs9UvpOeH2Mg+Z/ZOxMXhfQO0ljwX3JR/Z6Xt+
+    xBwrRNwoX7daHnTNXaa+qRB/8KSR2o1Iuc5G8HoYvvhu4ngCFhpxjmcgnUaOo3C9D6Fj
+    iQNkkv5lkvHu9ostpp6y3F58W6BRN3drQc9dIRhjjh/+UJVOnUz91v5afyRyQahoOAjf
+    mdyc/s9hL0pTUHGZuS5LoA1ARQK0iz8zS+IWuu2dexYlJ91tfSkxngCRVLAJJBbxMeKP
+    Pby7aSEGbrAUtt8pGodsFuSGRkgIFQl53sYwCFjD7xwIREMk+BIM9yjaWhV3hlwomlyY
+    OAKA==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1795505177;
     s=strato-dkim-0003; d=goldelico.com;
     h=References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Cc:Date:
     From:Subject:Sender;
-    bh=qOWnDIUirnp7niKKgcme9VVUTThomhs09luZ9kZoQDA=;
-    b=q3lqT7jd2ldNGdU8vf6Y1FKiK09q6fAjJTR1HLJ5/iM+RUkB855FkMN/44SLueamXS
-    Qj9HYsK9Dt4M+OHHCGDQ==
+    bh=2BvTOQLxMfY709F9WzRxgyIMCfwQfGC0EhnVtClwW74=;
+    b=Jo1I4q7Y9aa80sCc0gqgfLwreoVBRZH14hynKI1rAZcFTcTQIF4olaGpCI1SNad9eO
+    BLgsvKySXrCp4SkBnJDg==
 X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMhflhwDubTJ9qVpwcQVkPW4I1HrV3poLlciNVTQoM6kVxzKyrKzkpjcAwdDfiN49"
 Received: from iMac.fritz.box
     by smtp.strato.de (RZmta 55.6.3 AUTH)
-    with ESMTPSA id Qb56a22AO7QB1HI
+    with ESMTPSA id Qb56a22AO7QG1HP
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256 bits))
 	(Client did not present a certificate);
-    Tue, 24 Nov 2026 08:26:11 +0100 (CET)
+    Tue, 24 Nov 2026 08:26:16 +0100 (CET)
 From: "H. Nikolaus Schaller" <hns@goldelico.com>
 To: Linus Walleij <linus.walleij@linaro.org>,
 	Bartosz Golaszewski <brgl@kernel.org>,
@@ -127,9 +127,9 @@ Cc: Jessica Zhang <jessica.zhang@oss.qualcomm.com>,
 	letux-kernel@openphoenux.org,
 	kernel@pyra-handheld.com,
 	"H. Nikolaus Schaller" <hns@goldelico.com>
-Subject: [PATCH v2 06/20] dt-bindings: sound: Document OpenPandora sound card
-Date: Tue, 24 Nov 2026 08:25:46 +0100
-Message-ID: <5c6f7deca16f70f1f19cb40c57d70e30068d6000.1795505160.git.hns@goldelico.com>
+Subject: [PATCH v2 11/20] backlight: pwm: Support enable guard period
+Date: Tue, 24 Nov 2026 08:25:51 +0100
+Message-ID: <54477b4e31e35af14677172088f94770ca5b9755.1795505160.git.hns@goldelico.com>
 X-Mailer: git-send-email 2.56.0
 In-Reply-To: <cover.1795505160.git.hns@goldelico.com>
 References: <cover.1795505160.git.hns@goldelico.com>
@@ -145,126 +145,151 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain; charset="us-ascii"
 
-The OpenPandora audio subsystem describes the routing links between the
-OMAP3 McBSP interface, the external PCM1773 DAC, and the TWL4030 audio
-codec, alongside amplifiers and power supplies.
+Some LED drivers distinguish PWM dimming from a one-wire control
+mode during a startup detection window. For example, TI TPS61160/61
+use the duration of low intervals on CTRL to detect EasyScale.
+An initial guard interval can keep the waveform suitable for PWM
+mode detection before normal dimming begins.
 
+Add support for a new device tree property
+"pwm-enable-guard-period-us". If set, the driver applies a full
+duty cycle (duty_cycle == period) for the given duration whenever
+the previous PWM state was disabled or had zero duty cycle.
+This covers the
+requirements of such devices generically, without introducing a
+chip specific backlight driver.
+
+The requested full duty need not produce an exact constant-high
+output on hardware with limited duty-cycle resolution. The board
+must ensure the resulting waveform meets the LED driver timing.
+
+Suggested-by: Andreas Kemnade <andreas@kemnade.info>
+Link: https://patchwork.kernel.org/project/linux-omap/patch/f897f695c0e1e128d7ebb41be8dfdce4d634f552.1783749722.git.hns@goldelico.com/#27124981
 Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 ---
 
 Notes:
     Changes against V1:
-    - Address Krzysztof Kozlowski's V1 request to run the documented
-      DT schema checks and fix the errors reported by Rob Herring's
-      automated DT validation.
-    - Update the binding example and schema during DT consistency review.
-    - Binding and commit-message review assisted by ChatGPT.
+    - Andreas Kemnade proposed placing the TPS61161 PWM-mode
+      initialization in backlight support rather than in the PWM
+      controller. The enable guard is the generic V2 implementation.
+    - Add pwm-enable-guard-period-us support to pwm-backlight.
+    - Request full duty during the startup guard when the previously
+      cached PWM state was disabled or had zero duty cycle.
+    - Check the return value of the guard PWM update, while leaving
+      the normal pwm_apply_might_sleep() handling as in upstream.
+    - Retain the hardware-tested guard implementation from the working
+      series; do not incorporate the later review changes to power-on
+      ordering, guard triggering, duty limiting or rollback handling.
+    - Clarify that requesting full duty does not guarantee constant
+      HIGH on every PWM provider; actual waveform depends on hardware.
+    - Keep the existing Suggested-by attribution.
+    - Code and commit-message review assisted by ChatGPT.
 
- .../sound/openpandora,omap3pandora-sound.yaml | 95 +++++++++++++++++++
- 1 file changed, 95 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/sound/openpandora,omap3pandora-sound.yaml
+ drivers/video/backlight/pwm_bl.c | 37 +++++++++++++++++++++++++++++++-
+ include/linux/pwm_backlight.h    |  1 +
+ 2 files changed, 37 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/sound/openpandora,omap3pandora-sound.yaml b/Documentation/devicetree/bindings/sound/openpandora,omap3pandora-sound.yaml
-new file mode 100644
-index 0000000000000..6c4d69ffc1c50
---- /dev/null
-+++ b/Documentation/devicetree/bindings/sound/openpandora,omap3pandora-sound.yaml
-@@ -0,0 +1,95 @@
-+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-+%YAML 1.2
-+---
-+$id: http://devicetree.org/schemas/sound/openpandora,omap3pandora-sound.yaml#
-+$schema: http://devicetree.org/meta-schemas/core.yaml#
+diff --git a/drivers/video/backlight/pwm_bl.c b/drivers/video/backlight/pwm_bl.c
+index 3ad71ee3657af..1d0a463710926 100644
+--- a/drivers/video/backlight/pwm_bl.c
++++ b/drivers/video/backlight/pwm_bl.c
+@@ -7,6 +7,7 @@
+ 
+ #include <linux/delay.h>
+ #include <linux/gpio/consumer.h>
++#include <linux/minmax.h>
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+@@ -18,6 +19,9 @@
+ #include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
+ 
++/* extra time added above enable_guard_period_us for usleep_range() */
++#define PWM_BL_GUARD_SLACK_US	2000
 +
-+title: OpenPandora OMAP3 Audio Complex
+ struct pwm_bl_data {
+ 	struct pwm_device	*pwm;
+ 	struct device		*dev;
+@@ -26,6 +30,7 @@ struct pwm_bl_data {
+ 	bool			enabled;
+ 	struct regulator	*power_supply;
+ 	struct gpio_desc	*enable_gpio;
++	unsigned int		enable_guard_period_us;
+ 	unsigned int		scale;
+ 	unsigned int		post_pwm_on_delay;
+ 	unsigned int		pwm_off_delay;
+@@ -93,11 +98,39 @@ static int pwm_backlight_update_status(struct backlight_device *bl)
+ 	struct pwm_bl_data *pb = bl_get_data(bl);
+ 	int brightness = backlight_get_brightness(bl);
+ 	struct pwm_state state;
++	int ret;
+ 
+ 	if (pb->notify)
+ 		brightness = pb->notify(pb->dev, brightness);
+ 
+ 	if (brightness > 0) {
++		pwm_get_state(pb->pwm, &state);
 +
-+maintainers:
-+  - H. Nikolaus Schaller <hns@goldelico.com>
++		/*
++		 * Some LED drivers detect a one-wire control mode during
++		 * a startup window (e.g. TI TPS61160/TPS61161, using
++		 * the duration of low intervals on CTRL). Request full
++		 * duty for the guard interval before normal dimming.
++		 * The PWM provider may approximate full duty.
++		 *
++		 * Apply the guard if the previous PWM state was disabled
++		 * or had zero duty cycle.
++		 */
++		if (pb->enable_guard_period_us &&
++		    (!state.enabled || !state.duty_cycle)) {
++			struct pwm_state guard = state;
 +
-+description:
-+  The OpenPandora audio subsystem describes the routing links between the
-+  OMAP3 McBSP interface, the external PCM1773 DAC, and the TWL4030 audio codec,
-+  alongside amplifiers and power supplies.
++			guard.duty_cycle = guard.period;
++			guard.enabled = true;
++			ret = pwm_apply_might_sleep(pb->pwm, &guard);
++			if (ret)
++				return ret;
 +
-+properties:
-+  compatible:
-+    const: openpandora,omap3pandora-sound
++			usleep_range(pb->enable_guard_period_us,
++				     pb->enable_guard_period_us +
++				     PWM_BL_GUARD_SLACK_US);
++		}
 +
-+  label:
-+    $ref: /schemas/types.yaml#/definitions/string
-+    description: User-visible name for this sound card.
-+
-+  amp-gpios:
-+    maxItems: 1
-+    description: GPIO pin controlling the amplifier power state.
-+
-+  amp-supply:
-+    description: Regulator supplying power to the amplifier.
-+
-+  sound-dai:
-+    $ref: /schemas/types.yaml#/definitions/phandle-array
-+    minItems: 2
-+    maxItems: 2
-+    description:
-+      Phandles to the audio CPU DAI (OMAP3 McBSP) and the codec DAI.
-+
-+  routing:
-+    $ref: /schemas/types.yaml#/definitions/non-unique-string-array
-+    description:
-+      A list of the connections between audio components.
-+      Each entry is a pair of strings, the first being the connection's sink,
-+      the second being the connection's source.
-+
-+  widgets:
-+    $ref: /schemas/types.yaml#/definitions/non-unique-string-array
-+    description:
-+      User-specified audio sound widgets.
-+      Each entry is a pair of strings, the first being the widget type
-+      (e.g., "Speaker", "Headphone", "Microphone", "Line") and the second being its name.
-+
-+required:
-+  - compatible
-+  - sound-dai
-+
-+additionalProperties: false
-+
-+examples:
-+  - |
-+    #include <dt-bindings/gpio/gpio.h>
-+
-+    sound {
-+        compatible = "openpandora,omap3pandora-sound";
-+        status = "okay";
-+
-+        label = "OpenPandora";
-+
-+        amp-gpios = <&gpio1 14 GPIO_ACTIVE_HIGH>;
-+        amp-supply = <&aux_5v>;
-+
-+        widgets =
-+            "Line", "Line Out",
-+            "Line", "Line In",
-+            "Headphone", "Headphone Jack",
-+            "Microphone", "Mic (internal)",
-+            "Microphone", "Mic (external)";
-+
-+        routing =
-+            "DAC1", "APLL Enable",
-+            "DAC2", "APLL Enable",
-+            "Headphone Amplifier", "VOUTL",
-+            "Headphone Amplifier", "VOUTR",
-+            "Line Out", "VOUTL",
-+            "Line Out", "VOUTR",
-+            "Headphone Jack", "Headphone Amplifier",
-+            "AUXL", "Line In",
-+            "AUXR", "Line In",
-+            "MAINMIC", "Mic (internal)",
-+            "Mic (internal)", "Mic Bias 1",
-+            "SUBMIC", "Mic (external)",
-+            "Mic (external)", "Mic Bias 2";
-+
-+        sound-dai = <&mcbsp2>, <&dac>;
-+    };
+ 		pwm_get_state(pb->pwm, &state);
+ 		state.duty_cycle = compute_duty_cycle(pb, brightness, &state);
+ 		state.enabled = true;
+@@ -239,7 +272,8 @@ static int pwm_backlight_parse_dt(struct device *dev,
+ 	of_property_read_u32(node, "post-pwm-on-delay-ms",
+ 			     &data->post_pwm_on_delay);
+ 	of_property_read_u32(node, "pwm-off-delay-ms", &data->pwm_off_delay);
+-
++	of_property_read_u32(node, "pwm-enable-guard-period-us",
++			     &data->enable_guard_period_us);
+ 	/*
+ 	 * Determine the number of brightness levels, if this property is not
+ 	 * set a default table of brightness levels will be used.
+@@ -467,6 +501,7 @@ static int pwm_backlight_probe(struct platform_device *pdev)
+ 		goto err_alloc;
+ 	}
+ 
++	pb->enable_guard_period_us = data->enable_guard_period_us;
+ 	pb->notify = data->notify;
+ 	pb->notify_after = data->notify_after;
+ 	pb->exit = data->exit;
+diff --git a/include/linux/pwm_backlight.h b/include/linux/pwm_backlight.h
+index 0bf80e98d5b40..35cf19b1e9768 100644
+--- a/include/linux/pwm_backlight.h
++++ b/include/linux/pwm_backlight.h
+@@ -13,6 +13,7 @@ struct platform_pwm_backlight_data {
+ 	unsigned int lth_brightness;
+ 	unsigned int pwm_period_ns;
+ 	unsigned int *levels;
++	unsigned int enable_guard_period_us;
+ 	unsigned int post_pwm_on_delay;
+ 	unsigned int pwm_off_delay;
+ 	int (*init)(struct device *dev);
 -- 
 2.56.0
 
