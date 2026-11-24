@@ -1,90 +1,70 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=81.169.146.168
-ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
-	t=1795530924;
-	b=mKTvs/fwjc6FTAQVZhYl5hYwojj5jTvfpd947M/mxG89pN082+VMPgUk2kriLtM3pQYF
-	 S8wh+V5BlMrjTanLleJvTLArkhTSFQcnoH3CkhaG+t84Gy3EOVRL/jhTNqptXKJw/YzUT
-	 xBy9iyMO/xE8ESw4cND/XaLNgs0IuXZ5y1Sz2qwlVFTxAGoTkFbwY/M0xemZa3Vn9MQyN
-	 kxJ+2REMV64ZV4Mlpwlq1OdhKLhXE+2onhJrtfwkTXbNeFdtE9YRHjW8nhgrrlLYLaWSp
-	 HG4rzrdpTDhsJuES1B/0T5oJw7CHDsOSmerqFrMoQZKXikafwHc/6vqjmdpfCBpTntw==
-ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795530924;
-	h=DMARC-Filter:X-RZG-CLASS-ID:DKIM-Signature:DKIM-Signature:X-RZG-AUTH:
-	 Received:Content-Type:Mime-Version:Subject:From:In-Reply-To:Date:Cc:
-	 Content-Transfer-Encoding:Message-Id:References:To:X-Mailer;
-	bh=pPC4o0FashGrZ7q1ba6XFZ2dyTINKWWF8cNcwGutazw=;
-	b=Tp217BjOo29vQEj1/vRzVOooYuysvg9UdU1MOUWTXtvpcbYNkGU0UKfg+91Ff+GAfCRw
-	 yXa2TrkYAf22AI9XVOBElEUWDkrrLqhzNQ/Z4oV5eXfZTg1mAfQoBfAaCEm3RF3lKX2IF
-	 BjYHrze14I3j7kQe0duisrIeVfzbzPdBa++/jz4llwyPbEBdmTL1ewF389X+ZKqb6UC2j
-	 rB6Z/0LBugX690EqTdDLBUWJnvsDj16hLwQ24CtpPgOLP6tENCKOcg0GhsBs8n+LqrQe8
-	 qzW6zuilf3oV5PZIaCUGPE4JV2WQvCp9pR0Pk3bXTpCdJvaMg20Ww98SGJUFOZXb9wQ==
-ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=goldelico.com;
-	spf=pass smtp.mailfrom=goldelico.com;
-	dkim=pass header.d=goldelico.com header.i=@goldelico.com header.a=rsa-sha256 header.s=strato-dkim-0002 header.b=TBq3Zp9F;
-	dkim=pass header.d=goldelico.com header.i=@goldelico.com header.a=ed25519-sha256 header.s=strato-dkim-0003 header.b=9K1WvYtz;
-	arc=pass header.oldest-pass=0 smtp.remote-ip=81.169.146.168
-Received: from mo4-p02-ob.smtp.rzone.de (mo4-p02-ob.smtp.rzone.de [81.169.146.168])
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
+	t=1795531251;
+	b=IHsz29Vt100PkqTWK3vXY1dKzqQz+ZqAiWAn6eblbmGdvF2xfhiCafGsQZI0F4sWD/Xf
+	 0C3v/E3kkgjfX6vRAOgph3TisB1px+FGDUNlPuOu1eP9baMZP0QEIIHPOPhcSFpZ4kBut
+	 k4V9JnMeYm+rhW2VdKgBc9ajmy3lVWjZCnxldoNHHvYoMxOPTOBNzzyr4atJdL7/8aeFW
+	 SKEpxPXn801XNixGbaa1poRTIlv6HYm9R6eLTMKxRxfxH7vM2d/MJrPhdfug4xt+7jcgP
+	 2LN9v1TlLgWT/TSVxSY5abLD6JMbBaCV4UVARs0f87PD/f44deyjtm9WNbdGORrAN2A==
+ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795531251;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
+	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
+	bh=unbcf7IxetKvCKK1oK9oQ5fvh2u9DJnAEwqwMUBWQOo=;
+	b=2t9qM2h2mfqUCw/mRISP5eaeBdQfcCj64QdQJjnfCLlcKAR+/DFbx8+0tpd6PTv/66oc
+	 sNnOLa75YqdxinPfl8XkJswCsqpN5JFJK8yUXN9kRdbRgG3ivkef65Di1jtLF5d0YT+Oy
+	 G8vZ5sS6FL9CI/tHqJj6LSMDODPMheR9YKuSDGgJDHBMj67P+t+Z8GxbduzQrr3pNCwUk
+	 LS/03AOVK+B7ctcqmPQHwz10Bu776shOgaCfwDXiqAYwj5sM1rMIHsEN4g/zaVdKGsTB3
+	 q22X5p5ObWbveSYJWQOXPgE6LhQPZWJ30ab24ptwhldaifVjIpXG0sA3zt3kuMyookg==
+ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=io9tgaHH;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4F23606A31E;
-	Tue, 24 Nov 2026 14:35:21 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D4F23606A31E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=goldelico.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=goldelico.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EB02606A332;
+	Tue, 24 Nov 2026 14:40:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=goldelico.com header.i=@goldelico.com header.a=rsa-sha256 header.s=strato-dkim-0002 header.b=TBq3Zp9F;
-	dkim=pass header.d=goldelico.com header.i=@goldelico.com header.a=ed25519-sha256 header.s=strato-dkim-0003 header.b=9K1WvYtz
-ARC-Seal: i=1; a=rsa-sha256; t=1795530855; cv=none;
-    d=strato.com; s=strato-dkim-0002;
-    b=VQiaI5Hy157VlrRqaOCj1N9vjjVa8Ra0JmiNp7xaIASjJ9jINXJ0n3OKdnYSQRp4JZ
-    +EShQjRUhHzrJZJ7sL5P8n0r04fvc5f1n+yoXkQddn7xVATA1/TZ9th/4PZ+vlVxqbIl
-    jpmPK15kaGe7+/0/dlIzlo2RhAcQfaFGmdEojwWa9EcecaXzd8JzT45K+ugKPNxYCY2I
-    rnOPo4AX4UK8cKxWYfqEhoTC2FIWfD1ka/Ateg8XoQTc7pADiw/BrgJD9c3LYwJSkNjX
-    3JocLaQ7E0IzmGCQsTZqvzi1MU/Oy7HoHzw5ysEoEsjpY5pMiLsP9n43mrM2dq7EfYiQ
-    PoMQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; t=1795530855;
-    s=strato-dkim-0002; d=strato.com;
-    h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
-    From:Subject:Sender;
-    bh=pPC4o0FashGrZ7q1ba6XFZ2dyTINKWWF8cNcwGutazw=;
-    b=H1naZhooZrS8f4XAxSxLXUg4qjedYo56i3dz4xniKf7PkDMMjT/O1xgSSh9pfgr4pS
-    RFaYBeA2pNvx6TjrzltkUhOW7nU34meCf3mdle70hKq/e+sMBfvnJL5nfk+s5JF0bOna
-    F5tgYYVwgBLjH8a/kqlIKwsIqVii7+hqZwRjgzP11d1zIiOv/wtvdZez3yuLiTf3YWAg
-    7uXrxSe9FyH9wM6WMDcMENrz8D1ktfCFFP4qkCT+/lgv+mO27fL3zIMZxH+PgOZcHrWy
-    TV+UI924lerakwwjDWZ5PhvjFulKtvt3MAylYXdCPVn9WjoDEy7M99Y5Vll7+TYdrztB
-    ElIQ==
-ARC-Authentication-Results: i=1; strato.com;
-    arc=none;
-    dkim=none
-X-RZG-CLASS-ID: mo02
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; t=1795530855;
-    s=strato-dkim-0002; d=goldelico.com;
-    h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
-    From:Subject:Sender;
-    bh=pPC4o0FashGrZ7q1ba6XFZ2dyTINKWWF8cNcwGutazw=;
-    b=TBq3Zp9FVBdC07XCYxWQJdKxG6KJ26CqiOTO1TaNSfuZPKB7l6tlkfjJCkcYX/bzxN
-    NzC6pX1L6sq8PzgPHNP+VfBSLIv+4n8QXwCH5OmFQY7o6YOKs6xKFKPkDhMka5utJ6Tg
-    lrAAIHPZmZmnqAMFPo19GWniCdao68N1O6rerqOFE6VjphVxTNb+MiMGp8ZZK0J6BvUB
-    nUYNTZrX7gzhEqMlVtFWrjqRQR2iqJWiQr29ymQeF4e2rXp+rZD0vaRApCBvz3aso0gh
-    Rhf3vkl868bsKQJ9S6UY5Tr7hLY9BJp5YU9ukW02eQnC6EiisrjxWy8CIIXFRWY0OxAh
-    B9hg==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; t=1795530855;
-    s=strato-dkim-0003; d=goldelico.com;
-    h=To:References:Message-Id:Cc:Date:In-Reply-To:From:Subject:Cc:Date:
-    From:Subject:Sender;
-    bh=pPC4o0FashGrZ7q1ba6XFZ2dyTINKWWF8cNcwGutazw=;
-    b=9K1WvYtzJzNNHClBs+8Vddpi1CzZaNt4JUc5jRlbRw8+zB//G65L//AA5d5KzafPpj
-    z8iD9e13OeegkV32RYAQ==
-X-RZG-AUTH: ":JGIXVUS7cutRB/49FwqZ7WcJeFKiMhflhwDubTJ9qVpwcQVkPW4I1HrV3poLlciNVWUgMvoVkTTR2P7jtjQyY2AeEP/F"
-Received: from smtpclient.apple
-    by smtp.strato.de (RZmta 55.6.3 AUTH)
-    with ESMTPSA id Qb56a22AOEYD3aL
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (curve X9_62_prime256v1 with 256 ECDH bits, eq. 3072 bits RSA))
-	(Client did not present a certificate);
-    Tue, 24 Nov 2026 15:34:13 +0100 (CET)
-Content-Type: text/plain;
-	charset=us-ascii
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=io9tgaHH
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 572071F000D0;
+	Tue, 24 Nov 2026 14:40:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795531251;
+	bh=unbcf7IxetKvCKK1oK9oQ5fvh2u9DJnAEwqwMUBWQOo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=io9tgaHHOyo0Z5zikV7SPV2Mwg+94HMNGbKiAM6qeawvECgjSx8Wwf/4yH3FweP+3
+	 TL7qQJAZMBWzCIlZak4Iy94oXDyTDm8kfC54GyWgMQaSBTQa9kkC8/F2r893oDxpwc
+	 tlvIxnIdjAa8rhJn38qfedqiDhY2U4aFH4mg7hs2IJuSxAOxVT0VBEZithvdBqfqN+
+	 xyFKXxxrBo5rneon0rgD37tzMv9xzSn6QyMSDl2YTyqXHgch9BVeQUItNuW3Ye4hUC
+	 qGKaO8UhXh8/zqil67p9RbC3e68sJ/7wZHtumE4lq/eECPNerHkHhoYWSFOvQQcGGF
+	 Dbl+rs4tjDHhw==
+Date: Tue, 24 Nov 2026 15:40:47 +0100
+From: Krzysztof Kozlowski <krzk@kernel.org>
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, 
+	Bartosz Golaszewski <brgl@kernel.org>, Rob Herring <robh@kernel.org>, 
+	Krzysztof Kozlowski <krzk+dt@kernel.org>, Conor Dooley <conor+dt@kernel.org>, Lee Jones <lee@kernel.org>, 
+	Daniel Thompson <danielt@kernel.org>, Jingoo Han <jingoohan1@gmail.com>, 
+	Pavel Machek <pavel@kernel.org>, Liam Girdwood <lgirdwood@gmail.com>, 
+	Mark Brown <broonie@kernel.org>, Aaro Koskinen <aaro.koskinen@iki.fi>, 
+	Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
+	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
+	Russell King <linux@armlinux.org.uk>, Neil Armstrong <neil.armstrong@linaro.org>, 
+	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <mripard@kernel.org>, 
+	Thomas Zimmermann <tzimmermann@suse.de>, David Airlie <airlied@gmail.com>, 
+	Simona Vetter <simona@ffwll.ch>, Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <ukleinek@kernel.org>, 
+	Helge Deller <deller@gmx.de>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, 
+	Peter Ujfalusi <peter.ujfalusi@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, 
+	Jessica Zhang <jessica.zhang@oss.qualcomm.com>, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-leds@vger.kernel.org, 
+	linux-sound@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	linux-pwm@vger.kernel.org, linux-fbdev@vger.kernel.org, letux-kernel@openphoenux.org, 
+	kernel@pyra-handheld.com
+Subject: Re: [PATCH v2 08/20] dt-bindings: mfd: twl4030: Document 64-cycle PWM
+Message-ID: <20261124-neon-noble-seagull-df2d40@quoll>
+References: <cover.1795505160.git.hns@goldelico.com>
+ <8e0c47487add0fa1bc0dad9b1bceef5ebf8071d4.1795505160.git.hns@goldelico.com>
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -93,81 +73,67 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
-Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3826.700.81.1.11\))
-Subject: Re: [Letux-kernel] [PATCH v2 04/20] dt-bindings: sound: pcm1754:
- Describe PCM1773
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-In-Reply-To: <608d13a4-6634-406e-aba8-b48114895cc0@sirena.org.uk>
-Date: Tue, 24 Nov 2026 15:33:42 +0100
-Cc: linux-fbdev@vger.kernel.org,
- Lee Jones <lee@kernel.org>,
- linux-pwm@vger.kernel.org,
- Tony Lindgren <tony@atomide.com>,
- Linus Walleij <linus.walleij@linaro.org>,
- dri-devel@lists.freedesktop.org,
- Jaroslav Kysela <perex@perex.cz>,
- =?utf-8?Q?Uwe_Kleine-K=C3=B6nig?= <ukleinek@kernel.org>,
- David Airlie <airlied@gmail.com>,
- linux-leds@vger.kernel.org,
- Simona Vetter <simona@ffwll.ch>,
- Rob Herring <robh@kernel.org>,
- Aaro Koskinen <aaro.koskinen@iki.fi>,
- Kevin Hilman <khilman@baylibre.com>,
- Helge Deller <deller@gmx.de>,
- Bartosz Golaszewski <brgl@kernel.org>,
- Russell King <linux@armlinux.org.uk>,
- Peter Ujfalusi <peter.ujfalusi@gmail.com>,
- Daniel Thompson <danielt@kernel.org>,
- devicetree@vger.kernel.org,
- Conor Dooley <conor+dt@kernel.org>,
- Pavel Machek <pavel@kernel.org>,
- Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
- Maxime Ripard <mripard@kernel.org>,
- Roger Quadros <rogerq@kernel.org>,
- linux-gpio@vger.kernel.org,
- linux-sound@vger.kernel.org,
- Takashi Iwai <tiwai@suse.com>,
- linux-omap@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org,
- Neil Armstrong <neil.armstrong@linaro.org>,
- Jingoo Han <jingoohan1@gmail.com>,
- Liam Girdwood <lgirdwood@gmail.com>,
- linux-kernel@vger.kernel.org,
- Thomas Zimmermann <tzimmermann@suse.de>,
- kernel@pyra-handheld.com,
- Krzysztof Kozlowski <krzk+dt@kernel.org>,
- Jarkko Nikula <jarkko.nikula@bitmer.com>,
- Jessica Zhang <jessica.zhang@oss.qualcomm.com>
-Content-Transfer-Encoding: 7bit
-Message-Id: <5A40DA10-E001-49C5-9432-F1494F6CDD49@goldelico.com>
-References: <cover.1795505160.git.hns@goldelico.com>
- <a92d44c4ba920358003d475d4cac7541af037f41.1795505160.git.hns@goldelico.com>
- <608d13a4-6634-406e-aba8-b48114895cc0@sirena.org.uk>
-To: Mark Brown <broonie@kernel.org>
-X-Mailer: Apple Mail (2.3826.700.81.1.11)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <8e0c47487add0fa1bc0dad9b1bceef5ebf8071d4.1795505160.git.hns@goldelico.com>
 
-Hi Mark,
-
-> Am 24.11.2026 um 13:05 schrieb Mark Brown <broonie@kernel.org>:
+On Tue, Nov 24, 2026 at 08:25:48AM +0100, H. Nikolaus Schaller wrote:
+> Document the optional ti,twl4030-pwm-frame-64 property for the
+> TWL4030 PWM controller. It selects the 64-clock-cycle frame instead
+> of the default 128-cycle frame, doubling the output frequency and
+> reducing duty-cycle resolution.
 > 
-> On Tue, Nov 24, 2026 at 08:25:44AM +0100, H. Nikolaus Schaller wrote:
->> Extend the PCM1754 device tree binding to describe the related
->> PCM1773 stereo DAC.
+> The selection is explicit because the driver does not know the PWM
+> input clock rate and cannot derive the hardware frame length from a
+> consumer-requested period. The shorter frame can reduce PWM LOW
+> intervals during startup mode detection of LED drivers such as the
+> TI TPS61160/61.
 > 
-> Please submit patches using subject lines reflecting the style for the
-> subsystem, this makes it easier for people to identify relevant patches.
-> Look at what existing commits in the area you're changing are doing and
-> make sure your subject lines visually resemble what they're doing.
-> There's no need to resubmit to fix this alone.
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+> ---
+> 
+> Notes:
+>     Changes against V1:
+>     - Revised commit message to focus on the binding and the reason
+>       for explicit 64-cycle frame selection.
+>     - Commit-message review assisted by ChatGPT.
+> 
+>  Documentation/devicetree/bindings/mfd/ti,twl.yaml | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/mfd/ti,twl.yaml b/Documentation/devicetree/bindings/mfd/ti,twl.yaml
+> index 9cc3e4721612e..f458f0d80f2cd 100644
+> --- a/Documentation/devicetree/bindings/mfd/ti,twl.yaml
+> +++ b/Documentation/devicetree/bindings/mfd/ti,twl.yaml
+> @@ -396,6 +396,15 @@ properties:
+>        '#pwm-cells':
+>          const: 2
+>  
+> +      ti,twl4030-pwm-frame-64:
 
-Agreed. Should become
+Drop twl4030. Properties are not model specific, but should be re-usable
+among all of devices from that vendor (when applicable).
 
-	ASoC: dt-bindings: ti,pcm1754: 
+> +        type: boolean
+> +        description:
+> +          TWL4030 only; not supported by TWL6030 PWM.
 
-Unfortunately there is no tool to find this (neither checkpatch, Sashiko-Bot,
-nor ChatGPT did report it before submission and I didn't think of checking
-again).
+Don't repeat constraints in free form text. Implement proper dt-schema
+for this.
 
-BR and thanks,
-Nikolaus
+> +          Select the short 64-clock-cycle PWM frame instead of the
+> +          default 128-cycle frame, doubling the PWM frequency. Required
+> +          for dimming inputs requiring short PWM low intervals during
+> +          startup mode detection (e.g. TI TPS61160/61).
+
+I don't get how TPS is related here, but if you mention other specific
+device then I wonder - why isn't this deducible from the compatible? Or
+you mean that PWM consumers might need it, depending on  the consumer?
+
+But isn't this then dynamic choice - depending on PWM frequency the
+consumer wants?
+
+Best regards,
+Krzysztof
 
