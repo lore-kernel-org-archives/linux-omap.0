@@ -1,107 +1,74 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.47
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=194.117.254.33
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795632499;
-	b=jYwRKsahUE8kQuj86MvK1VYsq3nvrNqMv5hSynp1zKO7Vwgw+Mpugzid9PVdc+Q/I2ad
-	 1QJ9A38R+fhHC6cBEdgXf4ey6Sf4VxlKESPoz8HYRh/CnX/BwuA+HTz55x1tuZEMcnyF1
-	 qyZ7ZpjbPW07NceUVb+GvjXyI7XPR5ZE5k9EiNIsk8HQgvbdtFQU+tYjYKpweTrfErC8l
-	 rqtT/xEKNxraAAtctlCULv7XgmileBnEHJpq5kIxXwqklEv3GFCix1lahCojsNkJGb5C2
-	 9su+dgUfmr6J0IOp1KaS/vX2bn5aSSl10XNKv+3fYT7W7sNLkf0OFUb63QzK/MDv0qQ==
+	t=1795640198;
+	b=27XznEqwSNRhr6DyhyES4Z+xQ6Wn0pA8VtkachNGUiLsMcNH6U7T2xoODerLWv48TAV/
+	 sUbRpjccyI2ChGBqok+Epx1cxduw0Eny4dkRYQpKrEO8C3kZP1IfE13nzKA9vHxbTExP9
+	 Yt4U1TmISeOA5aZHluV1oYLnKSshtlHO4l4/R0+gLp79oT4DqEO5DsJUMDjCkNvp3V+Dl
+	 kOg5uzs+WLnKq3B3TFBMlEBAExE9sHg0974/tadqDLbZvAloYkfXxSHnG8VGRzguCQzs0
+	 LEYdDzjW/NgFGavLlk9azV5Wxfa8MYkoGYmQlfacGRoh/nmLiLV8J0NOyF4YsmopKhw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795632499;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:MIME-Version:Content-Transfer-Encoding;
-	bh=VQW/Ymb8D+uLvIjWbZ057G5GtIuukitNqjLkdiNCMvE=;
-	b=O65ejCYCFbJYFbhe/X9RKDO2cpCtYR/dOO9ldKDtS3VpoLwNJ8IsX/ds+lE57SGFKYom
-	 DHmQcX+gb0bO7Rd7uxCP/PjJcpXf83WmACWmYN+rrmapOGIyrysCq/c9S8G31gUZI/8De
-	 nlPA0INTJx/3Y8zFYAkx5dSIu+uq980qt6bPg8wo4XUaxBfgfhVw4Lyffb+dhvUjHspA1
-	 k++Wc6mVoB96k/DEToQF743UjSBea9kYyJPGUOkSYBHUtEUljbYVC23LgGcBaFnoJzvtm
-	 EjPTrvlbrX1V9a71C+sUErWfgjyRhHTT9YErxX/vJeAlnybvMZbhO9y2tItCrPPWBCw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795640198;
+	h=DMARC-Filter:DKIM-Signature:Received:Received:X-UD-Smtp-Session:Date:
+	 From:To:Cc:Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To;
+	bh=1kRROKKosl/yXIFPGvtByySBNrtF9KbT7CipojNr2Ac=;
+	b=Bon33A08XE95+CAM1XPUWDhbYnj9QYq1uNJ29+rF21IMeq5/xLoX084fwGIOo7aDIwPa
+	 a+WTGCvtURn/LCsyde1DbEIV37yLoTT0ZVtm4Tc+EqoRlTpfp0qiW7yT9g5w+T2Gbm3Dd
+	 p2U4kkEroKB54bYgoWgmUtE14w7L+7/ksX8KN0+XzBavneVHzZEG70aiw/x3+RwwA7E+N
+	 nw2MapcdAs0qvN6NadQtwASKidbCH4ijxJP8b29Ksc0IP14ERtre0j3RyUUwJjg2/sS0V
+	 jemrbjC5l8HD6n7lT4roKEWo29ekyEnDK4hXequ7fei1OpFLzvzFr40Z9qO5GiTqczw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=oNnBk9yY;
-	arc=none smtp.remote-ip=209.85.218.47
-Received: from mail-ej1-f47.google.com (mail-ej1-f47.google.com [209.85.218.47])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	dmarc=none header.from=sang-engineering.com;
+	spf=pass smtp.mailfrom=sang-engineering.com;
+	dkim=pass header.d=sang-engineering.com header.i=@sang-engineering.com header.a=rsa-sha256 header.s=k1 header.b=IC5AH4wH;
+	arc=none smtp.remote-ip=194.117.254.33
+Received: from mail.zeus03.de (zeus03.de [194.117.254.33])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C879A606A329
-	for <linux-omap@vger.kernel.org>; Wed, 25 Nov 2026 18:48:18 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org C879A606A329
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19981606A326
+	for <linux-omap@vger.kernel.org>; Wed, 25 Nov 2026 20:56:35 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 19981606A326
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sang-engineering.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sang-engineering.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=oNnBk9yY
-Received: by mail-ej1-f47.google.com with SMTP id a640c23a62f3a-c51a02ad3acso173548866b.1
-        for <linux-omap@vger.kernel.org>; Wed, 25 Nov 2026 10:48:18 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1795632497; x=1796237297; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=VQW/Ymb8D+uLvIjWbZ057G5GtIuukitNqjLkdiNCMvE=;
-        b=oNnBk9yYeUkh5s9pJTjawpl5to9WwX7SUukW3RYanpUXdKryi5g59gdyC013GPo5KJ
-         44RoaPNMbHUir0M+Zhp87TWdQHbZM4kLUCrIT/znmwvN/7W+plDblEnJSJhJVNx59B1B
-         chd0czeEamhlDzqBzlSNWAgl9RqCeMqEu6tglGhHKOhF6wrzB6GX//4va9yD4oR5ChIx
-         6K6UWxCkBgpDnKlJT8uwYLnlEsvzSB8A3x8XJ6Yf8H9wGHX4cfSvnWq7kPdJ2YCYmOg7
-         RA0MMU1tmW9T8fguHCAFFhimvY97TLhouhiNYSJ0/UyZSjdG48daDEwMt3AoiQ+nHBGe
-         C1ew==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795632497; x=1796237297;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=VQW/Ymb8D+uLvIjWbZ057G5GtIuukitNqjLkdiNCMvE=;
-        b=W6cv9ATpqXmNoIwZHazDFrYQbJCFEaj9tUKruM0+xIfnb0FugtygHGDLvART/W8PDZ
-         ieyffvk0ur3Mm9sH4SjoKxbDiqPtSqAMCFbEzv0Y8vssX6geqkhuzDq5EZapOTnVPBLD
-         SjSf60ftQ4keXrOgkeUoKnd69s1gtwEmG/WWvFnetPDl8Zg/glBhRrmfb4T1oFc8pMqh
-         xSB4jvPaYqnlkCgfpRddLAH8I/6YucTnqI1kFqFHIfonGywF86gGqfWEqVGIfy+vHxDk
-         eGYiqil/E7wHXbOCsXz8MOF49uRpZscB27ZzwU4i9qQ+kiWZSuC54Bf6cnjgo91uacyF
-         mb7Q==
-X-Gm-Message-State: APuU4Z+NScPkpctJRfs3g3DBMje1GUmOSTC4FGD3R8XJ8VJT4W/ylqU/
-	IhQdcUv1c35l+awXy7HdXTgCdgPmttnROXs3lTr8SSXTrfK0ggKFhzBJ
-X-Gm-Gg: AZFdTZfrWDwCknu2E+9RMmvaNyVngItAm8zhEwFvCymAOrUIqUZNHkA6Xz3DtX9jXmu
-	+PWxKQcCqoq/FKIUCqwhgJcj6aX8ceQ460APFwQFwmie3WEUZqMMupTp4jSLFB1SxP5eBDbrxXG
-	v2FT3peftmwMqca7O382+bqGRL0n+qtBTi/7aiQv3TCPU61vriIPHMdYRTI72pvHat9tqYwzSs+
-	JnQs0lA68wjM4PRVduKgKRcqo82EoE41jYOPe6SpNlTGmn9UtAZAvZQZ5h/fXq9LbO5LQKasre6
-	gJzZbn5Ut/sywMHtk8nbIYbLAxHzKGwOuEFgJd2yFe4PX1nGBhSCaslG84t46uDhL36aNaRxFxU
-	aUO6njOb4jO9ImvSCkgETdTk2EN0nLPIOFRoIppjkryu9iXDk5BuxkeNjB2A6s+qqmW+OBZ+tAL
-	pLT0wq7nb4Bhw/3Fax+weI7CFMaDTdN8YJy1I9kY98oLn1v+TXJccGsJLEAygMfiVWO2SfYjG4r
-	Ha1UjJ97/cjwHO/UBt5spPcRABVvviHfloMgRNwLX4sJcQiVFdcIF/IeqGLb5NRx+PadE7XPpVO
-	CtRCnMFQoQXH9OkeFdhKx9bHQ1uW7d7PHsV9/XRLeSCEJR98f+gbL1+rmvI=
-X-Received: by 2002:a17:907:20e4:b0:c40:9b75:84af with SMTP id a640c23a62f3a-c513a5ec7cbmr1173636366b.8.1795632496938;
-        Wed, 25 Nov 2026 10:48:16 -0800 (PST)
-Received: from antoniarch (84-40-239-22.cgnat.inetia.pl. [84.40.239.22])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c513afc73d3sm677226666b.64.2026.11.25.10.48.15
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 25 Nov 2026 10:48:16 -0800 (PST)
-From: Antoni Pokusinski <apokusinski01@gmail.com>
-To: vigneshr@ti.com,
-	andi.shyti@kernel.org,
-	robh@kernel.org,
-	krzk+dt@kernel.org,
-	conor+dt@kernel.org,
-	aaro.koskinen@iki.fi,
-	andreas@kemnade.info,
-	khilman@baylibre.com,
-	rogerq@kernel.org,
-	tony@atomide.com,
-	jmkrzyszt@gmail.com,
-	sumit.semwal@linaro.org,
-	christian.koenig@amd.com,
-	phasta@kernel.org
-Cc: linux-omap@vger.kernel.org,
-	linux-i2c@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org,
-	Antoni Pokusinski <apokusinski01@gmail.com>
-Subject: [PATCH v4 0/3] i2c: omap: add support for DMA
-Date: Wed, 25 Nov 2026 19:47:45 +0100
-Message-ID: <20261125184750.57866-1-apokusinski01@gmail.com>
-X-Mailer: git-send-email 2.56.1
+	dkim=pass (2048-bit key, unprotected) header.d=sang-engineering.com header.i=@sang-engineering.com header.a=rsa-sha256 header.s=k1 header.b=IC5AH4wH
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	sang-engineering.com; h=date:from:to:cc:subject:message-id
+	:references:mime-version:content-type:in-reply-to; s=k1; bh=1kRR
+	OKKosl/yXIFPGvtByySBNrtF9KbT7CipojNr2Ac=; b=IC5AH4wH8ctwgU1Tad8s
+	xxEe94U8RhC8pxG9PqWsbXeD8GVt2Y+5Mvs31bENX9y38nSyIDNndU9Y1PG0a7NN
+	W+BuKm74LzsdGg6JApTSoC+1xeN6L07eXNsFtuL+Sij08GFgJ8UJumuydRlNXvxu
+	jM3vqfO2wWK8nSQKrAUPz730IdfB47eT8S8imuHjYRXMHCIItemfb0v/lCesvMz7
+	LJZSN3QJrAXQqhy1pqUb6z/kHft2RKTw7xem2GTTITZu3xnp8TApeA/ATHOUGM53
+	MbBSbQhwqERI4NeMSCtkHF8ddkv/OFIAFw+dYxneDk3fgbvDvYfaWtwnCdpMjPiV
+	uA==
+Received: (qmail 1132956 invoked from network); 25 Nov 2026 21:56:32 +0100
+Received: by mail.zeus03.de with ESMTPSA (TLS_AES_256_GCM_SHA384 encrypted, authenticated); 25 Nov 2026 21:56:32 +0100
+X-UD-Smtp-Session: l3s3148p1@ZOnQDyBhXuAujnvc
+Date: Wed, 25 Nov 2026 21:56:32 +0100
+From: Wolfram Sang <wsa+renesas@sang-engineering.com>
+To: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>,
+	Russell King <linux@armlinux.org.uk>,
+	Paul Walmsley <paul@pwsan.com>, Stephen Boyd <sboyd@kernel.org>,
+	Brian Masney <bmasney+clk@redhat.com>,
+	Jerome Brunet <jbrunet+clk@baylibre.com>,
+	Sandy Huang <hjc@rock-chips.com>,
+	Heiko =?utf-8?Q?St=C3=BCbner?= <heiko@sntech.de>,
+	Andy Yan <andyshrk@163.com>, Ulf Hansson <ulfh@kernel.org>,
+	linux-clk@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	linux-rockchip@lists.infradead.org, linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	dri-devel@lists.freedesktop.org, linux-pm@vger.kernel.org
+Subject: Re: [PATCH 3/6] clk: renesas: Convert to dev_clk_get_from_provider()
+Message-ID: <awdLgHC8WvGsgQAk@ninjato>
+References: <cover.1795094688.git.geert+renesas@glider.be>
+ <55d67b95c675924fb67d13ecbab47bb45c8af372.1795094688.git.geert+renesas@glider.be>
+ <awQ6PXdLz88kI9wQ@ninjato>
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -111,59 +78,31 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <awQ6PXdLz88kI9wQ@ninjato>
 
-Hello,
-This patchset introduces support for the TX & RX DMA transfers in the
-am335x/omap I2C controller. I tested this implementation on AM335x 
-(Beaglebone Black) and things seem to work fine.
+On Mon, Nov 23, 2026 at 02:06:05PM +0100, Wolfram Sang wrote:
+> On Thu, Nov 19, 2026 at 02:40:36PM +0100, Geert Uytterhoeven wrote:
+> > Renesas clock domain callbacks use of_clk_get_from_provider() to obtain
+> > clocks used for power management, so the latter show up as "deviceless"
+> > in the consumer column of the clk_summary file in debugfs.
+> > 
+> > Fix this by using dev_clk_get_from_provider() instead, letting us pass
+> > the consumer device, too.
+> > 
+> > Sample clk_summary change snippet on R-Car H1 Marzen:
+> >     - sata 1 1 0 62500000 0 0 50000 Y deviceless    of_clk_get_from_provider
+> >     + sata 1 1 0 62500000 0 0 50000 Y fc600000.sata dev_clk_get_from_provider
+> > 
+> > Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+> > ---
+> > Tested on R-Car H1 and H3.
+> 
+> Tested on RZ/A1 (Genmai) and RZ/N1D (demo board).
+> 
+> Reviewed-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+> Tested-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 
-Kind regards,
-Antoni Pokusinski
----
-Changes since v3:
-Some minor changes to fix the issues reported by sashiko:
-* resize_fifo: changed type of the `size` argument from u8 to u16
-* xfer_msg: fixed style of the REVISIT comment
-* xfer_msg: implemented fallback to PIO if DMA transfer setup fails
-* xfer_msg: disable the DMA request as the first step of the cleanup
-            (instead of the last step)
-* probe: introduced intermediate `dma` variable
-* probe: all DMA init errors except EPROBE_DEFER are now treated the
-         same way: dev_warn() + fallback to PIO
-
-Changes since v2:
-* dropped patch "i2c: omap: remove unused is_rdr and is_xdr function arguments"
-* added `omap_i2c_disable/enable_pio_irqs()` helper functions
-* probe: added `if (omap->dma)` before the DMA free
-* xfer_data: signal DMA completion in the case of NACK interrupt
-* complete_cmd: signal DMA completion in the case of bus error (e.g. AL)
-* xfer_msg: removed incorrect checks `if (!omap->cmd_err)`
-* xfer_msg: added handling of DMA/IRQ cleanup in the `b_hw && stop` path
-
-Changes since v1:
-* new patch "i2c: omap: remove unused is_rdr and is_xdr ..."
-* probe: added `goto err_dma_free` instead of `return`
-         in the case of failed `i2c_add_numbered_adapter()`
-* changes in XRDY/RRDY, XDR/RDR interrupts management:
-  - init: do not enable the above-mentioned intrerupts
-  - xfer_msg: enable the interrupts before any non-DMA transfer
-  - xfer_msg: disable the interrupts after any non-DMA transfer
-* xfer_msg: added checks on `omap->cmd_err` to catch
-            NACK or AL error occured during DMA transfers
-* general: moved scheme-related macros to the top of the file
-
-
-Antoni Pokusinski (3):
-  dt-bindings: i2c: ti,omap4-i2c: Add DMA properties
-  ARM: dts: am33xx-l4: Add missing DMAs for I2C controllers
-  i2c: omap: add DMA support
-
- .../devicetree/bindings/i2c/ti,omap4-i2c.yaml |  12 +
- arch/arm/boot/dts/ti/omap/am33xx-l4.dtsi      |   4 +
- drivers/i2c/busses/i2c-omap.c                 | 377 ++++++++++++++++--
- 3 files changed, 370 insertions(+), 23 deletions(-)
-
--- 
-2.56.1
+And now also on RZ/G3S (G3S SMARC) using the rzg2l driver.
 
