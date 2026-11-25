@@ -1,76 +1,75 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=207.180.195.6
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=217.72.192.78
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795623653;
-	b=Jykx9Ov0WjjFwX/ac+yfMMXkU99OwckMCtvVVyxqwYZIZVg5hp0ODHQUCJZCUbRzZTOG
-	 TrHWR2gqHWG6dkjP0KGSwzBkUqI/rXCkmPrQrwzlmk15HK65CrmLkVseOoP9pV83NyXe9
-	 8McWYzu0czcyLTIXPRZscZS40oW3WzFeCw6VFlz1bskk4Vi3O5gGlCx3gMStiF4zxyQon
-	 R0v5Q/RwqMjXFks2Ch7QOx+Zu+aSLQtuBNcvPEC/Nv9ODJXOupyEPxz5WDRzQ6f5IRLty
-	 qmcCD71ZnZ25SOCN0XLwOTF8eajBKu4+ni1lE/sAG5bUiwXsYGwFSyF9OQ7U0wGmewA==
+	t=1795629544;
+	b=f0fCwBVZNnJIwIxsUzmbR1t+uGt2ir/4IqTqT/k+/sN8KJa98Q8Swx2BwZUwN6VjhEsP
+	 7ZOgs94uQqfRW1KY2xYt2eHsp2np28aXfiaFOBMDl+TVSHLHcHIppvfzrx29CR0CBkma4
+	 9x1f6CI7FjLuLqc7775w+XvhAVD/sobf+V++TppZxD14/VS2bHIFHxr2Ca1EDfaSsMMQ9
+	 ui9N20RYzTttaewLcby9pd6L6EdTPR232TtA+o0yi933RhBWM0qvsKmq/Z7PIdgA0q/Fk
+	 uuVbPSQ9LXsMu0xJj0tD0v0SVVJxRHwPeU8tBRzOJstH8l1Acvn8MJ+iQjhDJf2scNQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795623653;
-	h=DMARC-Filter:Received:Received:DKIM-Signature:Received:From:To:Cc:
-	 Subject:Date:Message-ID:X-Mailer:MIME-Version:
-	 Content-Transfer-Encoding:X-AntiAbuse:X-AntiAbuse:X-AntiAbuse:
-	 X-AntiAbuse:X-AntiAbuse:X-Get-Message-Sender-Via:
-	 X-Authenticated-Sender:X-Source:X-Source-Args:X-Source-Dir;
-	bh=8icgpu1DPe9CwiufaeD3JXzxlIeQBKkQ8vZIG3B05Go=;
-	b=M0Xfrag8jXhAqRaow2PKcJlhrQZXbSnI1D89dT2loyLgMnD4oN7Ag4fHOox/9/xG13kB
-	 Nno9L06NkWFx0wrlW+U07YxeoE5yO8lJelDJSWYsxvBuB5jpB/zuXLV9FTXtz4gm7YM/R
-	 aDWozdc4tnQWWb1tFCVz6+g/t7ye7ZvLgWVf/CBfEU3B+9gAlzIopVAeS8NcWLnFOLqnu
-	 3Zt1Kp+5NvQ5xeybJ1KoPtBy7mw4LJDKVQRolWAqCik9onKO3hMPf0v3jmRql6mfWhzXY
-	 8e2IToYsJj0hC896iyrIGtyYDxl2BswcMuY3gWTXICEnPPSWv/EH/LZa/QIa07p2leg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795629544;
+	h=DMARC-Filter:DKIM2-Signature:Message-Instance:DKIM-Signature:
+	 X-UI-Sender-Class:Received:Message-ID:Date:MIME-Version:User-Agent:To:
+	 Cc:References:Subject:Content-Language:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding:X-Provags-ID:X-Spam-Flag:UI-OutboundReport;
+	bh=jKVuEFMOINIY5Htg8/As9gfzw7+lu0N+Nfz1wg8f/DI=;
+	b=gDwc66KT+Q6ZX3mR5nw5l75EEr50/RQmQ9QrMZZNr2329gEf2fdamtdowNpBxVbc2WUx
+	 uO40eqytCnqh1fDqnkSjWliNE/yHt/omy9KgMaMSSUm1PkEaeMoY3jhcFwi562ESEtBuE
+	 8AL1+Tf/LQQW2laADEOsdKVm9f+0qHed5gF3IpQ5yO9/FgXL04esIcWWvf6xPw3PgsPsC
+	 QT7DY+el7qUochtHdFBLlWF1QCT5VMVcADI01LjIBzQFBz5fQXuIh5GcEqgG4EPKxwQ9k
+	 flkj8xiJRd85XDydr8xJlo4Ykt849LoWW8H7MseGwonFL6XP10R7aRPSxpt8TDlZ9lQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=none header.from=mkio.de;
-	spf=pass smtp.mailfrom=mkio.de;
-	dkim=pass header.d=mkio.de header.i=@mkio.de header.a=rsa-sha256 header.s=default header.b=nXqdFHEa;
-	arc=none smtp.remote-ip=207.180.195.6
-Received: from mail-relay.contabo.net (mail-relay.contabo.net [207.180.195.6])
+	dmarc=pass header.from=web.de;
+	spf=pass smtp.mailfrom=web.de;
+	dkim=pass header.d=web.de header.i=markus.elfring@web.de header.a=rsa-sha256 header.s=s29768273 header.b=r3HMaAz1;
+	arc=none smtp.remote-ip=217.72.192.78
+Received: from mout.web.de (mout.web.de [217.72.192.78])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7917606A321;
-	Wed, 25 Nov 2026 16:20:52 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org A7917606A321
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mkio.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mkio.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37D9F606A321
+	for <linux-omap@vger.kernel.org>; Wed, 25 Nov 2026 17:59:02 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 37D9F606A321
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=web.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=web.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=mkio.de header.i=@mkio.de header.a=rsa-sha256 header.s=default header.b=nXqdFHEa
-Received: from pxmg2.contabo.net (localhost.localdomain [127.0.0.1])
-	by mail-relay.contabo.net (Proxmox) with ESMTP id C87427C17FD;
-	Wed, 25 Nov 2026 17:20:49 +0100 (CET)
-Received: from m2731.contabo.net (m2731.contabo.net [193.34.145.203])
-	by mail-relay.contabo.net (Proxmox) with ESMTPS id A09047C17B8;
-	Wed, 25 Nov 2026 17:20:48 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=mkio.de;
-	s=default; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
-	List-Unsubscribe-Post:List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=8icgpu1DPe9CwiufaeD3JXzxlIeQBKkQ8vZIG3B05Go=; b=nXqdFHEaJaJYtQ6EVTg9Hh04YG
-	ZdcS3gpHJs+UkmSO7btwo/2DB6SDenDoCld4H9x+nwfPKPyMHmvyydeGoF0RrMqAnHxlSLliNaUh6
-	koifblSmOgwudhf0bVwVheJyt1ogisSqbX2HCBIc1a6pbAWuAAseEs+dC4wjY1tQzXE9AJTflo51A
-	0KZfyPhIC2K6DOtfR0l3KxeDJBOOufrBKXd52SlLpSyFoxqoH4riowVKeWnFnOo527n/Q+8sDb43A
-	N8MFD/vMp5u60hMoYKUI6gd1Iw92NnCuqm3V+dFfJXTLKJHSsuxbKjCeOXke31BG+anxEhaQsnL0i
-	udYFyBUA==;
-Received: from ip-078-042-120-089.um17.pools.vodafone-ip.de ([78.42.120.89]:63107 helo=p14s.int.kistler.com)
-	by m2731.contabo.net with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
-	(Exim 4.100.1)
-	(envelope-from <mk@mkio.de>)
-	id 1xWFjk-00000005yhy-2o8v;
-	Wed, 25 Nov 2026 17:20:48 +0100
-From: Markus Klotzbuecher <mk@mkio.de>
-To: Mark Brown <broonie@kernel.org>
-Cc: linux-spi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	Vignesh Raghavendra <vigneshr@ti.com>,
-	dmaengine@vger.kernel.org,
-	Peter Ujfalusi <peter.ujfalusi@gmail.com>
-Subject: [PATCH] spi: omap2-mcspi: skip the TX drain wait in duplex
-Date: Wed, 25 Nov 2026 17:20:45 +0100
-Message-ID: <20261125162045.1222271-1-mk@mkio.de>
-X-Mailer: git-send-email 2.53.0
+	dkim=pass (2048-bit key) header.d=web.de header.i=markus.elfring@web.de header.a=rsa-sha256 header.s=s29768273 header.b=r3HMaAz1
+DKIM2-Signature:  i=1; m=1; t=1795629541;
+ mf=PE1hcmt1cy5FbGZyaW5nQHdlYi5kZT4=;
+ rt=PGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnPg==;
+ d=web.de;
+ s=s29768273:rsa-sha256:A0dv4D7Ppj0xSl6ctsTIp1sPWQt6
+   QeiYTAJYT5e2x6cvjj4Cbcdcmn4qvpc1uHWZPDA7AWKnaMtk+FdAa565QA8ptzXxJk1CImKksiE
+   zeffhAEki4Juv6a58M+3k/BBUZosr7+FF3PkG94hJ4kW3wdyzPjzK4M4K5lot1thoPb2+FMqYxi
+   bSEk1aiYXiMb7HVW5D0eoR/0Hsjd08xG0buZ4rKBQomxHd6GRTof3ZSf1wwh783IJornLD09s9x
+   mz3LSymKwgZmyQNBNaqcyOrUTrKKQ2H6W8xnknFD1BiM18K1SPadTPsuQnM9LZdkW3acZjhtviG
+   0DPuP1Gn2/1lnw==;
+Message-Instance:  m=1;
+ h=sha256:
+   lmvbPPoXWPtZ8c/t7oZRDcn1Wg4fFzPnVx6DZBkURb8=:
+   HlTrTtPFtM8YQLppqJTfti6DmCjijPQr4Bw7fmdC1tk=,
+  sha512:
+   7LQwmWi3hZwi00uOwguqYpYN1PERawT1nGQseL4oqI4whxYJNbmO1FH99e9YWls1LFS9jkDw4gdqOr3KS9qTEA==:
+   TPX4BXdwTHahaP/giU+niTYbqgfS8tyGh3YD26eFpQ9tRALn7KR8iU7LV93AJNWKkVh+Fir4l6CKMstmm1/s8Q==;
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=web.de;
+	s=s29768273; t=1795629026; x=1796233826; i=markus.elfring@web.de;
+	bh=jKVuEFMOINIY5Htg8/As9gfzw7+lu0N+Nfz1wg8f/DI=;
+	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:To:Cc:References:
+	 Subject:From:In-Reply-To:Content-Type:Content-Transfer-Encoding:
+	 cc:content-transfer-encoding:content-type:date:from:message-id:
+	 mime-version:reply-to:subject:to;
+	b=r3HMaAz13zzHe1UmkdzQdpQZWlp5bKCepRfa4xb96wRxUH8yIMxA8sVNzp0iJZ4/
+	 24e95euU7tzdRycHVYILQFoG4ntlcqtyxOR6hw0X04prO6opoiQZdFga0z50zjq4t
+	 CpiBTFH5e6oMC1RPdAx2d6FkW8FVOl+gF90fsX8nGX8iQuJIK9MYmxS++GLi9AGJk
+	 bKful39zg7bgx2z3VCv/bYIMzw+uZhdnMYtJxKWaGti1L5CGOPZHUZ2yQazOo2cBA
+	 BUbZRFofDaJ71r1p8Ax1kp/hzELL5ht3YomAX0vwL8BYSA9HF5NSKFXGrT7hqqlHS
+	 hF6KU3/7m/+81E/qNw==
+X-UI-Sender-Class: 814a7b36-bfc1-4dae-8640-3722d8ec6cd6
+Received: from client.hidden.invalid by smtp.web.de (mrweb106
+ [213.165.67.124]) with ESMTPSA (Nemesis) id 1MpCmT-1yJ5Lh0TPz-00m9bR; Wed, 25
+ Nov 2026 18:50:26 +0100
+Message-ID: <bc602723-07fb-4af9-9201-272dd0fe759e@web.de>
+Date: Wed, 25 Nov 2026 18:50:09 +0100
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -80,158 +79,187 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - m2731.contabo.net
-X-AntiAbuse: Original Domain - vger.kernel.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - mkio.de
-X-Get-Message-Sender-Via: m2731.contabo.net: authenticated_id: mk@mkio.de
-X-Authenticated-Sender: m2731.contabo.net: mk@mkio.de
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
+User-Agent: Mozilla Thunderbird
+To: Lee Jones <lee@kernel.org>, linux-mmc@vger.kernel.org
+Cc: Hiroshi.DOYU@nokia.com, aaro.koskinen@iki.fi, adrian.hunter@intel.com,
+ aidanmacdonald.0x0@gmail.com, alcooperx@gmail.com, allen.lkml@gmail.com,
+ apelete@seketeli.net, aubin.constans@microchip.com,
+ bcm-kernel-feedback-list@broadcom.com, chenhuacai@kernel.org,
+ christian.loehle@arm.com, djakov@kernel.org, drzeus@drzeus.cx,
+ florian.fainelli@broadcom.com, geert+renesas@glider.be,
+ hkallweit1@gmail.com, jan.glauber@gmail.com, jarkko.lavinen@nokia.com,
+ jbrunet@baylibre.com, jh80.chung@samsung.com, josua@solid-run.com,
+ juha.yrjola@nokia.com, kamal.dasu@broadcom.com, khilman@baylibre.com,
+ krzysztof.kozlowski@oss.qualcomm.com, lars@metafoo.de,
+ lgs201920130244@gmail.com, linux-amlogic@lists.infradead.org,
+ linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org,
+ linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+ martin.blumenstingl@googlemail.com, mirq-linux@rere.qmqm.pl,
+ neil.armstrong@linaro.org, niklas.soderlund+renesas@ragnatech.se,
+ oakad@yahoo.com, paul@crapouillou.net, pb@handhelds.org,
+ prabhakar.mahadev-lad.rj@bp.renesas.com, pramod.gurav@linaro.org,
+ riteshh@codeaurora.org, rric@kernel.org, sameo@openedhand.com,
+ shawn.lin@rock-chips.com, support@cavium.com, tony@atomide.com,
+ u.kleine-koenig@baylibre.com, ulfh@kernel.org,
+ wsa+renesas@sang-engineering.com, yoshihiro.shimoda.uh@renesas.com,
+ zhoubinbin@loongson.cn
+References: <20261123191703.179283-1-lee@kernel.org>
+Subject: Re: [PATCH 00/13] mmc: Assorted bug fixes across MMC host drivers
+Content-Language: en-GB, de-DE
+From: Markus Elfring <Markus.Elfring@web.de>
+In-Reply-To: <20261123191703.179283-1-lee@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:c6f46j/ersS3I4y3nFaZXuQPkOth7qOpMhbsMpgMo53cYuiChQI
+ k7ciQ2JJlBHxHL71038+AkpdFTp+J4DNEpnDs7GmJdb210a2uTSXoyJZlGWFyRluJT4N6KY
+ 7aeglt/IPlesC728+SzX6FdxQuXjFpu002kFWVNNxGF4Yir1vIPn+rnV9ru0YDXZs/AEF84
+ LwpTLzsphu+QcEVxO4cjg==
+X-Spam-Flag: NO
+UI-OutboundReport: notjunk:1;M01:P0:GuGkJ/j8flk=;EJHOt/zAyS7VlxQ+vRMCm8DRq2R
+ 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
 
-k3-udma completes a transfer towards a PDMA peer only once the peer has
-drained (udma_is_desc_really_done()). If it has not at the ring
-interrupt, k3-udma defers that check to a delayed work on the system
-workqueue. The McSPI depends on this: it prepares TX with
-DMA_PREP_INTERRUPT, and its TX callback clears the DMA write request,
-which has to stay set until the PDMA has passed on every byte. On
-PREEMPT_RT the kworker runs at normal priority, so each DMA transfer
-waits behind other tasks, for several ms under load.
+=E2=80=A6
+> Lee Jones (13):
+>   mmc: cavium: Remove MMC slots before destroying slot platform devices
+>   mmc: cavium: Prevent slot_pdev[] out-of-bounds write during probe
+>   mmc: sdhci-msm: Resume runtime PM before accessing registers on remove
+>   mmc: meson-gx: Fail request when descriptor chain DMA mapping fails
+>   mmc: jz4740: Skip DMA cleanup in PIO mode during post_req
+>   mmc: renesas_sdhi: Guard host->cmd access in internal DMAC issue work
+>   mmc: tifm_sd: Synchronise timeout handler with request completion
+>   mmc: omap: Shut down cover timer before disabling cover BH work
+>   mmc: renesas_sdhi: Disable internal DMAC BH work items on release
+>   mmc: jz4740: Apply DMA max_seg_size limit to unified tx-rx channel
+>   mmc: dw_mmc: Disarm central watchdog when ending a request
+>   mmc: renesas_sdhi: Fix SDIO manual tap correction in SDR104 mode
+>   mmc: sdhci-brcmstb: Handle absent optional sdio_freq clock in probe
+=E2=80=A6
 
-Commit e8e2f92b1553 ("dmaengine: ti: k3-udma: Respond TX done if
-DMA_PREP_INTERRUPT is not requested") lets a consumer skip that check
-when it knows by other means that TX is done. Its first version was
-posted together with a McSPI change that waited for EOW instead [1],
-which was not applied.
+How do you think about to sort (and group) desired adjustments
+by affected software components?
 
-In host mode full duplex the RX completion proves that every TX word
-has been shifted out, so once omap2_mcspi_rx_dma() has returned the
-PDMA holds no TX data. That is what k3-udma requires of a consumer that
-does not set DMA_PREP_INTERRUPT. Prepare TX there with DMA_CTRL_ACK
-only and without a callback, clear the write request after RX, and do
-not wait for the TX completion. Target mode and TX-only transfers keep
-the callback and the drain check.
-
-On an AM625 with PREEMPT_RT, a device on McSPI2 at 50 MHz and four
-transfers every 2 ms, two of them, 344 and 367 bytes, via DMA: the
-cyclic thread missed its deadline 217 times in 10 minutes idle and 1864
-times in 30 minutes under load without this change, and 0 and 1 times
-with it. No data errors in about 893k checked loopback updates.
-
-Link: https://lore.kernel.org/r/20220822091531.27827-1-vaishnav.a@ti.com [1]
-Signed-off-by: Markus Klotzbuecher <mk@mkio.de>
----
-Notes:
-- Tested on 6.18.56 PREEMPT_RT with commit c126e07bde21 ("spi:
-  omap2-mcspi: handle DMA setup failures") backported and with the DMA
-  request bit lock patch:
-  https://lore.kernel.org/r/20261125161340.1218564-1-mk@mkio.de
-  On spi for-next the callback is set through
-  dmaengine_desc_set_callback() (commit 29fcd5d436c4); compile-tested
-  there.
-- Independent of that lock patch; applies to 266ae6df1980 alone.
-- The 2022 thread asked about TX data left in the PDMA when the IP stops
-  transmitting (externally clocked bus, delays). In host full duplex the
-  RX completion means every word was shifted out, whatever the delay;
-  an externally clocked bus is target mode, which keeps the drain check.
-  RX EOW is not used as the signal because RX data may still be in
-  flight to memory then.
-- omap-dma and edma complete a slave_sg descriptor regardless of
-  DMA_PREP_INTERRUPT; there the only change is that the write request is
-  cleared after RX instead of from the TX callback. Not tested on those.
-- As far as I can tell this is the first user of the k3-udma opt-out
-  from e8e2f92b1553, whose message gives the McSPI as the example.
-- On AM625, PEER_BCNT wraps below zero after the early decrement and is
-  back at 0 once the PDMA has drained, so a following transfer starts
-  from clean counters.
-
- drivers/spi/spi-omap2-mcspi.c | 34 ++++++++++++++++++++++++++++------
- 1 file changed, 28 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-index 061d50c65dfd..1eaa86c8d892 100644
---- a/drivers/spi/spi-omap2-mcspi.c
-+++ b/drivers/spi/spi-omap2-mcspi.c
-@@ -413,6 +413,18 @@ static void omap2_mcspi_tx_callback(void *data)
- 	complete(&mcspi_dma->dma_tx_completion);
- }
- 
-+/*
-+ * In host full duplex the RX completion proves that every TX word was
-+ * shifted out, so TX needs neither a callback nor k3-udma's peer drain
-+ * check, which it defers to a kworker.
-+ */
-+static bool omap2_mcspi_tx_duplex(struct spi_device *spi,
-+				  struct spi_transfer *xfer)
-+{
-+	return xfer->tx_buf && xfer->rx_buf &&
-+	       !spi_controller_is_target(spi->controller);
-+}
-+
- static int omap2_mcspi_tx_dma(struct spi_device *spi,
- 			      struct spi_transfer *xfer,
- 			      struct dma_slave_config cfg)
-@@ -421,6 +433,7 @@ static int omap2_mcspi_tx_dma(struct spi_device *spi,
- 	struct omap2_mcspi	*mcspi;
- 	struct omap2_mcspi_dma  *mcspi_dma;
- 	struct dma_async_tx_descriptor *tx;
-+	unsigned long flags = DMA_PREP_INTERRUPT | DMA_CTRL_ACK;
- 
- 	mcspi = spi_controller_get_devdata(spi->controller);
- 	mcspi_dma = &mcspi->dma_channels[spi_get_chipselect(spi, 0)];
-@@ -429,14 +442,18 @@ static int omap2_mcspi_tx_dma(struct spi_device *spi,
- 	if (ret)
- 		return ret;
- 
-+	if (omap2_mcspi_tx_duplex(spi, xfer))
-+		flags = DMA_CTRL_ACK;
-+
- 	tx = dmaengine_prep_slave_sg(mcspi_dma->dma_tx, xfer->tx_sg.sgl,
- 				     xfer->tx_sg.nents,
--				     DMA_MEM_TO_DEV,
--				     DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
-+				     DMA_MEM_TO_DEV, flags);
- 	if (!tx)
- 		return -EIO;
- 
--	dmaengine_desc_set_callback(tx, omap2_mcspi_tx_callback, NULL, spi);
-+	if (flags & DMA_PREP_INTERRUPT)
-+		dmaengine_desc_set_callback(tx, omap2_mcspi_tx_callback, NULL,
-+					    spi);
- 
- 	return dma_submit_error(dmaengine_submit(tx));
- }
-@@ -672,6 +689,8 @@ static int omap2_mcspi_txrx_dma(struct spi_device *spi,
- 					 &rx_submitted, &dma_started);
- 		if (ret)
- 			goto out;
-+		if (omap2_mcspi_tx_duplex(spi, xfer))
-+			omap2_mcspi_set_dma_req(spi, 0, 0);
- 	} else if (tx) {
- 		if (mcspi->target_aborted) {
- 			ret = -EINTR;
-@@ -686,9 +705,12 @@ static int omap2_mcspi_txrx_dma(struct spi_device *spi,
- 	}
- 
- 	if (tx) {
--		ret = mcspi_wait_for_completion(mcspi, &mcspi_dma->dma_tx_completion);
--		if (ret || mcspi->target_aborted)
--			goto out;
-+		if (!omap2_mcspi_tx_duplex(spi, xfer)) {
-+			ret = mcspi_wait_for_completion(mcspi,
-+							&mcspi_dma->dma_tx_completion);
-+			if (ret || mcspi->target_aborted)
-+				goto out;
-+		}
- 
- 		if (spi_controller_is_target(mcspi->ctlr)) {
- 			ret = mcspi_wait_for_completion(mcspi, &mcspi->txdone);
-
-base-commit: 266ae6df1980a5a5c58735ae114ae62a2acad8db
--- 
-2.53.0
-
-
+Regards,
+Markus
