@@ -1,76 +1,77 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=212.227.17.11
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795683232;
-	b=WTNe/x+OBbKh+KeNtthE9owJZ+cu8LIS2dkbodqZM0SuN75sp7zkMPNnourbYXLV8EYV
-	 8Y4jK3vo16sbBgCm33ohpkiJY0OTYacswe71Wdot/+mPtMGgzGM89FxN1EL/LhMMtGonB
-	 a3Nbx0FEAEY0S4g19krApsmboPdv+KFJOmNnlHGYh/eqpWM0VbN+FDxX2A/MQtx6Y/9tp
-	 tP3x3p+FkWhAYNIOwmO6D54aagThxN8L6+BR2K3hDJUA2WiW9qRT/CoR7Te30ExDUMsmo
-	 bPIUkqs48oXT3NxETGLmAXLqDPn56oomtCO7/P5bBqF9X9BkkCSnc9/+3uA9o27xtmg==
+	t=1795685116;
+	b=BUKxIC4GWU1V+buQMaii/eA5wEmjskTI6GPfz+/7NyPAgYfb+BYE46chDXp9hFBwZ6OZ
+	 mBetDGjXpQSJ6VsMhW61wlZCe7jZMf2dpW5unbhmCT3dx7xJd2s2dsHg7Q51Tsks08LEY
+	 ZZAd0KJxLZEZ3a/MNsZANiNCp0qwuz/ze0BL9FxN3OU+HrB2cEQIBJ0W387xoWafrvr85
+	 Xs2yOuH7C+t4jmVjZsiS2341wZevzFfttEAddh2i/AflCQjMJEKSUSJxNS5hCimesWjYF
+	 FSGULD8WFXb2d9mfc19HQsv6kx7zMJe2v5jne9xcvI1hLduVpyorVLgTNcnIrg9cbUQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795683232;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=nzEKGWM8XJphHX6pI/ArHGtfH8d9j0dSK2RH8XdKPD8=;
-	b=3iy+iSi/PUTgyE59mV/p5KBtulFVDTrYvGh4ofxuzkXHzynaLVZbjVFG02LU+xYMcH2v
-	 CptE/dwzyKS1xQe913cGxyJlyS67HXM/2bQWdStsTUL9mwNQ+xtuUXYuYXyPN4Ix3yQ2s
-	 8TjEqIR5QeMTi9EXF+cRlTfbNoRqjGB26elOwuIKIh8QLiY2cqxaBlibWuJeKAU5aPz80
-	 nK7oHl6UmsFH/XGPrIbAzAGzi6HRzdSX3yAg0tliRgdBm9qItyfmfNjkGYYrub7z6oxXs
-	 SpqANxxjG2/vwLOqLMj6D1b9dyvHOhj/MQSJZWgDvUxdN+g0OHZkqS2fKmF1m6XpG+A==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795685116;
+	h=DMARC-Filter:DKIM2-Signature:Message-Instance:DKIM-Signature:
+	 X-UI-Sender-Class:Received:Message-ID:Date:MIME-Version:User-Agent:
+	 Subject:To:Cc:References:Content-Language:From:In-Reply-To:
+	 Content-Type:Content-Transfer-Encoding:X-Provags-ID:X-Spam-Flag:
+	 UI-OutboundReport;
+	bh=9JSNdwZV67Uwnrr8l1kdCs7HPzDkZQfnoroyJMBz3l0=;
+	b=VU7YQiQCwkNWkrHlErEEz0++YuwUoeGZw1fp53OlC40ThNXNOw248IOtjRSKCNPwWDlP
+	 jDkkTszt82HErE57gC+ihgvmsHLBnUI7L4+T7pQittfdNVd4WFWR8iMq3KSPbVQKX4PVV
+	 6ozQx1GwQG2+rN3z2FXuodZrabwjMjjXgR2Zxguu2mVyCMbpyoKjfQ1XN0TjzjCMjs5Ei
+	 dID7WzT3kJeghT4CdFPTbIMmtOej8n6G2R42wkTKyh/CrRTawBFCmQ/Mi/wSLUzrM+X36
+	 227K0jsBTVfWYh2BC6hPPz/juQu97PXXSHy+itgCb54v6FbtqI29qpQPRkIUd/hUSfA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=HGbB2D8d;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
+	dmarc=pass header.from=web.de;
+	spf=pass smtp.mailfrom=web.de;
+	dkim=pass header.d=web.de header.i=markus.elfring@web.de header.a=rsa-sha256 header.s=s29768273 header.b=qvcFVzs9;
+	arc=none smtp.remote-ip=212.227.17.11
+Received: from mout.web.de (mout.web.de [212.227.17.11])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange ECDHE (prime256v1) server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F00D606A31C;
-	Thu, 26 Nov 2026 08:53:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 619FB606A31C
+	for <linux-omap@vger.kernel.org>; Thu, 26 Nov 2026 09:25:15 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 619FB606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=web.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=web.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=HGbB2D8d
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6D431F000CA;
-	Thu, 26 Nov 2026 08:53:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795683231;
-	bh=nzEKGWM8XJphHX6pI/ArHGtfH8d9j0dSK2RH8XdKPD8=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=HGbB2D8dDi8WEhaIq3D5hivqa4ok6pf476MsWCWGtQf5SRgtyxnAWKscKqkY40j+o
-	 84oHtK2D94U0vboMk/gXQV6IHfJ37g1xEV0SSahxoUFBzBreEJSVlWbslpzGLbC6kS
-	 3x7cGKmzYUvdPnuxOW+Wz51xGtSZ5uYpWT00NJVv/7S1wEZKGhaooAWvTO7PFdqm79
-	 +JZrNFvQcI6N1lgA8QVMHfukPEmtY9TfArBzQmHKU6ayesucR0KBNoXDrxIiTOrZ5y
-	 /6nNJwhLQ4yJnyZhvOOEZ5Y4TuIAy9SxYtBtlYKXGGlMgczNEUe+HVQsKgvZudyiUX
-	 2T0CTuapbNqMA==
-Date: Thu, 26 Nov 2026 08:53:40 +0000
-From: Lee Jones <lee@kernel.org>
-To: Markus Elfring <Markus.Elfring@web.de>
-Cc: linux-mmc@vger.kernel.org, Hiroshi.DOYU@nokia.com, aaro.koskinen@iki.fi,
-	adrian.hunter@intel.com, aidanmacdonald.0x0@gmail.com,
-	alcooperx@gmail.com, allen.lkml@gmail.com, apelete@seketeli.net,
-	aubin.constans@microchip.com, bcm-kernel-feedback-list@broadcom.com,
-	chenhuacai@kernel.org, christian.loehle@arm.com, djakov@kernel.org,
-	drzeus@drzeus.cx, florian.fainelli@broadcom.com,
-	geert+renesas@glider.be, hkallweit1@gmail.com,
-	jan.glauber@gmail.com, jarkko.lavinen@nokia.com,
-	jbrunet@baylibre.com, jh80.chung@samsung.com, josua@solid-run.com,
-	juha.yrjola@nokia.com, kamal.dasu@broadcom.com,
-	khilman@baylibre.com, krzysztof.kozlowski@oss.qualcomm.com,
-	lars@metafoo.de, lgs201920130244@gmail.com,
-	linux-amlogic@lists.infradead.org,
-	linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org,
-	linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	martin.blumenstingl@googlemail.com, mirq-linux@rere.qmqm.pl,
-	neil.armstrong@linaro.org, niklas.soderlund+renesas@ragnatech.se,
-	oakad@yahoo.com, paul@crapouillou.net, pb@handhelds.org,
-	prabhakar.mahadev-lad.rj@bp.renesas.com, pramod.gurav@linaro.org,
-	riteshh@codeaurora.org, rric@kernel.org, sameo@openedhand.com,
-	shawn.lin@rock-chips.com, support@cavium.com, tony@atomide.com,
-	u.kleine-koenig@baylibre.com, ulfh@kernel.org,
-	wsa+renesas@sang-engineering.com, yoshihiro.shimoda.uh@renesas.com,
-	zhoubinbin@loongson.cn
-Subject: Re: [PATCH 00/13] mmc: Assorted bug fixes across MMC host drivers
-Message-ID: <20261126085340.GC38590@joneslee-macbookpro.roam.internal>
-References: <20261123191703.179283-1-lee@kernel.org>
- <bc602723-07fb-4af9-9201-272dd0fe759e@web.de>
+	dkim=pass (2048-bit key) header.d=web.de header.i=markus.elfring@web.de header.a=rsa-sha256 header.s=s29768273 header.b=qvcFVzs9
+DKIM2-Signature:  i=1; m=1; t=1795685113;
+ mf=PE1hcmt1cy5FbGZyaW5nQHdlYi5kZT4=;
+ rt=PGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnPg==;
+ d=web.de;
+ s=s29768273:rsa-sha256:QGiAckORn0Q9xthd35Gzhv2W2IPA
+   QNpZdazlQOfqJcjmh5x+YLZ/f1dcTmPsjpZm5AvErEAWH4McSTgSY2j1cvZ+keAF7PVqflq71g+
+   RwRMuX+if+uZq67YJqlSeFA66B/PsSJLZ/93zIHUWHEGAbC1WrLf5Q8nG/V+LL3qtIuYAF26Y1r
+   f8y8CN/NKDLfb6+YmP39DZQrjrVVnEj9LNyXjLaC1amYLq4nOhx0Ma6FLpqtJDmFAdqdQEcXjn+
+   bD76ZEilVuJypOAnQQS07zlFd3wugAokIdGzmUM33XE0pT0Mm0z6DAVGozATUvY9XprWeScu6GF
+   kRpgtFWSxu9DDA==;
+Message-Instance:  m=1;
+ h=sha256:
+   8tyKrKjTXvavKxXLtUUO/GrJ91WYuWeK4i+uVERLt3g=:
+   fivIcAd4rKt7AUTEW40BewMt8mNW8MG6LIlwpdkYJbI=,
+  sha512:
+   kcVNTBiYOp91P41GzFaI6Qsecf6mC6mDlv+sVA549DQrNMNHQbQA0R4m6NI9Vxs6nudIGvyxVi8cqZ0+pGJleQ==:
+   6ok9KLgnMdcQTezwC9UVZnzzlB0pHgZ8U4Osfnui5Cs2zt8w2CSBuOgVN0cjYzmu3wue9Ot3MWQCM4BbSkL2KA==;
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=web.de;
+	s=s29768273; t=1795685014; x=1796289814; i=markus.elfring@web.de;
+	bh=9JSNdwZV67Uwnrr8l1kdCs7HPzDkZQfnoroyJMBz3l0=;
+	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:Subject:To:Cc:
+	 References:From:In-Reply-To:Content-Type:
+	 Content-Transfer-Encoding:cc:content-transfer-encoding:
+	 content-type:date:from:message-id:mime-version:reply-to:subject:
+	 to;
+	b=qvcFVzs93vTh4OmkjFWvfY5JXMEL2MnHSCaQtRZbVa21opWnmlAG0LVOpJPf6DW4
+	 agQp0zfx7ID41obnzHdC5V6/Wz6JNWLvVhHZoO6fwnMe/5X9s9/Er/b1gBrut+ZwW
+	 +uCsOA9zLG03KhY8QOt1P+Thad/4v+baiffbj4KTTlvb4pdV6gCsvYKvMWsPM7O8e
+	 rUn+KwhFm4e4OwCKhuzzLknDhsYQhFxcW9zK23PzzD3Lq23pgZceNLO+3vE/lIjRz
+	 n4oecbZQciTZglzzjr0UBE0oGfiDulGMKc+p6Ee3NeW+bX/t3AReDHrhVRCw6fmvv
+	 0JZdgvjVIP7YDSuDyw==
+X-UI-Sender-Class: 814a7b36-bfc1-4dae-8640-3722d8ec6cd6
+Received: from client.hidden.invalid by smtp.web.de (mrweb106
+ [213.165.67.124]) with ESMTPSA (Nemesis) id 1MWi9q-1y3NbJ2suW-00SpYE; Thu, 26
+ Nov 2026 10:23:34 +0100
+Message-ID: <9e76edf9-433e-43ab-a748-8a71804e2b26@web.de>
+Date: Thu, 26 Nov 2026 10:23:23 +0100
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -80,35 +81,163 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-In-Reply-To: <bc602723-07fb-4af9-9201-272dd0fe759e@web.de>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [00/13] mmc: Assorted bug fixes across MMC host drivers
+To: Lee Jones <lee@kernel.org>, linux-mmc@vger.kernel.org
+Cc: aaro.koskinen@iki.fi, adrian.hunter@intel.com,
+ aidanmacdonald.0x0@gmail.com, alcooperx@gmail.com, allen.lkml@gmail.com,
+ apelete@seketeli.net, aubin.constans@microchip.com,
+ bcm-kernel-feedback-list@broadcom.com, chenhuacai@kernel.org,
+ christian.loehle@arm.com, djakov@kernel.org, florian.fainelli@broadcom.com,
+ geert+renesas@glider.be, hkallweit1@gmail.com, jan.glauber@gmail.com,
+ jbrunet@baylibre.com, jh80.chung@samsung.com, josua@solid-run.com,
+ kamal.dasu@broadcom.com, khilman@baylibre.com,
+ krzysztof.kozlowski@oss.qualcomm.com, lars@metafoo.de,
+ lgs201920130244@gmail.com, linux-amlogic@lists.infradead.org,
+ linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org,
+ linux-omap@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+ martin.blumenstingl@googlemail.com, mirq-linux@rere.qmqm.pl,
+ neil.armstrong@linaro.org, niklas.soderlund+renesas@ragnatech.se,
+ oakad@yahoo.com, paul@crapouillou.net, pb@handhelds.org,
+ prabhakar.mahadev-lad.rj@bp.renesas.com, pramod.gurav@linaro.org,
+ rric@kernel.org, sameo@openedhand.com, shawn.lin@rock-chips.com,
+ support@cavium.com, tony@atomide.com, u.kleine-koenig@baylibre.com,
+ ulfh@kernel.org, wsa+renesas@sang-engineering.com,
+ yoshihiro.shimoda.uh@renesas.com, zhoubinbin@loongson.cn
+References: <20261123191703.179283-1-lee@kernel.org>
+ <bc602723-07fb-4af9-9201-272dd0fe759e@web.de>
+ <20261126085340.GC38590@joneslee-macbookpro.roam.internal>
+Content-Language: en-GB, de-DE
+From: Markus Elfring <Markus.Elfring@web.de>
+In-Reply-To: <20261126085340.GC38590@joneslee-macbookpro.roam.internal>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:hpuFpSStygnRjyGu4OdwI8scl5Tqdmf8IzYI4hnLjaMfqgtX7UM
+ ibOS+HndZBacMC/YuZ61lDrnndFscX38s5dE89HRhg/oRr/1uYX0yiV5jqKjW2rh0aLEIIG
+ CGKZmtpk+LJl8q+QZXKhYFZyjvldtY4SizqsqY2WEzDwV2w7W0LK1RjadRiOz2Gt/WAFilt
+ Ncx5IupM7mNy4nEUvlyHw==
+X-Spam-Flag: NO
+UI-OutboundReport: notjunk:1;M01:P0:27iBBxTNLss=;pM/2RWrGZu8RBZprcieS2TZSkdh
+ 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
 
-On Wed, 25 Nov 2026, Markus Elfring wrote:
+>> How do you think about to sort (and group) desired adjustments
+>> by affected software components?
+>=20
+> This is new to me.  What guidance says to do that?
+>=20
+> Making your own rules up and spraying them at contributors wastes people=
+'s time.
+Can the following list variant be more helpful eventually?
 
-> ...
-> > Lee Jones (13):
-> >   mmc: cavium: Remove MMC slots before destroying slot platform devices
-> >   mmc: cavium: Prevent slot_pdev[] out-of-bounds write during probe
-> >   mmc: sdhci-msm: Resume runtime PM before accessing registers on remove
-> >   mmc: meson-gx: Fail request when descriptor chain DMA mapping fails
-> >   mmc: jz4740: Skip DMA cleanup in PIO mode during post_req
-> >   mmc: renesas_sdhi: Guard host->cmd access in internal DMAC issue work
-> >   mmc: tifm_sd: Synchronise timeout handler with request completion
-> >   mmc: omap: Shut down cover timer before disabling cover BH work
-> >   mmc: renesas_sdhi: Disable internal DMAC BH work items on release
-> >   mmc: jz4740: Apply DMA max_seg_size limit to unified tx-rx channel
-> >   mmc: dw_mmc: Disarm central watchdog when ending a request
-> >   mmc: renesas_sdhi: Fix SDIO manual tap correction in SDR104 mode
-> >   mmc: sdhci-brcmstb: Handle absent optional sdio_freq clock in probe
-> ...
-> 
-> How do you think about to sort (and group) desired adjustments
-> by affected software components?
+  mmc: cavium: Prevent slot_pdev[] out-of-bounds write during probe
+  mmc: cavium: Remove MMC slots before destroying slot platform devices
+  mmc: dw_mmc: Disarm central watchdog when ending a request
+  mmc: jz4740: Apply DMA max_seg_size limit to unified tx-rx channel
+  mmc: jz4740: Skip DMA cleanup in PIO mode during post_req
+  mmc: meson-gx: Fail request when descriptor chain DMA mapping fails
+  mmc: omap: Shut down cover timer before disabling cover BH work
+  mmc: renesas_sdhi: Disable internal DMAC BH work items on release
+  mmc: renesas_sdhi: Fix SDIO manual tap correction in SDR104 mode
+  mmc: renesas_sdhi: Guard host->cmd access in internal DMAC issue work
+  mmc: sdhci-brcmstb: Handle absent optional sdio_freq clock in probe
+  mmc: sdhci-msm: Resume runtime PM before accessing registers on remove
+  mmc: tifm_sd: Synchronise timeout handler with request completion
 
-This is new to me.  What guidance says to do that?
-
-Making your own rules up and spraying them at contributors wastes people's time.
-
--- 
-Lee Jones
+Regards,
+Markus
