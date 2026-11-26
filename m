@@ -1,59 +1,55 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795719734;
-	b=fiZaLQ0uKnsgn+Vm4Z2lQD1v8vyJBfrk/zUM6IONvTyZCF29sXGlIsJ4brivcPhK/j48
-	 KOFIORJ06oXzBpKNydMickkvBxJxrmxORT5/mpUKVsvrF6tAzTpUSz3xrun516qXDduRJ
-	 3G9Bmulx+1tXNdCqJTb+t6YJGTtnBWIlIKiL7yYaE6sMCzTV921QrdioEPQZeywy1wAFF
-	 bFYDGcDh3pXmVBHU8UH8LE0+8cWybRLkYTCvfHZlX5g3+iEHI7scOcQmmPvQ4x5jifo3e
-	 jQALCTwWd5bzCTlS8mEKRWIqZiRMQ6ej6w7FJB+U1sPXmgiWSTg7s3l+IcFxXLMr1Fw==
+	t=1795723085;
+	b=MsUGIe490UInM4scayom/iJPwFMXAxfRQrx6C8Gkz58K9VWZdGAxng1UR4fWIkOXj+SI
+	 +t484SZL3fEsfSgc++vLFJHA52sbTjB5dyHJArVgx1WCuAbH1W+gTkpKT92z0YbAVtMns
+	 KbXezADaErf4b8ycBRWwEbz35R/KNvEPCt3FPy0lOB+Mf6m01xEx2ufONIQZjn/AEIsqW
+	 qDPQT0AIH+t3Tor/7WqFd31EmMNg0l+rriBpi/deRpz4Ap18TX21pZPFOEz2Ro9DDVN7J
+	 7BQlPujQLz6/A9Jo1mNkpCwtAuxYOSaNmCq1EbNobZQ4oABGK7TrSVSx/SkJMOiI9ng==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795719734;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795723085;
 	h=Received:DKIM-Signature:From:To:Cc:In-Reply-To:References:Subject:
 	 Message-Id:Date:MIME-Version:Content-Type:Content-Transfer-Encoding:
-	 X-Mailer;
-	bh=MaDKxSnnoTZ6c9zF/kIcDO7qewxy+q8wpP7dgbKHb1c=;
-	b=vSsIUXDrKHLiiuQck4w7Xhg+3fi4uepPGBlhGpY8odG8V6D2vsv2G2fxfWb0DX2p8Ni4
-	 aYuTFnqWhGfuzV9zRhsmrvE+Wemw1hYQq5vJb+2WJFJWMkadkP+Ej/bzmfZwI53kNphBp
-	 z2A4LtV/vD3EaOyJ/p5RkwOUPx8cwub/7PZUxy7xXEiKq6Qbsh2Drji0K+rQ9UR/WhRfJ
-	 Olb/TygLNbrXKsiAoD4JVpGxf17O1fi3+ojQU9CKuLajqeYIvXGwct2wjsbo746+vPqKq
-	 nCzQp+gCE7YhgbDpJUAZcdVGFLdkBK/AyznvSUYmzTad66bTEYLOfX2K7dKPpyFJ9Wg==
+	 X-Mailer:X-Developer-Signature:X-Developer-Key;
+	bh=XfmQtKu5Trt3TmyRt9+W4Depfu0cIn9OSpKxY/sot9M=;
+	b=T1xCOCutfP49MvweAjOfcYgHY2tUEJSwEVtZFgedZqLxKuS9T7f5d7wJBnZgCBJgI0LV
+	 ucnR73Jl+SLmUX0BoYjS2TbhSUirUgsmwbLt2bwhKDoVfzue2U26h4dXCaL+PZIAiFJBO
+	 CNiL//OLupTifdE1UUnabJfVniP66GRm8VfT0kavd3kAsmjPADxsGx4XW70kYSYXOc7Ju
+	 4DGM6xmBpu0HzDJ5fgvGlEZaxmkWm83p0JCTAnY20yncVw3KYZYjr9uEF4iJLpkg13kBW
+	 2ejmMjfli8tfm4VNjN7RGLKFM9W7SjXkYQyddVTr3oJnR6Jg5Go8csP/HHmHVv885XQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mA8i1aJy;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bXTpm38z;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03A9B606A31E;
-	Thu, 26 Nov 2026 19:02:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3648606A31C;
+	Thu, 26 Nov 2026 19:58:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mA8i1aJy
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CFD81F000C4;
-	Thu, 26 Nov 2026 19:02:11 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=bXTpm38z
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4E751F000C4;
+	Thu, 26 Nov 2026 19:58:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795719733;
-	bh=MaDKxSnnoTZ6c9zF/kIcDO7qewxy+q8wpP7dgbKHb1c=;
+	s=k20260515; t=1795723084;
+	bh=XfmQtKu5Trt3TmyRt9+W4Depfu0cIn9OSpKxY/sot9M=;
 	h=From:To:Cc:In-Reply-To:References:Subject:Date;
-	b=mA8i1aJyvLdmspwkbmbX6Tx9XBgn+AURpzpkF6naW6HgOkbw+/YKIyBLNoixEanTV
-	 QprQ6kB841ppWyAu9e2IJPpS4PLHIk5k4o86nwf6SKqlz6oXgiT8fpbu6QeP8Wfarp
-	 zgJV+1tsVE9zB9KZok72MP574yqTR/sHJlQ8kX1DrZRoubPHcdiRi8sBcm0L9Z5u/5
-	 V2Pj7YfEz2QgaTYvNPok2DvcYK9IuAVczCpY03dLK9vEkc+Pc9EsN7PnNNp4nVoFbB
-	 WwWVotI7Wlp0XH+0oGjGQRfw6QIPonujuS/m1P7HZv/8Srhclzexxj+00DmWBVPrZZ
-	 Dw31b3rixd7WQ==
-From: Lee Jones <lee@kernel.org>
-To: Lee Jones <lee@kernel.org>
-Cc: linux-kernel@vger.kernel.org, Aaro Koskinen <aaro.koskinen@iki.fi>, 
- Andreas Kemnade <andreas@kemnade.info>, Kai Svahn <kai.svahn@nokia.com>, 
- Kevin Hilman <khilman@baylibre.com>, linux-omap@vger.kernel.org, 
- mfd@lists.linux.dev, Peter Ujfalusi <peter.ujfalusi@ti.com>, 
- Roger Quadros <rogerq@kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, 
- syed khasim <x0khasim@ti.com>, Tony Lindgren <tony@atomide.com>
-In-Reply-To: <20261119194939.2436337-1-lee@kernel.org>
-References: <20261119194939.2436337-1-lee@kernel.org>
-Subject: Re: [PATCH v3 0/2] mfd: twl-core: Fix dangling twl_priv on
- teardown and probe failure
-Message-Id: <179571973120.19173.11479797823577819756.b4-ty@b4>
-Date: Thu, 26 Nov 2026 19:02:11 +0000
+	b=bXTpm38zvFaMTw0kqMesspI1CYH6ZH8k7HHsO05DX4fEU95hcnlIJQhatoTSDj7OM
+	 C0p1LbvNzgMbUd/gz6Wlrk9fa70aFpn1bo1xfoKO9kw2pE2m3avpkpcWL63E5qR7Lt
+	 KrI2Mysw5nwJaSROnfUmdo7MIBoDkFv3yRePrvcMe+YZ4VBBcM7fc+vrVb2OHC/uRY
+	 +y+42WZXKYGi0WoKWWfZ4mKnYLSuZDImV2+VT65ihz/iUGJEr1/OSGKE5u+aT/wZMZ
+	 U2qK2416SImvhTBYb1y8L9DP1TPI5bufkN98x5e/mk3aSx6rl3PAgiIpqEYKgnrxdA
+	 +RyFx0NHMySkA==
+From: Mark Brown <broonie@kernel.org>
+To: Markus Klotzbuecher <mk@mkio.de>
+Cc: linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ linux-omap@vger.kernel.org, Sahaj Chaudhari <sahaj123.sc@gmail.com>, 
+ stable@vger.kernel.org
+In-Reply-To: <20261125161340.1218564-1-mk@mkio.de>
+References: <20261125161340.1218564-1-mk@mkio.de>
+Subject: Re: [PATCH] spi: omap2-mcspi: lock the DMA request bit updates
+Message-Id: <179571459583.142532.8153361107156627337.b4-ty@b4>
+Date: Thu, 26 Nov 2026 17:36:35 +0000
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -64,28 +60,45 @@ List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-X-Mailer: b4 0.16-dev-ad80c
+Content-Transfer-Encoding: 7bit
+X-Mailer: b4 0.17-dev
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1121; i=broonie@kernel.org;
+ h=from:subject:message-id; bh=bRLqeyBKZI5LgkzqGH1B6e/M2DxPB/1CdZK68tYCWTU=;
+ b=owGbwMvMwCWm/754w+YLFp2Mp9WSGLI5+j2Djz0UO8PJdlHl5Ff2GJ729bMD7jv9eRzS/PwYj
+ /jmzpi8jlIWBjEuBlkxRZa4LO6X9SWv1/AdXNgGM4eVCWQIAxenAEzk/Q+G/0HbdqV8fngjdxvn
+ 7Wcr9Nqi7vZFTa/0MTLKSX0SYVPcPoOR4VXE34YjopxL7nsFqT60YvTd51Xvd6VuZ2Dksz5vs3P
+ KzAA=
+X-Developer-Key: i=broonie@kernel.org; a=openpgp;
+ fpr=3F2568AAC26998F9E813A1C5C3F436CA30F5D8EB
 
-On Thu, 19 Nov 2026 19:49:28 +0000, Lee Jones wrote:
-> These issues were reported by Sashiko.
-> 
-> Patch 1 is the minimal, Stable-suitable fix from v2 (13/27), which was
-> skipped when the rest of that series was applied due to a collision with
-> "mfd: twl-core: Unregister the auxiliary platform device on unbind".
-> 
-> Patch 2 is the follow-up suggested by Andreas, converting the manual
-> twl_priv reset to a devres action.
-> 
-> [...]
+On Wed, 25 Nov 2026 17:13:40 +0100, Markus Klotzbuecher wrote:
+> spi: omap2-mcspi: lock the DMA request bit updates
 
-Applied, thanks!
+Applied to
 
-[1/2] mfd: twl-core: Clear twl_priv pointer on teardown and probe failure
-      commit: 1d73299e237f7afa88f5df8edffc135f768e793d
-[2/2] mfd: twl-core: Reset twl_priv using devm_add_action_or_reset()
-      commit: 2d66287fc824a778046241d589c3220c64a1a677
+   https://git.kernel.org/pub/scm/linux/kernel/git/broonie/spi.git for-7.4
 
---
-Lee Jones [李琼斯]
+Thanks!
+
+[1/1] spi: omap2-mcspi: lock the DMA request bit updates
+      https://git.kernel.org/broonie/spi/c/a8e3a6453f2a
+
+All being well this means that it will be integrated into the linux-next
+tree (usually sometime in the next 24 hours) and sent to Linus during
+the next merge window (or sooner if it is a bug fix), however if
+problems are discovered then the patch may be dropped or reverted.
+
+You may get further e-mails resulting from automated or manual testing
+and review of the tree, please engage with people reporting problems and
+send followup patches addressing any issues that are reported if needed.
+
+If any updates are required or you are submitting further changes they
+should be sent as incremental updates against current git, existing
+patches will not be replaced.
+
+Please add any relevant lists and maintainers to the CCs when replying
+to this mail.
+
+Thanks,
+Mark
 
