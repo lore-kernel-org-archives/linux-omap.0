@@ -1,58 +1,55 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=45.254.49.197
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.246.84.56
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795699690;
-	b=zIA4Vq3EQnzDMv6piUhnJFC2ckK1SZVhW9CeISUyQ5acCvzmh8CLSm5KCjiNNNpHjFrc
-	 6kv87vPaIq9J5r4pJPkomEUaWSr1tiK977afGF+mFrCJ1tI3CYJVYl78Ye+L6aZ/O4iLy
-	 Kf//MS1usVKoe/P+8czr12D7LHZofQP0o6Zh1L6LUEv8Rs3q2N2b3jInPY4wg31drMIbq
-	 H+rzRzqNDZyupe3YUp0aQdLL22qcVM6/9kKVgl8Tvvwcsa9Lb0iJLriJSY7F0mRdOCqXw
-	 XK6ioIKmEkhnPTZ195KrhHxRvguSZayH2hbtuJRrZfnCnwPnkND7YvpjK+Em9nGraRA==
+	t=1795702938;
+	b=xY2sPdIGpwMXN2Kyz5/GavuaoMqOYL0CWB4tBOxjCoNvq2EyYuoeu0riSWM5FCPaaGvR
+	 L8jsJ1A2Q5yWf6AXi7/dPUouXK65P4KzC6ACqQ2F6OTt91gEGDMrGOezaqfwf1Uk40iQD
+	 CLYB2DHIM+cRETe7qA24QkwJObTYsBfjTwmLBwlj3kQDexzBxbmlve3SXenlj/z/VQh8I
+	 7Yin3S7HkcxjBYqxNKTt+DzgnP/aienMSnUe2+S249cmlWHTGzLxH6Ftom9HNNK8uNgLp
+	 ESqgMkoh5ddmhthBoo0XcfpIOBNwftQExz/KFub4PZM23IFk+ysEezFv/7XfduX7epg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795699690;
-	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-Id:X-Mailer:
-	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:
-	 X-HM-Tid:X-HM-MType:X-HM-Spam-Status:DKIM-Signature;
-	bh=ofynBkEO4JdRvXaGj3ZBIzoR7OwqUEwwLGOeO0731gw=;
-	b=RMGSvldPZSYTWBpwPaJjBxrLtJubSjFjBr+DLYnkcXGHKIjbC5q6jzcxonok67xxMRt7
-	 fO2tKlYVX1zjRH4oRsaw8KngTIbCMd3pAji+nKZrKOLVBCofXhjvd1BfpREHAQXB9PXsW
-	 ry8Q/fbrsQa/PSn6MFPikKWGelfz3jlMGKoYkxGdlWJ/d+F7l8JQTRXFgHTJFiFo/tcxR
-	 MDL0e54W7bigvmbF7Tk+iBVQc7BgxhmX8CLGoIzx+7WUXvx1uS9+oSM9cXzm/4DGLd5LV
-	 4JL8Ent1udZRQm1j1sK3rTLy9jq2uTSG9X99P+LrXCrKC1uWTS15AT/8q7mmy61unwA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795702938;
+	h=DMARC-Filter:Received:Received:Received:DKIM-Signature:Mime-Version:
+	 Content-Transfer-Encoding:Content-Type:Date:Message-Id:Cc:Subject:
+	 From:To:X-Mailer:References:In-Reply-To:X-Last-TLS-Session-Version;
+	bh=rc/TYdeU5IR4Vo0cju9KmA15ddxtIBbmbow4xSEBeJ4=;
+	b=VOx1HI5YaJtQG8UOwmTd0gYlxvlboeSyFx3aSCdj4lqLnZGaICMChbBtkXuQUVmy/gZL
+	 mAHSqfG83l12SXnSqNr/HXNqQ5KvSitXhgZtjVF7IiRQs+ktZAEd8Udh+f3cjT+DmwnPz
+	 iP6GFyiWDdD+XYwzcKMQDUCtMCqVXBtlQss7qzZkQcVq0BJud/PIw/+6LZkVDf8ROG5Bz
+	 Wt/MAHXG90TcpsAkM1xgK0lcZJ+uV19xN9WGErHNsMzr2qwrW0TnN6FL+Pi9jrpPoSntH
+	 fld4gWqpzvvamJwALRxub1a3dU2gi37my0gUGUx8/NTuqJTU4MzTZa+rJHZpOycpE1g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=mail.sdu.edu.cn;
-	spf=pass smtp.mailfrom=mail.sdu.edu.cn;
-	dkim=pass header.d=mail.sdu.edu.cn header.i=@mail.sdu.edu.cn header.a=rsa-sha256 header.s=default header.b=Hv0JOpRc;
-	arc=none smtp.remote-ip=45.254.49.197
-Received: from mail-m49197.qiye.163.com (mail-m49197.qiye.163.com [45.254.49.197])
+	dmarc=pass header.from=bootlin.com;
+	spf=pass smtp.mailfrom=bootlin.com;
+	dkim=pass header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b="o9P+JSh/";
+	arc=none smtp.remote-ip=185.246.84.56
+Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4721606A333
-	for <linux-omap@vger.kernel.org>; Thu, 26 Nov 2026 13:28:09 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D4721606A333
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mail.sdu.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mail.sdu.edu.cn
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4949606A31C
+	for <linux-omap@vger.kernel.org>; Thu, 26 Nov 2026 14:22:17 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org D4949606A31C
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=mail.sdu.edu.cn header.i=@mail.sdu.edu.cn header.a=rsa-sha256 header.s=default header.b=Hv0JOpRc
-Received: from user.localdomain (unknown [223.80.110.101])
-	by smtp.qiye.163.com (Hmail) with ESMTP id 561f6fcb5;
-	Thu, 26 Nov 2026 21:28:05 +0800 (GMT+08:00)
-From: Tian Xuechen <202300460064@mail.sdu.edu.cn>
-To: lee@kernel.org,
-	aaro.koskinen@iki.fi,
-	andreas@kemnade.info,
-	khilman@baylibre.com,
-	rogerq@kernel.org,
-	tony@atomide.com,
-	j-keerthy@ti.com
-Cc: mfd@lists.linux.dev,
-	linux-omap@vger.kernel.org,
-	liguangshuo@mail.sdu.edu.cn
-Subject: [PATCH 2/2] mfd: tps65218: Fix potential use-after-free by child devices
-Date: Thu, 26 Nov 2026 21:28:03 +0800
-Message-Id: <20261126132803.4091137-3-202300460064@mail.sdu.edu.cn>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20261126132803.4091137-1-202300460064@mail.sdu.edu.cn>
-References: <20261126132803.4091137-1-202300460064@mail.sdu.edu.cn>
+	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=o9P+JSh/
+Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
+	by smtpout-02.galae.net (Postfix) with ESMTPS id 7A2361A1819;
+	Thu, 26 Nov 2026 14:22:16 +0000 (UTC)
+Received: from mail.galae.net (mail.galae.net [212.83.136.155])
+	by smtpout-01.galae.net (Postfix) with ESMTPS id 45F39604ED;
+	Thu, 26 Nov 2026 14:22:16 +0000 (UTC)
+Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 2F75D11E683F6;
+	Thu, 26 Nov 2026 15:22:06 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
+	t=1795702930; h=from:subject:date:message-id:to:cc:mime-version:content-type:
+	 content-transfer-encoding:in-reply-to:references;
+	bh=rc/TYdeU5IR4Vo0cju9KmA15ddxtIBbmbow4xSEBeJ4=;
+	b=o9P+JSh/UvepDTqv6kgAO7l6pgXEpuPjJhyDSWMt9sWFwFK3b+xbDLjQCy8nbs6UpMlVff
+	YqkeHLM5REUJBR/UCQWcSBz44N1IiSVStgm0BdtzDDQBRvkXFXyCKq4FfmR6neY8OIUsSL
+	/BshhrGGWRjCAI1T79w+cwaLK4Ap8otPFPjNd/h/CEu4ATau3a5RsO2umMqv24IjxTY/5V
+	CrwHkGDmnhAxcDFu/t6I3cin7rRyYFYoO72XrGTYIjLFB4RC3aE+ENiNQsZT+rHoYFKrHf
+	wd76miVsKZpG9V+MPZ3SUVXsBf9yFBL5vXWtH+ANMWsOdAuYDfbSfYGvNcjlwQ==
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -61,53 +58,72 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-HM-Tid: 0aa2180ab9e903a2kunmf8b0a91135d959
-X-HM-MType: 10
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
-	tZV1koWUFITzdXWRgWCB1ZQUpXWS1ZQUlXWQ8JGhUIEh9ZQVlDShkdVk1KHUsZTEJMTEJKHVYeHw
-	5VEwETFhoSFyQUDg9ZV1kYEgtZQVlJSUhVQ0tVSkpLVUpLSllXWRYaDxIVHRRZQVlLVUtVS1VLWQ
-	Y+
-DKIM-Signature: a=rsa-sha256;
-	b=Hv0JOpRcgnN/1AeJjq/grIOi/bIdxLbBwztPLfex3gq0CWfpxBLbjt0O89ym6hbHPExh8IlnzY99vC2RzAfpDLHHGcG0i6BINTNmZYU0DYPpmzom5nTyMvoFOBq+aZyD5m2ZynthSsdvTBYkGE03Mrbh6X5Ow3UEDkLQ8kFD4/g=; s=default; c=relaxed/relaxed; d=mail.sdu.edu.cn; v=1;
-	bh=ofynBkEO4JdRvXaGj3ZBIzoR7OwqUEwwLGOeO0731gw=;
-	h=date:mime-version:subject:message-id:from;
+Mime-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Date: Thu, 26 Nov 2026 15:22:05 +0100
+Message-Id: <DN57K7KTZK8P.1M20MF8V8E3U7@bootlin.com>
+Cc: "Bo Mellberg" <bo.mellberg@se.com>, "Ravi Gunasekaran"
+ <r-gunasekaran@ti.com>, "Thomas Petazzoni" <thomas.petazzoni@bootlin.com>,
+ <linux-omap@vger.kernel.org>, <netdev@vger.kernel.org>, "Pascal Eberhard"
+ <pascal.eberhard@se.com>
+Subject: Re: [PATCH net-next] net: ethernet: ti: davinci_mdio: enable MDIO
+ manual mode for AM62PX
+From: "Paul Louvel" <paul.louvel@bootlin.com>
+To: "Paul Louvel (Schneider Electric)" <paul.louvel@bootlin.com>, "Siddharth
+ Vadapalli" <s-vadapalli@ti.com>, "Roger Quadros" <rogerq@kernel.org>,
+ "Andrew Lunn" <andrew+netdev@lunn.ch>, "David S. Miller"
+ <davem@davemloft.net>, "Eric Dumazet" <edumazet@kernel.org>, "Jakub
+ Kicinski" <kuba@kernel.org>, "Paolo Abeni" <pabeni@redhat.com>
+X-Mailer: aerc 0.22.0-0-gc2f86b7abde3
+References: <20261125-am62p-mdio-bitbang-v1-1-aebf1f5fa3fc@bootlin.com>
+In-Reply-To: <20261125-am62p-mdio-bitbang-v1-1-aebf1f5fa3fc@bootlin.com>
+X-Last-TLS-Session-Version: TLSv1.3
 
-From: Tian Xuechen <202300460064@mail.sdu.edu.cn>
+Adding Pascal in the thread.
 
-The MFD children are not removed on unbind, although the parent context
-and IRQ chip are device-managed. The children can retain access to
-released resources.
+On Wed Nov 25, 2026 at 4:08 PM CET, Paul Louvel (Schneider Electric) wrote:
+> The problem described in Errata i2329 also affect the TI AM62PX SoC,
+> despite not being listed in the following document:
+>
+> https://www.ti.com/lit/er/sprz574b/sprz574b.pdf
+>
+> Add it to the structure that enables MDIO manual mode.
+>
+> Link: https://e2e.ti.com/support/processors-group/processors/f/processors=
+-forum/1647576/am62p-external-switch-connectivity-problems
+> Signed-off-by: Paul Louvel (Schneider Electric) <paul.louvel@bootlin.com>
+> ---
+>  drivers/net/ethernet/ti/davinci_mdio.c | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/drivers/net/ethernet/ti/davinci_mdio.c b/drivers/net/etherne=
+t/ti/davinci_mdio.c
+> index c413887657e9..9b58ba7acc4f 100644
+> --- a/drivers/net/ethernet/ti/davinci_mdio.c
+> +++ b/drivers/net/ethernet/ti/davinci_mdio.c
+> @@ -505,6 +505,7 @@ static const struct k3_mdio_soc_data am65_mdio_soc_da=
+ta =3D {
+> =20
+>  static const struct soc_device_attribute k3_mdio_socinfo[] =3D {
+>  	{ .family =3D "AM62X", .data =3D &am65_mdio_soc_data },
+> +	{ .family =3D "AM62PX", .data =3D &am65_mdio_soc_data },
+>  	{ .family =3D "AM64X", .data =3D &am65_mdio_soc_data },
+>  	{ .family =3D "AM65X", .data =3D &am65_mdio_soc_data },
+>  	{ .family =3D "J7200", .data =3D &am65_mdio_soc_data },
+>
+> ---
+> base-commit: 3dd8c790a7b7027abdd568e36db5e82ffaea7c77
+> change-id: 20261125-am62p-mdio-bitbang-1092530ef9a0
+>
+> Best regards,
+> -- =20
+> Paul Louvel, Bootlin
+> Embedded Linux and Kernel engineering
+> https://bootlin.com
 
-Use managed MFD registration to remove the children before the IRQ chip
-and parent context are released.
+--=20
+Paul Louvel, Bootlin
+Embedded Linux and Kernel engineering
+https://bootlin.com
 
-This issue was found by our static analysis tool under development.
-
-Fixes: 44b4dc616365 ("mfd: tps65218: Add driver for the TPS65218 PMIC")
-Signed-off-by: Tian Xuechen <202300460064@mail.sdu.edu.cn>
----
- drivers/mfd/tps65218.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
-index 491c379a1a0f..12bef7a11471 100644
---- a/drivers/mfd/tps65218.c
-+++ b/drivers/mfd/tps65218.c
-@@ -328,9 +328,9 @@ static int tps65218_probe(struct i2c_client *client)
- 	if (ret)
- 		return ret;
- 
--	ret = mfd_add_devices(tps->dev, PLATFORM_DEVID_AUTO, tps65218_cells,
--			      ARRAY_SIZE(tps65218_cells), NULL, 0,
--			      regmap_irq_get_domain(tps->irq_data));
-+	ret = devm_mfd_add_devices(tps->dev, PLATFORM_DEVID_AUTO, tps65218_cells,
-+				   ARRAY_SIZE(tps65218_cells), NULL, 0,
-+				   regmap_irq_get_domain(tps->irq_data));
- 
- 	return ret;
- }
-
--- 
-2.43.0
