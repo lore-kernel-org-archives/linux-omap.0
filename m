@@ -1,87 +1,62 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795807589;
-	b=cpT9weYkWxDCoBkGm8zRFQ+06LUuAYRSwVgl0n48AezESjJpRbmF9x0TZqa/QleHFiLZ
-	 5/U4ZE++mmcM330Fv6WewVeRXpjyfVBOHVOYwXrjKv1a7A+yZu3qTpW6/09IIdHg1jIn0
-	 Yw4pclc0mllbxN2rXp1pljo7Eqb7aHp6Gxur0hsuR89RlThhGtTcU2EMv6N50i0MRqc3W
-	 x/Kog/rUXZ9WKUu8XTP84lP9l0mGc5aC2S3O7nNXqBej4ftX+t4r0C1ti4L3+PKgyKGTP
-	 3MOp+te7Ia4YxJo+dmux62G5OWVtxqK+itQKHFECLhSLV+LMzTRBxpmwlxivu8pr7jA==
+	t=1795807596;
+	b=BTUbRxlSzCPwMNApB67gyDLezbURx1dl/iSNfmINviVOhkr3Je9TGD+AfoTLje65xPM2
+	 eM7iEnN2SZu2hfMhksjvLDNILLHmKmPGPIEAYa2ZV8/I0PkxFkVlRguSFB1/DEuhFkpBx
+	 DaWiOn88+MXGCqpHgdXzWbBWAERgEYTfzrzaA6+npP2WARdOwShqGzvkw2kx410jSOAXf
+	 yotqEOWiC+nKb2Fp/0kI9oy+ppFYhNUIHT9VcZpJhC3bK3MYOrTxwriCmuDgLANu4YBAS
+	 58ls/zZvF0sSRcs2uO9CQ5uZBRCWAflq9lvo50fzKsq7jCLWefi+XrSAXTkKdmVeBFg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795807589;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795807596;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 MIME-Version:Content-Type:Content-Transfer-Encoding;
-	bh=0Bj2HfA+RacmXf4tT16y1Nvz3cM+4pVUyjdUHKbVS6w=;
-	b=bNVIIU3HcGbscXkYMjfxxwO3+6FdBFA0CUieiLkKq/XuSieRf6ByXn26wp/Mh9oWr0tH
-	 YuCH/dxihwF145Do741vnw5NISpG5yTxM25UgXW695pzGnMtbzvQe1IxEfbrnAvRCCxk1
-	 961QqPgsT5Rd24Q9kw8020JKYVFfegi8fuyoR6DSQ5m6Mfy0hWO6qi/G279wgD41m3eBm
-	 uejW4n2jnvD7qVOssBiEi2bfJid2u/o4o16xHSLqTcEXR26tH25PsS1Xs3Q7W2k0SQI3E
-	 of7ilN4GYr1SydCUaQVBrC1tmft745f7bJ909ACgVFCXklKL8BMPo60vRXrjtiJhO0A==
+	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
+	bh=7vWduZwDmwvfW+iMUHUwW2mnE7TrHVtarqLJYlNgyVM=;
+	b=KX4ldV0Uu/9yPaTIfmqswg13JWEpHSKZ+yIfLajE28MCfW0kagyFaUxM4jKi9Zsmg3A1
+	 rm8PTpjtHcGaNhRQSq7O4mW9Br0E/QBH/spSi1TZJhNhCssmm24lDeYBDnWZygQ4e/1Fy
+	 uPt6RBNAFesBjC9utS0RqsOgwsOGSTfCahid/lNXD7LS0AGyUfa6YO0q2tJN0dfPFX9DF
+	 eZMr8JEPtL3tJ5zhqnusIKUdy3/WbOSS3VTTIfwbBXeJ+pHRDCayomEZtMt1+TT1XoRFj
+	 E16qmRv2pjnGwNZD5qkO32dut+mQd+KON0NvtJo2uIZ7VtF1QFurADdJkLoNlSVUfRQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OF3EfNgR;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=HQMEIvHd;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF24F606A31C;
-	Fri, 27 Nov 2026 19:26:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63845606A327;
+	Fri, 27 Nov 2026 19:26:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OF3EfNgR
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B31B11F00899;
-	Fri, 27 Nov 2026 19:26:23 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=HQMEIvHd
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD1F11F0089B;
+	Fri, 27 Nov 2026 19:26:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795807589;
-	bh=0Bj2HfA+RacmXf4tT16y1Nvz3cM+4pVUyjdUHKbVS6w=;
-	h=From:To:Cc:Subject:Date;
-	b=OF3EfNgRN+x5+FYr5KfqcWvf0pbWlwgu+0wy2XuPXwrMt+6BFUZmr7IYsMxke1tAR
-	 2H8siDyj/38n9CKtkV67H4YremSwVVgxOnjHAr+9vMeaE1GtIwYIQFOR+GranT1NZW
-	 Z5rGvx0cm7bFnbSxl1BHRpCy247QHU65ILaXuRcKrAtczFR5DBelI0c+GyMqHLSF6s
-	 go8ygOgIiF4g/Ni+xoE5tVBPdpNbs+fXk6ahqf7HS6wGdBpBLyyojE0YAW5Nsp1iaI
-	 voET/Ktf0U33MxcyO0+8ZMT9aQVAzF9sb0h/TIwQi1dwFyN5Mf+8geIV26Y31p5Xzm
-	 oHrdZ0DzRtdlg==
+	s=k20260515; t=1795807595;
+	bh=7vWduZwDmwvfW+iMUHUwW2mnE7TrHVtarqLJYlNgyVM=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=HQMEIvHdMCU1a73sPOyJVsUVOlIRaCg6gGHL2vIWp7wfosLLqKuXffG9jXuBaN9WU
+	 TZIIe+qh5wdD70LJLdqe4UTw5SP47vhr2af6vGpgah9ltF+C/fmZEEPJFt5tTFeJDQ
+	 v4vres0ZLVolzd6niLe4RNHRrFiNBJXKfYvys0/nZpqhj/Xh5Z3T6EtobxEZPdSnWG
+	 7Y7nzU3Hvdu6PjPjKQm1ZZZ7gmyjy8PKoUe6+LyVsPH535CGYcxyes4FpV8bZ+4TXz
+	 r4zXgbHe9p76Yf9iY4LEe/6fCmman9tFsoLzRk4ETfsIkyjBNUQLdE8zOllm6FEXMb
+	 oIKANGFSqKMCw==
 From: Lee Jones <lee@kernel.org>
 To: lee@kernel.org,
-	Heiko Stuebner <heiko@sntech.de>,
-	linux-arm-kernel@lists.infradead.org,
-	linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org,
-	"Thomas Richard (TI)" <thomas.richard@bootlin.com>,
-	Andrea della Porta <andrea.porta@suse.com>,
-	Brian Masney <bmasney+clk@redhat.com>,
-	Conor Dooley <conor.dooley@microchip.com>,
-	Dominique Belhachemi <db@domibel.de>,
-	Doug Anderson <dianders@chromium.org>,
-	Emil Renner Berthing <kernel@esmil.dk>,
-	Florian Fainelli <florian.fainelli@broadcom.com>,
-	Hal Feng <hal.feng@starfivetech.com>,
-	Jerome Brunet <jbrunet+clk@baylibre.com>,
-	Jonathan Hunter <jonathanh@nvidia.com>,
-	Joshua Peisach <jpeisach@ubuntu.com>,
-	Linus Walleij <linusw@kernel.org>,
-	linux-clk@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	linux-tegra@vger.kernel.org,
-	Michael Turquette <mturquette@linaro.org>,
-	Michal Wilczynski <m.wilczynski@samsung.com>,
-	Naushir Patuck <naush@raspberrypi.com>,
-	Nishanth Menon <nm@ti.com>,
-	Palmer Dabbelt <palmer@rivosinc.com>,
-	Prashant Gaikwad <pgaikwad@nvidia.com>,
-	Rob Herring <robh@kernel.org>,
-	Rosen Penev <rosenp@gmail.com>,
-	Santosh Shilimkar <ssantosh@kernel.org>,
-	Stephen Boyd <sboyd@kernel.org>,
 	Tero Kristo <kristo@kernel.org>,
-	Thierry Reding <thierry.reding@kernel.org>,
-	Thomas Abraham <thomas.ab@samsung.com>,
-	Timo Alho <talho@nvidia.com>,
+	Stephen Boyd <sboyd@kernel.org>,
+	Brian Masney <bmasney+clk@redhat.com>,
+	Jerome Brunet <jbrunet+clk@baylibre.com>,
 	Tony Lindgren <tony@atomide.com>,
-	Wentao Liang <vulab@iscas.ac.cn>,
-	Xingyu Wu <xingyu.wu@starfivetech.com>
-Subject: [PATCH 00/10] clk: Fix OOB writes, UAFs, ERR_PTR dereferences, and rate-calc bugs (batch 2)
-Date: Fri, 27 Nov 2026 19:25:24 +0000
-Message-ID: <20261127192620.3443537-1-lee@kernel.org>
+	Michael Turquette <mturquette@linaro.org>,
+	linux-omap@vger.kernel.org,
+	linux-clk@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: stable@vger.kernel.org
+Subject: [PATCH 01/10] clk: ti: fapll: Fix output clock array allocation and bounds check
+Date: Fri, 27 Nov 2026 19:25:25 +0000
+Message-ID: <20261127192620.3443537-2-lee@kernel.org>
 X-Mailer: git-send-email 2.56.1.839.g22a8290db9-goog
+In-Reply-To: <20261127192620.3443537-1-lee@kernel.org>
+References: <20261127192620.3443537-1-lee@kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -91,78 +66,65 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-These issues were reported by Sashiko.
+ti_fapll_setup() allocates fd->outputs.clks as
+sizeof(struct clk *) * MAX_FAPLL_OUTPUTS + 1, adding a single byte
+rather than an extra pointer slot for the 1-based child synthesisers
+stored at indices 1..MAX_FAPLL_OUTPUTS.  It also reads output_instance
+into a signed int via of_property_read_u32_index() and indexes
+fd->outputs.clks[output_instance] without bounds validation, allowing
+out-of-bounds heap writes.
 
-This is batch 2 of Common Clock Framework fixes, based on clk/clk-next.
-It addresses output array OOB writes in ti/fapll, ERR_PTR dereferences
-and double-unregister in tegra/bpmp, notifier UAFs and global array
-mutation in starfive/jh7110 and rockchip/cpu, rate and parent lookup
-bugs in rp1, and allocation error handling in sci-clk and icst.
+Allocate MAX_FAPLL_OUTPUTS + 1 pointer slots with kzalloc_objs(), store
+output_instance as u32, and skip entries exceeding MAX_FAPLL_OUTPUTS.
 
-Cc: "Thomas Richard (TI)" <thomas.richard@bootlin.com>
-Cc: Andrea della Porta <andrea.porta@suse.com>
-Cc: Brian Masney <bmasney+clk@redhat.com>
-Cc: Conor Dooley <conor.dooley@microchip.com>
-Cc: Dominique Belhachemi <db@domibel.de>
-Cc: Doug Anderson <dianders@chromium.org>
-Cc: Emil Renner Berthing <kernel@esmil.dk>
-Cc: Florian Fainelli <florian.fainelli@broadcom.com>
-Cc: Hal Feng <hal.feng@starfivetech.com>
-Cc: Heiko Stuebner <heiko@sntech.de>
-Cc: Jerome Brunet <jbrunet+clk@baylibre.com>
-Cc: Jonathan Hunter <jonathanh@nvidia.com>
-Cc: Joshua Peisach <jpeisach@ubuntu.com>
-Cc: Linus Walleij <linusw@kernel.org>
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-clk@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
-Cc: linux-rockchip@lists.infradead.org
-Cc: linux-tegra@vger.kernel.org
-Cc: Michael Turquette <mturquette@linaro.org>
-Cc: Michal Wilczynski <m.wilczynski@samsung.com>
-Cc: Naushir Patuck <naush@raspberrypi.com>
-Cc: Nishanth Menon <nm@ti.com>
-Cc: Palmer Dabbelt <palmer@rivosinc.com>
-Cc: Prashant Gaikwad <pgaikwad@nvidia.com>
-Cc: Rob Herring <robh@kernel.org>
-Cc: Rosen Penev <rosenp@gmail.com>
-Cc: Santosh Shilimkar <ssantosh@kernel.org>
-Cc: Stephen Boyd <sboyd@kernel.org>
-Cc: Tero Kristo <kristo@kernel.org>
-Cc: Thierry Reding <thierry.reding@kernel.org>
-Cc: Thomas Abraham <thomas.ab@samsung.com>
-Cc: Timo Alho <talho@nvidia.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Wentao Liang <vulab@iscas.ac.cn>
-Cc: Xingyu Wu <xingyu.wu@starfivetech.com>
+Fixes: 163152cbbe32 ("clk: ti: Add support for FAPLL on dm816x")
+Closes: https://sashiko.dev/#/bug/linux-48a97add-8ee5-49f5-b05c-925006d9ec42
+Cc: stable@vger.kernel.org
+Signed-off-by: Lee Jones <lee@kernel.org>
+---
+ drivers/clk/ti/fapll.c | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-Lee Jones (10):
-  clk: ti: fapll: Fix output clock array allocation and bounds check
-  clk: tegra: bpmp: Drop manual clock unregister on provider failure
-  clk: starfive: jh7110-sys: Use devres for PLL0 clock and notifier
-  clk: starfive: jh7110: Duplicate top clock bulk arrays per device
-  clk: rockchip: cpu: Allocate rate_table before registering notifier
-  clk: tegra: bpmp: Skip ERR_PTR entries in tegra_bpmp_clk_of_xlate()
-  clk: rp1: Propagate determine_rate() return value for PLL dividers
-  clk: rp1: Reference secondary PLL divider clk_hw in parent tables
-  clk: keystone: sci-clk: Check allocation failure before copying clock
-    array
-  clk: versatile: icst: Check kasprintf() and put parent node on error
-
- drivers/clk/clk-rp1.c                         | 32 +++++++++----------
- drivers/clk/keystone/sci-clk.c                |  8 +++--
- drivers/clk/rockchip/clk-cpu.c                | 26 +++++++--------
- .../clk/starfive/clk-starfive-jh7110-isp.c    |  9 ++++--
- .../clk/starfive/clk-starfive-jh7110-sys.c    |  5 +--
- .../clk/starfive/clk-starfive-jh7110-vout.c   |  9 ++++--
- drivers/clk/tegra/clk-bpmp.c                  | 14 +-------
- drivers/clk/ti/fapll.c                        | 13 +++++---
- drivers/clk/versatile/clk-icst.c              |  5 +++
- 9 files changed, 66 insertions(+), 55 deletions(-)
-
+diff --git a/drivers/clk/ti/fapll.c b/drivers/clk/ti/fapll.c
+index 7d6a4dd4fc8c..d5e95e6489cd 100644
+--- a/drivers/clk/ti/fapll.c
++++ b/drivers/clk/ti/fapll.c
+@@ -549,9 +549,8 @@ static void __init ti_fapll_setup(struct device_node *node)
+ 	if (!fd)
+ 		return;
+ 
+-	fd->outputs.clks = kzalloc(sizeof(struct clk *) *
+-				   MAX_FAPLL_OUTPUTS + 1,
+-				   GFP_KERNEL);
++	fd->outputs.clks = kzalloc_objs(*fd->outputs.clks,
++					MAX_FAPLL_OUTPUTS + 1);
+ 	if (!fd->outputs.clks)
+ 		goto free;
+ 
+@@ -614,7 +613,7 @@ static void __init ti_fapll_setup(struct device_node *node)
+ 		const char *output_name;
+ 		void __iomem *freq, *div;
+ 		struct clk *synth_clk;
+-		int output_instance;
++		u32 output_instance;
+ 		u32 v;
+ 
+ 		if (of_property_read_string_index(node, "clock-output-names",
+@@ -625,6 +624,12 @@ static void __init ti_fapll_setup(struct device_node *node)
+ 					       &output_instance))
+ 			output_instance = i;
+ 
++		if (output_instance > MAX_FAPLL_OUTPUTS) {
++			pr_err("%pOFn invalid output_instance %u\n",
++			       node, output_instance);
++			continue;
++		}
++
+ 		freq = fd->base + (output_instance * 8);
+ 		div = freq + 4;
+ 
 -- 
 2.56.1.839.g22a8290db9-goog
 
