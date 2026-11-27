@@ -1,55 +1,100 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=185.246.84.56
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.47
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795770122;
-	b=nSw2/Kq+QnUaSIpBdrMPEdnSQ2Slp2fGpMd0su2j+jOaEACWVKC1Q4xIAP8K9sRzqaNP
-	 wqDsp1xASwnOU4Gca4SIRZBXU8uTb0E/Hz3ZN8qy6dhi4GmN7siKKyDeuryXjpo9mNYhX
-	 v8lsEMDmS9NQSOTShd0E7wR6QqUrL7uoXaVDp2Bh3XDVF7uFIeYPmKqH7yJrEmLuMSJgH
-	 4/WogVVhMBCc7NussGegh4lCzuVc3MvtGI4BUzGUYjN1FnLccySkmp6y+Zv+3jQj02sEz
-	 NigrSl/GsoNOfKwpyByKWLrY1GeYfOrKj62L6hcP5lGuQNLmmAawjJfmpFi+5sn1lkw==
+	t=1795774066;
+	b=izGDMF1ty94d5IzgMmazXPic8CYwjMKZXKfaA8gKwsUdiG4BopsX2PZVOtWQzjAfeb/j
+	 QfncWE0kVRJqvWMk7i7AFPVo7V+m0PNg6xSC+Ov6HGr6Nem3SDXxCPVOs4hAlRelfjanG
+	 G6txURUxNzBdTbi3HfaisvLQ/6Y27XO4KGW2sKjQmX2a/LuODTZ1U9YAuGp4ATzc8cOsc
+	 Q+coZbTLQkerwhApDrmT56d/SvNFpmlYclbNdCjmuRH5OmluOdDtSpqfCOHK0gDt2fRie
+	 9g1ewDUrTXNjxv8SuS/S/mU8sl9DUQqZBkvM/rI3TUB/zb3mIg1u1lOrFjQ6p9f30EQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795770122;
-	h=DMARC-Filter:Received:Received:Received:DKIM-Signature:Mime-Version:
-	 Content-Transfer-Encoding:Content-Type:Date:Message-Id:Cc:Subject:
-	 From:To:X-Mailer:References:In-Reply-To:X-Last-TLS-Session-Version;
-	bh=6Xzv5Gb830c3oIfFW5MvPdN7mq0P8Lgb/1Vd542dHec=;
-	b=BcHuoJCDGTEtqgNJX+XZ/iTJ3T8G6yGuYty0J+ho+3MMiSOHL2p0pj9fq6zpebT7BSU+
-	 hSp0chjBwLLBjT1y6irsqCALcf6rHe3zahd2VG2aLGBxQ0EvzEae2HsDzwRC6C5GfpYfw
-	 lJhOFbb6Crx7cGBreE2pXZCCmj5i9cl9zmVNL+X3YkQ6As26sQ56GXt3U6EJcyn53Pv6y
-	 zZFYW6c4yD+OlwRZ0VoFf+E43IQOVj0UwvfoFgXcqpC5T3ZJfluBBm+KRYqXk0AVP9kgw
-	 H1so6rWDxjOtOvPK/tqt3aBU2MtZ41GX1f1amkK3/KJEbM2SavOddYAClWM9bNHvCwA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795774066;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=2TsM750EvEyHCTYANfGa2Nzz7ULmsTnF7jQbx8T+XDI=;
+	b=0rbII3cZNE5iZUpKOFRNzxYvPJBtscymnAO4IjOwEAZXcxoIix0b1NRQpIwMaJANfsN8
+	 m6Fqhjw5vcIrIwyKo0w+iEM8Qw9zca+yTb57SRF4eOScBGBThZAdWO8PCW2xtc2MkEZKf
+	 mcGDwn6YMb7nICbFsxqdmyHRXBZvqE6TTu6LZqRDPjCLEd6dhnykMV014eyXHtj80QScp
+	 //UrRL/kyo+rDpm24SZpVvV29FRp7DPyQNg9cS8qM0A6cAcWwKOS6bOpA+N5KDrNk+zc0
+	 HD0DMZp42Ogb9GJXazwXz+i7TjqhrgNnq1CnTVufl5cz12s/QYPjtZy/Bs4QP44hWQA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=bootlin.com;
-	spf=pass smtp.mailfrom=bootlin.com;
-	dkim=pass header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=YNLJWNVw;
-	arc=none smtp.remote-ip=185.246.84.56
-Received: from smtpout-02.galae.net (smtpout-02.galae.net [185.246.84.56])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=BU2ZaTq0;
+	arc=none smtp.remote-ip=209.85.128.47
+Received: from mail-wm1-f47.google.com (mail-wm1-f47.google.com [209.85.128.47])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCCF3606A31E;
-	Fri, 27 Nov 2026 09:02:00 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DCCF3606A31E
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=bootlin.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bootlin.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBE66606A324
+	for <linux-omap@vger.kernel.org>; Fri, 27 Nov 2026 10:07:45 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org DBE66606A324
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bootlin.com header.i=@bootlin.com header.a=rsa-sha256 header.s=dkim header.b=YNLJWNVw
-Received: from smtpout-01.galae.net (smtpout-01.galae.net [212.83.139.233])
-	by smtpout-02.galae.net (Postfix) with ESMTPS id DBCD21A1827;
-	Fri, 27 Nov 2026 09:01:58 +0000 (UTC)
-Received: from mail.galae.net (mail.galae.net [212.83.136.155])
-	by smtpout-01.galae.net (Postfix) with ESMTPS id B04ED6049C;
-	Fri, 27 Nov 2026 09:01:58 +0000 (UTC)
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id EA31911E692B0;
-	Fri, 27 Nov 2026 10:01:52 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bootlin.com; s=dkim;
-	t=1795770117; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 content-transfer-encoding:in-reply-to:references;
-	bh=6Xzv5Gb830c3oIfFW5MvPdN7mq0P8Lgb/1Vd542dHec=;
-	b=YNLJWNVwuyzCyS5NR8ex7ZdxT1ZtXW4GNhkXGziXSzXqv2IrUTNoagVW3e8e6h12N4AgAN
-	Eo5taiti36Fg23F1msFL0JMSxHVWuMTLvJ9NdvYrN2x/EQAqDCekWRLl2BxZ4/vOHgJaIE
-	oxbkiAU/p7kojPniQYwc8B8kNOxvQq41wIXsbyiqw1PPPrMfHtbjqw9Chn9jnwf4AXzVS8
-	K3AlJaXynzoX/IFcwoM4bfzvQLKh4YB7FH0cjEWI5hIO9FzjlG/GTo8gaMu2xq1eUi4/uU
-	jhMuaQPB6xcUl9GKWdxoOcxatnmBfT+WFsvzWj93AQCrJXg/78LUuf7lPIbzEg==
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=BU2ZaTq0
+Received: by mail-wm1-f47.google.com with SMTP id 5b1f17b1804b1-4bb6ba3b244so80707915e9.3
+        for <linux-omap@vger.kernel.org>; Fri, 27 Nov 2026 02:07:45 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1795774064; x=1796378864; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=2TsM750EvEyHCTYANfGa2Nzz7ULmsTnF7jQbx8T+XDI=;
+        b=BU2ZaTq0d6nf1kovPAqoaEy2B2Z5juQ86UZVsyi7FuGSzKihaXuQNzdd9WoQLSo0aM
+         P/cXUEp9Cq6z31xzVzvNqN4PsDGGRlJA9l0YVzY8kORBXq0HCy9XTMBUlgYoBKEB/+kH
+         IL0Ddpwbyvi/NKWtVoybkKI/qsVd/SO//vMsn0OIWuTdk/ogGN/eMjoxufZ9tTUMRgJu
+         aIr9AGk4gLT81BSknWgNFrXZ0ecEPnsWBwvpyBWSn/8bQUJ0Ge98uGy+cLaAMIeiDyeL
+         5IbxBwpY4v/lcrhdUGRT/qtIIUmL0RpW4dv6yYQ7ZN/jacHFp8DvBkpzBY6C/gSIlzjS
+         qaRg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795774064; x=1796378864;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=2TsM750EvEyHCTYANfGa2Nzz7ULmsTnF7jQbx8T+XDI=;
+        b=svfBbGxQzRrBg7P7APBhxJlQ0+Wh6ap0X//MCTFOuNwdv4YhzegVFcLmeqogVJ5zyn
+         FUDYdfBvNpkAOvay9N+0QFpD2v1yXuj/oHXbV1lpiHMUb5sDKu2OOQ+HgQN2cLILcVgj
+         bx1qi5m0WRt9uI9tWd3IDf7Mv3NiMCnHNRGQpByiYYflNu0OuKzUXrqQ7FyHJN+Ywpbn
+         WOWo2h7eA7cvlKFPWit0u7L4o40mzbAS3oyt/klqAWt0gUIPuAWM7en3T7CBteqjkvuC
+         OW3kwmeJilUyR/5MxZ/ZJGOuFHCUpzKlCbUS8mX0Ale3t62OaGwxNnhGHM7zJNFtVUlk
+         5dbg==
+X-Forwarded-Encrypted: i=1; AL+hErGi8gcurLgDMaUg0sSKTGGkWeRy5SlIDYtcuP2BpzUK5EiCwRJQMSo0+GWqgr7A0qmTP3Fjg0WwvVms@vger.kernel.org
+X-Gm-Message-State: APuU4Z+ozIaUY6jKSL1ErzZaWi3SO41Bnq9sBH/yEohY4DJnTP3wRAL5
+	Yai2GmT21G65yJqFlDG1F1ty0uupHkynRkhHF0CoCvP/4oJm6chUIGBbsQh85w==
+X-Gm-Gg: AZFdTZdgg6PjYPg9ScTBLPaQAZm5gOQ7bUo9YcPe27BAx3+ZoMipo8BVXYliy9QBxgh
+	nOJ7ALceAnkmsT4nq7a6V1CrzJe/wesMPp3+0SeXqy5u2T8xLwW9CWqflYAesTjIvUQk17dpCYT
+	2z0pMJt5VcS369D7LmhHNAmwbcstDDMwQ8jV9GzuNE0wQtdAeQ/57ABvW+xuDChuSm2sytZ+27T
+	P2LSz/bak9bcRSQh+r9dJaZt7XFImtfscCJe70WGMDS52hZX0+mnDmLh0n2iOtRMOQzFm0pJrUe
+	YTUUa0Ixn36XpkVvMIc8CKrNOE9MQiEr04zQIC/QBcUPq93pqIu0FhrrR0v8+l0obVEbAncylB1
+	G8kXQfsDltnsSJIiv3VhdBe+t5ewntROlLyZiGtzSZHTM7dlq4jsFQ5n0SckrX/ejHsBkSBsubT
+	eHQDdMjrRQ+JhyarVySUBJEy+iUEzj/bRttmDdAIIQomcdTFfKY03VjiTsm+7jP5jbFpIwAoD4N
+	V4c3+SLhbaMw45PMz8Q2cLursssU/VuFAcMX4Qb8ZIqqOdYFqqAa6MYV0Apu1DIRJ76HU8VdP2Q
+	UufCL21w3uC5aKLQy8pDw+5efPsj5wwSlYwJjzikZ5s0bEU=
+X-Received: by 2002:a05:600c:4514:b0:4bb:6823:3d3c with SMTP id 5b1f17b1804b1-4bb888169d0mr516683475e9.20.1795774064226;
+        Fri, 27 Nov 2026 02:07:44 -0800 (PST)
+Received: from localhost.localdomain ([2a04:ee41:4:b2de:1ac0:4dff:fe0f:3782])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4bba6a0d65fsm196561955e9.3.2026.11.27.02.07.43
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 27 Nov 2026 02:07:43 -0800 (PST)
+From: Anton Protopopov <a.s.protopopov@gmail.com>
+To: Vignesh Raghavendra <vigneshr@ti.com>,
+	Siddharth Vadapalli <s-vadapalli@ti.com>,
+	Manivannan Sadhasivam <mani@kernel.org>,
+	=?UTF-8?q?Krzysztof=20Wilczy=C5=84ski?= <kwilczynski@kernel.org>,
+	Lorenzo Pieralisi <lpieralisi@kernel.org>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Rob Herring <robh@kernel.org>,
+	Aksh Garg <a-garg7@ti.com>,
+	linux-pci@vger.kernel.org,
+	linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org
+Cc: Anton Protopopov <a.s.protopopov@gmail.com>
+Subject: [PATCH] PCI: j721e: Properly check the error of a syscon lookup
+Date: Fri, 27 Nov 2026 10:19:13 +0000
+Message-ID: <20261127101915.1348807-1-a.s.protopopov@gmail.com>
+X-Mailer: git-send-email 2.43.0
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -58,72 +103,34 @@ List-Subscribe: <mailto:linux-omap+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
-Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=UTF-8
-Date: Fri, 27 Nov 2026 10:01:51 +0100
-Message-Id: <DN5VDKIB939X.2SRX526HPDGH1@bootlin.com>
-Cc: "Roger Quadros" <rogerq@kernel.org>, "Andrew Lunn"
- <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, "Eric
- Dumazet" <edumazet@kernel.org>, "Jakub Kicinski" <kuba@kernel.org>, "Paolo
- Abeni" <pabeni@redhat.com>, "Bo Mellberg" <bo.mellberg@se.com>, "Ravi
- Gunasekaran" <r-gunasekaran@ti.com>, "Thomas Petazzoni"
- <thomas.petazzoni@bootlin.com>, <linux-omap@vger.kernel.org>,
- <netdev@vger.kernel.org>, "Pascal Eberhard" <pascal.eberhard@se.com>,
- <srk@ti.com>
-Subject: Re: [PATCH net-next] net: ethernet: ti: davinci_mdio: enable MDIO
- manual mode for AM62PX
-From: "Paul Louvel" <paul.louvel@bootlin.com>
-To: "Siddharth Vadapalli" <s-vadapalli@ti.com>, "Paul Louvel"
- <paul.louvel@bootlin.com>
-X-Mailer: aerc 0.22.0-0-gc2f86b7abde3
-References: <20261125-am62p-mdio-bitbang-v1-1-aebf1f5fa3fc@bootlin.com>
- <DN57K7KTZK8P.1M20MF8V8E3U7@bootlin.com>
- <8efc9453-bb4f-46f7-94c5-a3215b287f84@ti.com>
-In-Reply-To: <8efc9453-bb4f-46f7-94c5-a3215b287f84@ti.com>
-X-Last-TLS-Session-Version: TLSv1.3
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Hi Siddharth,
+The syscon_regmap_lookup_by_phandle_optional() function returns NULL
+only when the property is missing (-ENODEV). On other errors it returns
+an error pointer. The j721e_pcie_ctrl_init() function checks only for
+NULL and passes an error pointer to j721e_enable_acspcie_refclk(),
+which uses it as a regmap. Propagate the error instead.
 
-On Fri Nov 27, 2026 at 2:24 AM CET, Siddharth Vadapalli wrote:
->> On Wed Nov 25, 2026 at 4:08 PM CET, Paul Louvel (Schneider Electric) wro=
-te:
->>> The problem described in Errata i2329 also affect the TI AM62PX SoC,
->>> despite not being listed in the following document:
->>>
->>> https://www.ti.com/lit/er/sprz574b/sprz574b.pdf
->>>
->>> Add it to the structure that enables MDIO manual mode.
->
-> Internal documentation clarifies that AM62PX SoC is NOT affected by=20
-> i2329. Therefore, AM62PX is not listed in the documented on purpose (it=
-=20
-> is not a documentation gap).
->
+Fixes: 82c4be4168e2 ("PCI: j721e: Enable ACSPCIE Refclk if "ti,syscon-acspcie-proxy-ctrl" exists")
+Signed-off-by: Anton Protopopov <a.s.protopopov@gmail.com>
+---
 
-Ok.
+(Accidentally bumped into this while working on BPF stuff.)
 
->
-> While switching to manual mode seems to fix the issue as described on=20
-> the E2E, the underlying cause is different (possibly a PHY issue that is=
-=20
-> exposed when using the Hardware-State-Machine, but is masked when using=
-=20
-> the Manual Mode with Software).
->
-> I believe it is incorrect to add AM62PX as an affected platform given=20
-> that the Errata doesn't affect AM62PX and also given the Software=20
-> overhead with MDIO Manual Mode.
->
-> Regards,
-> Siddharth.
->
+ drivers/pci/controller/cadence/pci-j721e.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Make sense, thanks for the clarification.
-
-Best regards,
---=20
-Paul Louvel, Bootlin
-Embedded Linux and Kernel engineering
-https://bootlin.com
-
+diff --git a/drivers/pci/controller/cadence/pci-j721e.c b/drivers/pci/controller/cadence/pci-j721e.c
+index 822602836b12..fdae51e368e0 100644
+--- a/drivers/pci/controller/cadence/pci-j721e.c
++++ b/drivers/pci/controller/cadence/pci-j721e.c
+@@ -334,6 +334,8 @@ static int j721e_pcie_ctrl_init(struct j721e_pcie *pcie)
+ 						"ti,syscon-acspcie-proxy-ctrl");
+ 	if (!syscon)
+ 		return 0;
++	if (IS_ERR(syscon))
++		return PTR_ERR(syscon);
+ 
+ 	return j721e_enable_acspcie_refclk(pcie, syscon);
+ }
