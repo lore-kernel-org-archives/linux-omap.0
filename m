@@ -1,65 +1,87 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795804617;
-	b=BpXMOFrWvPVJQldn8DpN7b0Z5QQwk/3m1XufTg17QWGK5i/JEmmJx7PGcXJKsVtbVLbG
-	 UK5+kprtq1cTesQMuOmJmAfVsj7se5Ca62zLPfgXRNA8J8tmtvkpBkHHNWLNIYFsVi8/P
-	 jXqrEpsaV7QQit5Snerqr0iBWEU+/SUGinyYFN3G0GfaHmJ25Emen6Y9VDge1njFd2qNt
-	 8pBe1hRjh7Y14lpTZ0pquHCzjBgc6Hd+VUnCgcolqpMV8D2Dxfihd7BsO04vh2sIZCC2t
-	 8KI9zS1k/lDhkbbmk+eCW9zWsYRb8ImVUvkfMlOcKt4T/C927ZhY6bgr8SAWr2/s8gQ==
+	t=1795807589;
+	b=cpT9weYkWxDCoBkGm8zRFQ+06LUuAYRSwVgl0n48AezESjJpRbmF9x0TZqa/QleHFiLZ
+	 5/U4ZE++mmcM330Fv6WewVeRXpjyfVBOHVOYwXrjKv1a7A+yZu3qTpW6/09IIdHg1jIn0
+	 Yw4pclc0mllbxN2rXp1pljo7Eqb7aHp6Gxur0hsuR89RlThhGtTcU2EMv6N50i0MRqc3W
+	 x/Kog/rUXZ9WKUu8XTP84lP9l0mGc5aC2S3O7nNXqBej4ftX+t4r0C1ti4L3+PKgyKGTP
+	 3MOp+te7Ia4YxJo+dmux62G5OWVtxqK+itQKHFECLhSLV+LMzTRBxpmwlxivu8pr7jA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795804617;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795807589;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=9+/JLOm6t3ePC4KR4UQzDZNsuXPLcaUwcUQv+WyJLd4=;
-	b=2VH2P1xCuuMaMBzIg35yiGNPS1hwS/gQNKSYM4+9W15GJXFI5jfGhMK9M+NFdiP19wFs
-	 YYR2d4YyidW9K2NMA34L6zCvyC6WBC1nCGhYPjvYGeAXwDw9OD0BGIXsHTr6sDOakFHwR
-	 /mTHzsD9fyvU4sfvw2gGUDQnk966Z3lZyE6YxQY9CoelZc860i0dik35c/NeSsPNV7rbJ
-	 xTosBGCMq70yuuBtPzTi8462DimcvJNj022VLJi5IPxfSlT2nJs/uAh5GMHUoY/thSdJU
-	 sTyJVeLuIPAJkz3J+hsINPspJg6m7KGyqswTztLcz75TUqsrQpyohnUDo3LiPJ/J6Cg==
+	 MIME-Version:Content-Type:Content-Transfer-Encoding;
+	bh=0Bj2HfA+RacmXf4tT16y1Nvz3cM+4pVUyjdUHKbVS6w=;
+	b=bNVIIU3HcGbscXkYMjfxxwO3+6FdBFA0CUieiLkKq/XuSieRf6ByXn26wp/Mh9oWr0tH
+	 YuCH/dxihwF145Do741vnw5NISpG5yTxM25UgXW695pzGnMtbzvQe1IxEfbrnAvRCCxk1
+	 961QqPgsT5Rd24Q9kw8020JKYVFfegi8fuyoR6DSQ5m6Mfy0hWO6qi/G279wgD41m3eBm
+	 uejW4n2jnvD7qVOssBiEi2bfJid2u/o4o16xHSLqTcEXR26tH25PsS1Xs3Q7W2k0SQI3E
+	 of7ilN4GYr1SydCUaQVBrC1tmft745f7bJ909ACgVFCXklKL8BMPo60vRXrjtiJhO0A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dzGa5oCG;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OF3EfNgR;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DC4B606A33C;
-	Fri, 27 Nov 2026 18:36:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF24F606A31C;
+	Fri, 27 Nov 2026 19:26:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=dzGa5oCG
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F18E31F000C1;
-	Fri, 27 Nov 2026 18:36:54 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=OF3EfNgR
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B31B11F00899;
+	Fri, 27 Nov 2026 19:26:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795804617;
-	bh=9+/JLOm6t3ePC4KR4UQzDZNsuXPLcaUwcUQv+WyJLd4=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=dzGa5oCGLgeAx5PjXJ79y03M5s26YauS+eKULGRUVtiFkT3Qg3nUl6N1XB4TqHePV
-	 wq5HAzS8xxGsuJtVbhpsA3kCH5KNYve1jw3bxDSA5Fnucna90A+6gGs4HqAdkvsJJx
-	 0EgcA681VBCMrj1pmw70t4z6lE9AeVGcs/cDj7KkqdBB51QCa0viuQeQ7GzLWcV4+g
-	 IhRx1zAYNmAHVNw/iRxqWiJk96A3ryCv6o8gG7ykr7DkyXpse3RYFrq51e3NRQPkr7
-	 KA5CQlLjAPGQ2/3PAtqvitD34KR8KNbdSZsni+w5INLYDNHSi5RdNCOJ6R5IPtTif4
-	 DZxPEc5Dpjd5g==
+	s=k20260515; t=1795807589;
+	bh=0Bj2HfA+RacmXf4tT16y1Nvz3cM+4pVUyjdUHKbVS6w=;
+	h=From:To:Cc:Subject:Date;
+	b=OF3EfNgRN+x5+FYr5KfqcWvf0pbWlwgu+0wy2XuPXwrMt+6BFUZmr7IYsMxke1tAR
+	 2H8siDyj/38n9CKtkV67H4YremSwVVgxOnjHAr+9vMeaE1GtIwYIQFOR+GranT1NZW
+	 Z5rGvx0cm7bFnbSxl1BHRpCy247QHU65ILaXuRcKrAtczFR5DBelI0c+GyMqHLSF6s
+	 go8ygOgIiF4g/Ni+xoE5tVBPdpNbs+fXk6ahqf7HS6wGdBpBLyyojE0YAW5Nsp1iaI
+	 voET/Ktf0U33MxcyO0+8ZMT9aQVAzF9sb0h/TIwQi1dwFyN5Mf+8geIV26Y31p5Xzm
+	 oHrdZ0DzRtdlg==
 From: Lee Jones <lee@kernel.org>
 To: lee@kernel.org,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Andreas Kemnade <andreas@kemnade.info>,
-	Kevin Hilman <khilman@baylibre.com>,
-	Roger Quadros <rogerq@kernel.org>,
-	Tony Lindgren <tony@atomide.com>,
-	Liam Girdwood <lgirdwood@gmail.com>,
-	Mark Brown <broonie@kernel.org>,
-	Graeme Gregory <gg@slimlogic.co.uk>,
-	Eduardo Candelaria <jedu@slimlogic.co.uk>,
-	Markus Schneider-Pargmann <msp@baylibre.com>,
+	Heiko Stuebner <heiko@sntech.de>,
+	linux-arm-kernel@lists.infradead.org,
+	linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org,
+	"Thomas Richard (TI)" <thomas.richard@bootlin.com>,
+	Andrea della Porta <andrea.porta@suse.com>,
+	Brian Masney <bmasney+clk@redhat.com>,
+	Conor Dooley <conor.dooley@microchip.com>,
+	Dominique Belhachemi <db@domibel.de>,
+	Doug Anderson <dianders@chromium.org>,
+	Emil Renner Berthing <kernel@esmil.dk>,
+	Florian Fainelli <florian.fainelli@broadcom.com>,
+	Hal Feng <hal.feng@starfivetech.com>,
+	Jerome Brunet <jbrunet+clk@baylibre.com>,
+	Jonathan Hunter <jonathanh@nvidia.com>,
+	Joshua Peisach <jpeisach@ubuntu.com>,
+	Linus Walleij <linusw@kernel.org>,
+	linux-clk@vger.kernel.org,
 	linux-omap@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: stable@vger.kernel.org
-Subject: [PATCH 4/8] regulator: tps65910: Fix OOB read and bit shift in external sleep config
-Date: Fri, 27 Nov 2026 18:35:44 +0000
-Message-ID: <20261127183624.3341010-5-lee@kernel.org>
+	linux-tegra@vger.kernel.org,
+	Michael Turquette <mturquette@linaro.org>,
+	Michal Wilczynski <m.wilczynski@samsung.com>,
+	Naushir Patuck <naush@raspberrypi.com>,
+	Nishanth Menon <nm@ti.com>,
+	Palmer Dabbelt <palmer@rivosinc.com>,
+	Prashant Gaikwad <pgaikwad@nvidia.com>,
+	Rob Herring <robh@kernel.org>,
+	Rosen Penev <rosenp@gmail.com>,
+	Santosh Shilimkar <ssantosh@kernel.org>,
+	Stephen Boyd <sboyd@kernel.org>,
+	Tero Kristo <kristo@kernel.org>,
+	Thierry Reding <thierry.reding@kernel.org>,
+	Thomas Abraham <thomas.ab@samsung.com>,
+	Timo Alho <talho@nvidia.com>,
+	Tony Lindgren <tony@atomide.com>,
+	Wentao Liang <vulab@iscas.ac.cn>,
+	Xingyu Wu <xingyu.wu@starfivetech.com>
+Subject: [PATCH 00/10] clk: Fix OOB writes, UAFs, ERR_PTR dereferences, and rate-calc bugs (batch 2)
+Date: Fri, 27 Nov 2026 19:25:24 +0000
+Message-ID: <20261127192620.3443537-1-lee@kernel.org>
 X-Mailer: git-send-email 2.56.1.839.g22a8290db9-goog
-In-Reply-To: <20261127183624.3341010-1-lee@kernel.org>
-References: <20261127183624.3341010-1-lee@kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -69,97 +91,78 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-tps65910_regs contains 14 regulators including VBB at index 13, whereas
-tps65910_ext_sleep_control has only 13 elements.  Both tps65910_probe()
-and tps65910_shutdown() iterate up to pmic->num_regulators and index
-pmic->ext_sleep_control[id] out of bounds for VBB.
+These issues were reported by Sashiko.
 
-In addition, unsupported rails such as VRTC use 0, which collides with
-VMMC and LDO6 (offset 0, bit 0), and computing
-(1 << pmic->ext_sleep_control[id] & 0xFF) shifts by more than 31 bits
-whenever regs_offs is non-zero because << binds tighter than &.
+This is batch 2 of Common Clock Framework fixes, based on clk/clk-next.
+It addresses output array OOB writes in ti/fapll, ERR_PTR dereferences
+and double-unregister in tegra/bpmp, notifier UAFs and global array
+mutation in starfive/jh7110 and rockchip/cpu, rate and parent lookup
+bugs in rp1, and allocation error handling in sci-clk and icst.
 
-Introduce EXT_CONTROL_REG_NONE as a distinct sentinel for rails without
-external sleep control (VRTC and VBB), add BUILD_BUG_ON() array-size
-checks, return early in tps65910_set_ext_sleep_config() for unsupported
-rails, and use BIT(pmic->ext_sleep_control[id] & 0xFF) for bit_pos.
+Cc: "Thomas Richard (TI)" <thomas.richard@bootlin.com>
+Cc: Andrea della Porta <andrea.porta@suse.com>
+Cc: Brian Masney <bmasney+clk@redhat.com>
+Cc: Conor Dooley <conor.dooley@microchip.com>
+Cc: Dominique Belhachemi <db@domibel.de>
+Cc: Doug Anderson <dianders@chromium.org>
+Cc: Emil Renner Berthing <kernel@esmil.dk>
+Cc: Florian Fainelli <florian.fainelli@broadcom.com>
+Cc: Hal Feng <hal.feng@starfivetech.com>
+Cc: Heiko Stuebner <heiko@sntech.de>
+Cc: Jerome Brunet <jbrunet+clk@baylibre.com>
+Cc: Jonathan Hunter <jonathanh@nvidia.com>
+Cc: Joshua Peisach <jpeisach@ubuntu.com>
+Cc: Linus Walleij <linusw@kernel.org>
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-clk@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
+Cc: linux-rockchip@lists.infradead.org
+Cc: linux-tegra@vger.kernel.org
+Cc: Michael Turquette <mturquette@linaro.org>
+Cc: Michal Wilczynski <m.wilczynski@samsung.com>
+Cc: Naushir Patuck <naush@raspberrypi.com>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: Palmer Dabbelt <palmer@rivosinc.com>
+Cc: Prashant Gaikwad <pgaikwad@nvidia.com>
+Cc: Rob Herring <robh@kernel.org>
+Cc: Rosen Penev <rosenp@gmail.com>
+Cc: Santosh Shilimkar <ssantosh@kernel.org>
+Cc: Stephen Boyd <sboyd@kernel.org>
+Cc: Tero Kristo <kristo@kernel.org>
+Cc: Thierry Reding <thierry.reding@kernel.org>
+Cc: Thomas Abraham <thomas.ab@samsung.com>
+Cc: Timo Alho <talho@nvidia.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Wentao Liang <vulab@iscas.ac.cn>
+Cc: Xingyu Wu <xingyu.wu@starfivetech.com>
 
-Fixes: 03746dcbde75 ("regulator: tps65910: Add backup battery regulator")
-Closes: https://sashiko.dev/#/bug/linux-ed3bcc60-149e-497b-93aa-50138953c49a
-Cc: stable@vger.kernel.org
-Signed-off-by: Lee Jones <lee@kernel.org>
----
- drivers/regulator/tps65910-regulator.c | 20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+Lee Jones (10):
+  clk: ti: fapll: Fix output clock array allocation and bounds check
+  clk: tegra: bpmp: Drop manual clock unregister on provider failure
+  clk: starfive: jh7110-sys: Use devres for PLL0 clock and notifier
+  clk: starfive: jh7110: Duplicate top clock bulk arrays per device
+  clk: rockchip: cpu: Allocate rate_table before registering notifier
+  clk: tegra: bpmp: Skip ERR_PTR entries in tegra_bpmp_clk_of_xlate()
+  clk: rp1: Propagate determine_rate() return value for PLL dividers
+  clk: rp1: Reference secondary PLL divider clk_hw in parent tables
+  clk: keystone: sci-clk: Check allocation failure before copying clock
+    array
+  clk: versatile: icst: Check kasprintf() and put parent node on error
 
-diff --git a/drivers/regulator/tps65910-regulator.c b/drivers/regulator/tps65910-regulator.c
-index b99923773701..d42ffc237bf4 100644
---- a/drivers/regulator/tps65910-regulator.c
-+++ b/drivers/regulator/tps65910-regulator.c
-@@ -271,9 +271,10 @@ static struct tps_info tps65911_regs[] = {
- 	},
- };
- 
-+#define EXT_CONTROL_REG_NONE			(~0U)
- #define EXT_CONTROL_REG_BITS(id, regs_offs, bits) (((regs_offs) << 8) | (bits))
- static unsigned int tps65910_ext_sleep_control[] = {
--	0,
-+	EXT_CONTROL_REG_NONE,
- 	EXT_CONTROL_REG_BITS(VIO,    1, 0),
- 	EXT_CONTROL_REG_BITS(VDD1,   1, 1),
- 	EXT_CONTROL_REG_BITS(VDD2,   1, 2),
-@@ -286,10 +287,11 @@ static unsigned int tps65910_ext_sleep_control[] = {
- 	EXT_CONTROL_REG_BITS(VAUX2,  0, 4),
- 	EXT_CONTROL_REG_BITS(VAUX33, 0, 5),
- 	EXT_CONTROL_REG_BITS(VMMC,   0, 0),
-+	EXT_CONTROL_REG_NONE,
- };
- 
- static unsigned int tps65911_ext_sleep_control[] = {
--	0,
-+	EXT_CONTROL_REG_NONE,
- 	EXT_CONTROL_REG_BITS(VIO,     1, 0),
- 	EXT_CONTROL_REG_BITS(VDD1,    1, 1),
- 	EXT_CONTROL_REG_BITS(VDD2,    1, 2),
-@@ -822,10 +824,16 @@ static int tps65910_set_ext_sleep_config(struct tps65910_reg *pmic,
- 		int id, int ext_sleep_config)
- {
- 	struct tps65910 *mfd = pmic->mfd;
--	u8 regoffs = (pmic->ext_sleep_control[id] >> 8) & 0xFF;
--	u8 bit_pos = (1 << pmic->ext_sleep_control[id] & 0xFF);
-+	u8 regoffs;
-+	u8 bit_pos;
- 	int ret;
- 
-+	if (pmic->ext_sleep_control[id] == EXT_CONTROL_REG_NONE)
-+		return 0;
-+
-+	regoffs = (pmic->ext_sleep_control[id] >> 8) & 0xFF;
-+	bit_pos = BIT(pmic->ext_sleep_control[id] & 0xFF);
-+
- 	/*
- 	 * Regulator can not be control from multiple external input EN1, EN2
- 	 * and EN3 together.
-@@ -1104,6 +1112,8 @@ static int tps65910_probe(struct platform_device *pdev)
- 	switch (tps65910_chip_id(tps65910)) {
- 	case TPS65910:
- 		BUILD_BUG_ON(TPS65910_NUM_REGS < ARRAY_SIZE(tps65910_regs));
-+		BUILD_BUG_ON(ARRAY_SIZE(tps65910_regs) !=
-+			     ARRAY_SIZE(tps65910_ext_sleep_control));
- 		pmic->get_ctrl_reg = &tps65910_get_ctrl_register;
- 		pmic->num_regulators = ARRAY_SIZE(tps65910_regs);
- 		pmic->ext_sleep_control = tps65910_ext_sleep_control;
-@@ -1117,6 +1127,8 @@ static int tps65910_probe(struct platform_device *pdev)
- 		break;
- 	case TPS65911:
- 		BUILD_BUG_ON(TPS65910_NUM_REGS < ARRAY_SIZE(tps65911_regs));
-+		BUILD_BUG_ON(ARRAY_SIZE(tps65911_regs) !=
-+			     ARRAY_SIZE(tps65911_ext_sleep_control));
- 		pmic->get_ctrl_reg = &tps65911_get_ctrl_register;
- 		pmic->num_regulators = ARRAY_SIZE(tps65911_regs);
- 		pmic->ext_sleep_control = tps65911_ext_sleep_control;
+ drivers/clk/clk-rp1.c                         | 32 +++++++++----------
+ drivers/clk/keystone/sci-clk.c                |  8 +++--
+ drivers/clk/rockchip/clk-cpu.c                | 26 +++++++--------
+ .../clk/starfive/clk-starfive-jh7110-isp.c    |  9 ++++--
+ .../clk/starfive/clk-starfive-jh7110-sys.c    |  5 +--
+ .../clk/starfive/clk-starfive-jh7110-vout.c   |  9 ++++--
+ drivers/clk/tegra/clk-bpmp.c                  | 14 +-------
+ drivers/clk/ti/fapll.c                        | 13 +++++---
+ drivers/clk/versatile/clk-icst.c              |  5 +++
+ 9 files changed, 66 insertions(+), 55 deletions(-)
+
 -- 
 2.56.1.839.g22a8290db9-goog
 
