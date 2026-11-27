@@ -1,85 +1,96 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.218.54
-ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795809788;
-	b=nYN1FmfTUaDS8cTa+qziQS1okfnj0NeYVIB1sPea1iu1ourzbYh5LHkOREpYtUUeiNjx
-	 hMbKQMGE/ofNioOu/wB5X3OnkHu9ZRVwzl+IMKuBLBGbhdAjCb1Smy2QPYKX5xDnN8C5o
-	 giCHq3bxN5OfiX01eu3afurNg7f8LdF6J/u/Of56BmoXLl2KkcN9aG0+JbZ5v3LJ3ybnQ
-	 jWcK+nhUkigdVi5oOTIzgY8+vvunUtM8caKN80cHFfU4uTPBUVMhfpXs/SbXoIwvPNjci
-	 dxGEAOAUOpsvywtCnsfFHosGcdJ3SmMxYQPrlWe96HeI/t7/MBtIlE/kbZHK0SWadhQ==
-ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795809788;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
-	 MIME-Version:Content-Type:Content-Transfer-Encoding:Subject:From:To:
-	 Cc:In-Reply-To:References:Date:Message-Id:X-Mailer:
-	 X-Developer-Signature:X-Developer-Key;
-	bh=wtusPwl7oTxkglScGF7WcIoLENdcCkcXrxudV6XyW/M=;
-	b=GKPH2cbtoFWYm0w1LwPrphlVeVl5QCrQFq8qcmj7E0SPQsoOSeYTuWR0DkoI9/viSZK/
-	 qNZ507yw/FSNH+cLc5gfRiWqA4DUzp8UFMvHHIK5b/2PlH33MVD6IlqAjfh4TEHd6wxaz
-	 QEgVkxp6w6yQpt28NxkfNAyExoktkS5HQV1X5ig8XykFeUMvRiaHHXA6rOersDXKzW2cQ
-	 bzCDzAsQnWvCj1IG1vI+tNiN9M1nbIykNInq2KKLRCYmSrNwe/ePiZBK608NCQiVWC24K
-	 VLttx6J4WZtiWzLtvjyzP5GzZRrSR30vQ64RXWkzsUWoskYabmOd7uo+2smTZlho3wg==
-ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=baylibre.com;
-	spf=pass smtp.mailfrom=baylibre.com;
-	dkim=pass header.d=baylibre.com header.i=@baylibre.com header.a=rsa-sha256 header.s=google header.b=n2R6FiKp;
-	arc=none smtp.remote-ip=209.85.218.54
-Received: from mail-ej1-f54.google.com (mail-ej1-f54.google.com [209.85.218.54])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass header.oldest-pass=0 smtp.remote-ip=185.56.87.7
+ARC-Seal: i=2; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=pass;
+	t=1795820923;
+	b=Q9W2V/8sGU2Yoy3LIZo7poApqKmjdnQspbex1Iujq+QcaCmUAwVZbcgfSGUekEVUxJgb
+	 OSwn1HV0/UT7SWX1nqt73CxWY25ShlA07AfUHVwDOIFKYTrioJGt9cD1XReDK9wGYgTI/
+	 9w5fW1XmQr/8pRaCGgkcrffOhovwr7DieFaWpJWXk2XQImkzeTyMuL5y/9W6DZhZS3MJL
+	 wNYAZylcc/E+A/HDQs8djhZdOxbVpPkmDPIOzo5y361ke0eJ+neyF/i4mlqPJZsXC3qBA
+	 sSH3uCy/uCZwgtNJ+ksMo4yuqu5v8ei9ZTaqE+6AnnMxsWpntpg5SMwD52PLUnje0Nw==
+ARC-Message-Signature: i=2; d=subspace.kernel.org; s=arc20261015;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795820923;
+	h=DMARC-Filter:DKIM-Signature:Received:DKIM-Signature:Received:Date:
+	 From:To:Cc:Subject:Message-ID:References:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To:X-AntiAbuse:X-AntiAbuse:X-AntiAbuse:
+	 X-AntiAbuse:X-AntiAbuse:X-Source:X-Source-Args:X-Source-Dir:
+	 X-SGantispam-id:X-AntiAbuse:AntiSpam-DLS:AntiSpam-DLSP:AntiSpam-DLSRS:
+	 AntiSpam-TS:CFBL-Address:CFBL-Feedback-ID;
+	bh=2aKwOdGMMIB1hqfLfsxJEasVHbzKhJFSh6e5iMy10HQ=;
+	b=DdfrhNysueKtCIl4LewelEY+Z9G5kNMrfniNVFuB3dLcN1q96K3JvH3cCwSiCX6EFaWk
+	 xRYNoA1cuC7fg2ZIiE3K8qFvSGmC7qWZiyUmP74j3qxtpaJ215tfltuhT/d7d8bQkd2Qg
+	 MWVqn8QRQWwd5k5v4UO/LqsCNsd5YlMjXzBgC8/u9g7BqJl501GfXFFxfSq4C29d8bJAf
+	 JwdUO4AVOs89qBDvshK9cJM6CAVcXSC5RkgTiTTCbtxx53eAVhrxvzXDyl10BCAB3/xmC
+	 L0dj1+8aOCxAfUxqAaT0bR6AmQzaccLzN2pMTK7PiMKnr9qPvAOxEH07aF1AdtaIyGg==
+ARC-Authentication-Results: i=2; smtp.subspace.kernel.org; 
+	dmarc=pass header.from=valla.it;
+	spf=pass smtp.mailfrom=valla.it;
+	dkim=pass header.d=antispam.mailspamprotection.com header.i=@antispam.mailspamprotection.com header.a=rsa-sha256 header.s=default header.b=vT7Ave8i;
+	dkim=pass header.d=valla.it header.i=@valla.it header.a=rsa-sha256 header.s=default header.b=CYWR3urS;
+	arc=pass header.oldest-pass=0 smtp.remote-ip=185.56.87.7
+Received: from delivery.antispam.mailspamprotection.com (delivery.antispam.mailspamprotection.com [185.56.87.7])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 557F4606A31C
-	for <linux-omap@vger.kernel.org>; Fri, 27 Nov 2026 20:03:08 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 557F4606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=baylibre.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baylibre.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C7B6606A31F;
+	Fri, 27 Nov 2026 23:08:42 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 1C7B6606A31F
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=valla.it
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=valla.it
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=baylibre.com header.i=@baylibre.com header.a=rsa-sha256 header.s=google header.b=n2R6FiKp
-Received: by mail-ej1-f54.google.com with SMTP id a640c23a62f3a-c4d2b741ed9so1355518966b.2
-        for <linux-omap@vger.kernel.org>; Fri, 27 Nov 2026 12:03:08 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=baylibre.com; s=google; t=1795809787; x=1796414587; darn=vger.kernel.org;
-        h=message-id:date:references:in-reply-to:cc:to:from:subject
-         :content-transfer-encoding:content-type:mime-version:from:to:cc
-         :subject:date:message-id:reply-to:content-type;
-        bh=wtusPwl7oTxkglScGF7WcIoLENdcCkcXrxudV6XyW/M=;
-        b=n2R6FiKpuo8g8obEOm2WV36wL4nr03F4a4p5Nyd0b2wdtPQbbdxheWIYRfJxzmZb3+
-         O2uuDZi0uiaRR82uvCRPvAceWhP6zDVXz1OoocXKjcgBdfGYu5+22YfyBooVCoPKn0vb
-         r3D8qlvSHEZrhAGWsfmzXQbzDcPYrHAIRTqsZ8RA+mGo9ottqiGedVNrCrZjIfpbMUbK
-         daqNU1T6ZxAeN6QzRxvkmpuSn/9lf6SmQK+ByQ8IC8jIHeNICeMgIr5qlFtzEkXyQDnP
-         aumrrQUn8yPuqlr1pakQcTxfinAX7L31iaQpgA14Yqa4x1BmedsGkQVWOQm/ejRHzr28
-         OTDA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1795809787; x=1796414587;
-        h=message-id:date:references:in-reply-to:cc:to:from:subject
-         :content-transfer-encoding:content-type:mime-version:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=wtusPwl7oTxkglScGF7WcIoLENdcCkcXrxudV6XyW/M=;
-        b=uhxCsBq3rpFgXKklMcDv2z6Omky2UfPmnjs/xWwAOC9GAYCSi7TyW/5GN0uj8mHEhc
-         0J5sIU/QnkNn/yGI6G23VEsbsebdFDBNSyaExEA4nxSvE6iNGyMGc58Vl+ouU64pZDyW
-         BQpDwrPJKJJRUtbcpwwiWF2FO49ZIISG7mhJ42TaA81lYzbw3PTPYuElLhy+nblJjZ4i
-         M8Da1GimTzHs8BFwMV6mR1utW4Wq/cQPHKyxCWgXrw5cGHVRl88T1dlyR2V04Em9NUbj
-         ZwcyJkoQ+ikquk0RbTR/pJ0QcnI+vs6R0PAmbqdnan+krycp+K2EFbXQnG17+67nAnBn
-         CODw==
-X-Forwarded-Encrypted: i=1; AL+hErEofD2hklEhrh5l27LkS2dMq2SNx1Y4OhHNMzV7kMEoH+rrLwOz5o9AziaUAgkWgnM9fJH62B4kVYLC@vger.kernel.org
-X-Gm-Message-State: APuU4Z9Ky7WpiVXXTp1LdDkcsXfaR0wLjZ3UR/PbrdQw/JFHLceZ+nHM
-	xymed/1oG5J9URPb4xML4RaejobYGJSMaXYJ+31iycsX3u/sQ4GTJlLqzGSP194xl5w=
-X-Gm-Gg: AZFdTZd6cucCOWgVp92ixy/XOHoxH1SW+Ibz7lzi6XR79WNoGRe64nlmiOchNr4gafO
-	DoHykXg0dgUfLE304mxdeQf/FXJVuqWPryECtiGS5dl37HXeBXs4mYjk+VYU/c2cFmwAcFO8YKC
-	/PahPSTdkqIbE7s7w80tM9n6ewqc2B/A6d2AMR6TPcWBr5XSUah7ECQRWTmPt4lXtg9ZjiZ6m3/
-	RJ14fWIhOoBtt+SCFMNkJ9oRTjMrGSZsP3/BWLNgqsrCO+V8OfIH2EMGi5J4kxNLuwF7nEG7fzP
-	D6PKP0vJjDRrJa091JYpN78ice6j7fcIZqatlx30tSwFjY6FXRJPDxpfWjFNyr2H9gjkFzXTINy
-	78VfnY7iIKj/IIF7aFUT34DawDOx52D5JHgdn7mmOUU0ywa4PKc34u2cXQRfd7VhTgOKyD63yBV
-	B/L/WFt+27PYF9jEedH4OCqc8qX7Z5SOp57rgK/m22SaBKpAMVVBDO32/0CL31fLB9IOHjUnkMl
-	I4ZGaI8XJRXFDsJEXcBch4uKh32AVG+Txnpp/G8pNynNYwqUiuvfituUEmom6DxDs7UPVU9ebzX
-	d2bqX8MQCQ6PsS4p7QGQS7SzKWdvbsO8VrCWIXCkTUX5UI5C
-X-Received: by 2002:a17:906:5908:b0:c3f:d8f2:f08e with SMTP id a640c23a62f3a-c513aad1aa7mr1591096666b.44.1795809786817;
-        Fri, 27 Nov 2026 12:03:06 -0800 (PST)
-Received: from localhost (82-67-6-57.subs.proxad.net. [82.67.6.57])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c513ae661b3sm897861366b.16.2026.11.27.12.03.05
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 27 Nov 2026 12:03:06 -0800 (PST)
+	dkim=pass (1024-bit key, unprotected) header.d=antispam.mailspamprotection.com header.i=@antispam.mailspamprotection.com header.a=rsa-sha256 header.s=default header.b=vT7Ave8i;
+	dkim=pass (1024-bit key, unprotected) header.d=valla.it header.i=@valla.it header.a=rsa-sha256 header.s=default header.b=CYWR3urS
+ARC-Seal: i=1; cv=none; a=rsa-sha256; d=outgoing.instance-europe-west4-h034.prod.antispam.mailspamprotection.com; s=arckey; t=1795820922;
+	 b=kiAqa2+5i2pDb0fY9YhOWjj/gFVLela3NTKXaiaTEfYeBEQpprT2D5r9gkTS4IW2OtLBLU+ju1
+	  V+PplEs1Cn5mCY+VOGAahBx3aYbbodz/iBxcJEcy0kwThK59ew/+KBWAI0sDkCDHLuXKU5eP1k
+	  gH20mbXPb2p8n84LSJU3E5w33NeqSPFMWK29IcW+V6q4fM62PB8phLtjyuH6ekNQS60X8NUy7u
+	  VQJFywJD5JZgXHHN/iclqMSoUhwRPNs4OPtSpVhThfsg+HIXOmVOeGfrdphTGh9VOqEeKgMbwa
+	  lvMg3H7LRaWxAM6MiQmohjibOQKaqStH9HHuccwNCmQNEg==;
+ARC-Authentication-Results: i=1; outgoing.instance-europe-west4-h034.prod.antispam.mailspamprotection.com; smtp.remote-ip=35.214.173.214;
+	iprev=pass (214.173.214.35.bc.googleusercontent.com) smtp.remote-ip=35.214.173.214;
+	auth=pass (LOGIN) smtp.auth=esm19.siteground.biz;
+	dkim=pass header.d=valla.it header.s=default header.a=rsa-sha256;
+	arc=none
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed; d=outgoing.instance-europe-west4-h034.prod.antispam.mailspamprotection.com; s=arckey; t=1795820922;
+	bh=o1K/1aTR06oRd/vtbiHXltM41hdqaZFTCTLVqvH8L0A=;
+	h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:Subject:Cc:To:
+	  From:Date:DKIM-Signature:DKIM-Signature;
+	b=adnWQqWMlt1L3UI1SkuAp3qH1mQBbXzzhQVLdBUvUE500DSTtFDVzy7nz7p1VL6MQM0yYBtOEL
+	  g84Ja9aWycVV01FIKkEF2cAD3nlZpVRtkP4ndgfUu0S3ZSP00+Z8uqgpb+ENwShV6lTiWqHjld
+	  qisON4My61KYtOLMOPxmwYh8azeoBlixBdV9JfXhu2+cGoG9vA33h5soEb/l6YD+6qkP4tsSnH
+	  cFuvOg+daaxZm7XfM1qxDj8m5UTVkEwyT+HEjd+gghOKI5i0uov3IQNiwKOAKrIr5L49zxWz5L
+	  Gmat1+n0F6nWMKKm4k/NilLq4M8SfkVO/KgzfQEWYcsKsw==;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=antispam.mailspamprotection.com; s=default; h=CFBL-Feedback-ID:CFBL-Address
+	:Content-Type:MIME-Version:Message-ID:Subject:Cc:To:From:Date:Reply-To:
+	List-Unsubscribe:Content-Transfer-Encoding;
+	bh=2aKwOdGMMIB1hqfLfsxJEasVHbzKhJFSh6e5iMy10HQ=; b=vT7Ave8iStKMXeIrtb1Htl5tH7
+	HZXE3r91kCqohSSirrVE2quzo1IIfgXo7BDRNQA17K4o0NKRcl5TBa0VTWMSB5MvluIE5KsLGSOzf
+	QCGabS/gXetOuulCZwNIVirvwgeEyVWpOOn6iMZCjstnOc6pyng8wSMhACEDYDlF0aXs=;
+Received: from 214.173.214.35.bc.googleusercontent.com ([35.214.173.214] helo=esm19.siteground.biz)
+	by instance-europe-west4-h034.prod.antispam.mailspamprotection.com with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
+	(Exim 4.100.2)
+	(envelope-from <francesco@valla.it>)
+	id 1xX53Y-00000007oSR-1vpu;
+	Fri, 27 Nov 2026 23:08:41 +0000
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=valla.it;
+	s=default; h=Subject:Cc:To:From:Date:list-help:list-unsubscribe:
+	list-subscribe:list-post:list-owner:list-archive;
+	bh=2aKwOdGMMIB1hqfLfsxJEasVHbzKhJFSh6e5iMy10HQ=; b=CYWR3urSK9eq41PG4KnR8yV7gw
+	T4IXdfG54bEjjatWUnrnWMMp3UrXpqKqwVQbn2TrL6XPl3QIpbAutqlo8kIZncE6rQpN8Y5KbI//B
+	o4y7wThMI3mtFhPK120TRDtnq8s+y8hHuB6vqeb0hpXKgse559RfNB3uX/z0A/2xrXVU=;
+Received: from [79.28.115.6] (port=63978 helo=bywater)
+	by esm19.siteground.biz with essmtpa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
+	(Exim 4.100.2)
+	(envelope-from <francesco@valla.it>)
+	id 1xX53S-000000007uk-337N;
+	Fri, 27 Nov 2026 23:08:34 +0000
+Date: Sat, 28 Nov 2026 00:08:33 +0100
+From: Francesco Valla <francesco@valla.it>
+To: shyckless@gmail.com
+Cc: andersson@kernel.org, mathieu.poirier@linaro.org, 
+	linux-remoteproc@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] remoteproc: omap: Fix cleanup after timer start failure
+Message-ID: <awoLFmA_kZe2XXwt@bywater>
+References: <20261118-omap-rproc-v1-1-c2824060fd10@gmail.com>
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -89,52 +100,108 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH 2/6] clk: Add dev_clk_get_from_provider()
-From: Jerome Brunet <jbrunet@baylibre.com>
-To: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>, 
- Andreas Kemnade <andreas@kemnade.info>, Kevin Hilman <khilman@baylibre.com>, 
- Roger Quadros <rogerq@kernel.org>, Tony Lindgren <tony@atomide.com>, 
- Russell King <linux@armlinux.org.uk>, Paul Walmsley <paul@pwsan.com>, 
- Stephen Boyd <sboyd@kernel.org>, Brian Masney <bmasney+clk@redhat.com>, 
- Jerome Brunet <jbrunet+clk@baylibre.com>, Sandy Huang <hjc@rock-chips.com>, 
- =?utf-8?q?Heiko_St=C3=BCbner?= <heiko@sntech.de>, 
- Andy Yan <andyshrk@163.com>, Ulf Hansson <ulfh@kernel.org>, 
- linux-clk@vger.kernel.org, linux-renesas-soc@vger.kernel.org, 
- linux-rockchip@lists.infradead.org, linux-omap@vger.kernel.org, 
- linux-arm-kernel@lists.infradead.org, dri-devel@lists.freedesktop.org, 
- linux-pm@vger.kernel.org, Jerome Brunet <jbrunet@baylibre.com>
-In-Reply-To: <7155949aea78042fd399da5ad23a72765b2b6cc7.1795094688.git.geert+renesas@glider.be>
-References: <cover.1795094688.git.geert+renesas@glider.be>
- <7155949aea78042fd399da5ad23a72765b2b6cc7.1795094688.git.geert+renesas@glider.be>
-Date: Fri, 27 Nov 2026 21:02:59 +0100
-Message-Id: <179580977969.3028968.47907747276860033.b4-review@b4>
-X-Mailer: b4 0.17-dev
-X-Developer-Signature: v=1; a=openpgp-sha256; l=576; i=jbrunet@baylibre.com;
- h=from:subject:message-id; bh=w+BoHiPo+P6YGPZSkRwTWt/kGI08hfYqlVrPoLWDzrs=;
- b=owGbwMvMwCW2VtK+WnvWU3HG02pJDNmcD781zBdazCsg9lL/zber23mznz9vt33xqqNRSyql5
- 9/lP4XqHaUsDGJcDLJiiiw13NXi7yS1vsyarnMbZg4rE8gQBi5OAZjIejtGhnPrDj/t/PYpMF4p
- 5/BazfN3D21QT/A6eNT9yBfJZ1dZop8wMpzYzS/A8uDOTLmdR+uChb9oSs6TL/Rb7JC9947joo3
- LLnMBAA==
-X-Developer-Key: i=jbrunet@baylibre.com; a=openpgp;
- fpr=F29F26CF27BAE1A9719AE6BDC3C92AAF3E60AED9
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261118-omap-rproc-v1-1-c2824060fd10@gmail.com>
+X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
+X-AntiAbuse: Primary Hostname - esm19.siteground.biz
+X-AntiAbuse: Original Domain - vger.kernel.org
+X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
+X-AntiAbuse: Sender Address Domain - valla.it
+X-Source: 
+X-Source-Args: 
+X-Source-Dir: 
+X-SGantispam-id: c850323f0239a426b9b9aa71731776c9
+X-AntiAbuse: ID - c850323f0239a426b9b9aa71731776c9
+AntiSpam-DLS: false
+AntiSpam-DLSP: 
+AntiSpam-DLSRS: 
+AntiSpam-TS: 1.0
+CFBL-Address: feedback@antispam.mailspamprotection.com; report=arf
+CFBL-Feedback-ID: 1xX53Y-00000007oSR-1vpu-feedback@antispam.mailspamprotection.com
+Authentication-Results: outgoing.instance-europe-west4-h034.prod.antispam.mailspamprotection.com;
+	iprev=pass (214.173.214.35.bc.googleusercontent.com) smtp.remote-ip=35.214.173.214;
+	auth=pass (LOGIN) smtp.auth=esm19.siteground.biz;
+	dkim=pass header.d=valla.it header.s=default header.a=rsa-sha256;
+	arc=none
 
-On Thu, 19 Nov 2026 14:40:35 +0100, Geert Uytterhoeven <geert+renesas@glider.be> wrote:
-> Clocks obtained through of_clk_get_from_provider() show up as
-> "deviceless" in the consumer column of the clk_summary file in debugfs.
-> Add a new variant dev_clk_get_from_provider() that also takes a consumer
-> device, so callers can provide it, and consumer's name will be shown in
-> the clk_summary output.
+On Wed, Nov 18, 2026 at 03:38:25PM +0000, Suyuan Wang via B4 Relay wrote:
+> From: Suyuan Wang <stevewong@hust.edu.cn>
 > 
-> Reimplement of_clk_get_from_provider() on top of
-> dev_clk_get_from_provider().
+> When omap_rproc_start_timer() fails in omap_rproc_enable_timers(), the
+> error handling has three problems.
 > 
-> [...]
+> First, the stop loop also stops the timer that failed to start:
+> 
+> 	while (i >= 0) {
+> 		omap_rproc_stop_timer(&timers[i]);
+> 		i--;
+> 	}
+> 
+> omap_dm_timer_start() drops its runtime PM reference when
+> pm_runtime_resume_and_get() fails, so stopping that timer calls
+> pm_runtime_put_sync() once more than it should.
+> 
+> Second, the loop leaves i at -1 and then jumps to put_node, which falls
+> through to free_timers:
+> 
+> 	while (i--) {
+> 		...
+> 		omap_rproc_release_timer(&timers[i]);
+> 
+> With i == -1 the condition is true and the first iteration uses
+> timers[-2]. The loop then keeps going through negative indexes.
+> 
+> Third, when configure is true, put_node puts np again. The parse loop
+> already put every node it got, and np still points at the last one, so
+> that reference is dropped twice.
+> 
+> Only stop the timers that were started. On resume (configure == false)
+> return the error and keep the timers: they still belong to the driver
+> and are released later by omap_rproc_disable_timers(rproc, true). On the
+> first start (configure == true) release all the timers that were set up
+> and skip put_node, since no node reference is held at this point.
+> 
+> Found with a static analysis tool and checked by hand.
+> 
+> Fixes: e28edc571925 ("remoteproc/omap: Request a timer(s) for remoteproc usage")
+> Cc: stable@vger.kernel.org
+> Co-developed-by: Kaixuan Li <kaixuan.li@ntu.edu.sg>
+> Signed-off-by: Kaixuan Li <kaixuan.li@ntu.edu.sg>
+> Signed-off-by: Suyuan Wang <stevewong@hust.edu.cn>
+> ---
+> Compile tested on arm with clang (W=1, no new warnings). I don't have
+> the hardware, so the failure path hasn't been run.
+> ---
+>  drivers/remoteproc/omap_remoteproc.c | 11 +++++++----
+>  1 file changed, 7 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/remoteproc/omap_remoteproc.c b/drivers/remoteproc/omap_remoteproc.c
+> index f52a531877ae..d50f2e993c4e 100644
+> --- a/drivers/remoteproc/omap_remoteproc.c
+> +++ b/drivers/remoteproc/omap_remoteproc.c
+> @@ -418,11 +418,14 @@ static int omap_rproc_enable_timers(struct rproc *rproc, bool configure)
+>  		}
+>  	}
+>  	if (ret) {
+> -		while (i >= 0) {
+> +		while (i--)
+>  			omap_rproc_stop_timer(&timers[i]);
+> -			i--;
+> -		}
+> -		goto put_node;
+> +
+> +		if (!configure)
+> +			return ret;
+> +
+> +		i = num_timers;
+> +		goto free_timers;
+>  	}
+>  	return 0;
+>
 
-Reviewed-by: Jerome Brunet <jbrunet@baylibre.com>
+Reviewed-by: Francesco Valla <francesco@valla.it>
 
--- 
-Jerome
+Regards,
+Francesco
 
