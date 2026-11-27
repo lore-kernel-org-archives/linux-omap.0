@@ -1,62 +1,77 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795788442;
-	b=2w6kXCTgeCObVdVQ1mUnhvkerDGc20Adp68oYdYEUU8rZJATWfAnIrG95NGXDPvH4Y42
-	 A6GIYQeYt/6Tj7JzlDsT73nnIu1MLrAYZ5WxiaT/GB87K2/rX2asDuqrL/u+DKDtupMJl
-	 6EradefQjIQdrDTigO5H9PNkA837Sewu99INk3GwrUXZixvuc/pFw64EYpRkIkOGOViuH
-	 RTNB0Hf4H4WJsjEcijvYlm+CHQ1OaO4hOjHqObGatVJyH3rrKL9ntqqZSXGQpu3y3UN+b
-	 D83yRI7GPgM0xcQgRnYhsgSqPlFNQ5VE6ZDRVN/MxVLRBpcCxT3KI14ZfNAX1JiXBcQ==
+	t=1795804591;
+	b=BHUq1c+G5dVU6XpcmqJ3TWkAV2BUfEUVuTrkeY+YeW0SQ/kBsFxxjLsrtbNoHa8wE00J
+	 eVcTzVewILwj+6Re/28RKNrsNsrMoFvoiaHftGFmABB/OfBAmCqgoBOeJ+T1wL0REW2Aq
+	 6SsYyn/rvfqQdkWrqHZ++KRU7o9+BuziOcm7ZKdVrK/PHjcJ8kqlQ8RqWFB0ThK2iS8AH
+	 0wJisOvbL49ABnpg3Whu39EuwB/FpIH4QO3yIVwTLesq7132a5xHtw1awDDYYDk6PQxfb
+	 2EKO+onDRbNcRkazVn9wsT6J8E8X0Xcy4vkN7KUi1Jkdk9BDhOvkUHjyaNnPcKy9e+Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795788442;
+	a=rsa-sha256; c=relaxed/relaxed; t=1795804591;
 	h=Received:DKIM-Signature:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=Ghbq/dDyFSCGSMQHs0AQ8pCT6MelXMSKRDi+1C0qWLM=;
-	b=HX/1+akIitxo6fmRDa6lAflrWQWtS7JzkmVxHYlYGrdH+ztgQ4M0WE/G2Z2N+37YDR7V
-	 EqV3SPCQyv6x7d3Ojqw7VfXcfTuoYNwTqCyNFl2+4ROlUfCZ0rEQWV03A4wRsDdlnebwl
-	 rfkPLbi0QOko9lQ28hWx4drdwqW3f8YUkzSVkltXZge+rk3RichjBYAhUKMQ/APVgq/Zx
-	 j00KsplRIFvH1/v3lbGs1E/C46gkPZj+VZJSqW15iaORBXudKCRzt9v2sHCOynu0DDttD
-	 h4celj5DP5tqvK0yIlfI/5BE4/orCrArHoiT7cq5L8B4jrrCGRXMx+8CiUdSwKocC/g==
+	 MIME-Version:Content-Type:Content-Transfer-Encoding;
+	bh=dnCyPV6D2bArF3GLES9sJUnpZcNoKPgSrEv1HpReYYc=;
+	b=aWuQBPuPxDQEBYYBzR2xxCJ+lOxzi6U/IO5kX81It8TE6vLIq/5oj3gN8sh7B4T7K9RT
+	 BsOY+ZD11ruU5PY3RpVv2W7z2yIPCMZddPp3xJPA9jRX3xQN85ESaIVxQlwzcf7+WNxv+
+	 148xPu80qFHjpMDXUf/0XNtF+MP1zD/RcNtplWfc4WUtrGLR/7K59HXDOTgIj+jsezIDZ
+	 r2gpxb5Xt6VoksOxmOxnvVBSVlrU6pCtmIeNHRWuQavxc4gAmufiCADpw5p95Mb1ynl4M
+	 hZRGoMrF64L3PoI6Cl8ouDmYwtyP3QlewlEroC3Nrd9KNFQ5r31vNHW47RMyDnwrqlA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=E2vOVVIJ;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kKpDybEm;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F271A606A338;
-	Fri, 27 Nov 2026 14:07:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFAC7606A31C;
+	Fri, 27 Nov 2026 18:36:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=E2vOVVIJ
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF8B61F000C1;
-	Fri, 27 Nov 2026 14:07:19 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kKpDybEm
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 724E21F000C1;
+	Fri, 27 Nov 2026 18:36:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1795788441;
-	bh=Ghbq/dDyFSCGSMQHs0AQ8pCT6MelXMSKRDi+1C0qWLM=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=E2vOVVIJvQMatkBo7AQIG795loKV0qTCVJgg8V2SmJOguJ5ESWwnUb8TscuWaDU49
-	 dT0md96xtQM2pfAGw+tygc17DnusriitvJBLuJGb1Nt88uFe4YMeRTysm2xw3aHYCe
-	 mRYYsEMwTaKrvU/b6itZPY+wyKNpx+N0YxOvE4tYGi85n2SYpqFjHLx2eHBSyNCkfS
-	 BoNrFbYDGVxb394mleOiCRyi1FZd+hKaJXti635q3sIwo1Zaqv9pcbLo52QujIERBX
-	 MpMaWuIoq32aM4Dpxo9Gkkkc4HK9he9ZXVicDUNRiFzKQI1DltY575EdBN37EWLfhb
-	 q1BcdK0cvVOZQ==
+	s=k20260515; t=1795804591;
+	bh=dnCyPV6D2bArF3GLES9sJUnpZcNoKPgSrEv1HpReYYc=;
+	h=From:To:Cc:Subject:Date;
+	b=kKpDybEmuPt4Ni4wm+qrSrm6qahoB9wY52yf0j9Yvcx5MYkBqK0toucrFoDn39z7v
+	 k3EcaEzHnkN5liDjS1K3QR51dw+pFoZSQPY5QApFtE2AVkRbGS4Uu76/CxQ56YsNIZ
+	 mIdL2P/mKlBvLeOSwmNLl4JeX8rhqsMG0rSB2NiR5TNsCkMFN3tapTu9jz3BXqwo3C
+	 S0gvbA30RQ/xhvCROU0BEtJZbb9NLfR3uRS0ipzGFLeSpllAHVGnjyqEN7VMMmFKUh
+	 NfYOjjmuZdo9ZBEJTs6Qv7Obqi6d+iqHiPYFrDIQEqdP/XPCekcatfRZE8I5ZYZ6lO
+	 Nb6jwsG2Z399Q==
 From: Lee Jones <lee@kernel.org>
-To: lee@kernel.org,
-	Tony Lindgren <tony@atomide.com>,
-	Haojian Zhuang <haojian.zhuang@linaro.org>,
-	Linus Walleij <linusw@kernel.org>,
-	Dan Carpenter <error27@gmail.com>,
-	Yang Yingliang <yangyingliang@huawei.com>,
-	linux-arm-kernel@lists.infradead.org,
+To: lee@kernel.org
+Cc: linux-kernel@vger.kernel.org,
+	=?UTF-8?q?Andr=C3=A9=20Draszik?= <andre.draszik@linaro.org>,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Alexey Charkov <alchark@flipper.net>,
+	Andreas Kemnade <andreas@kemnade.info>,
+	Corentin Labbe <clabbe@baylibre.com>,
+	Douglas Anderson <dianders@chromium.org>,
+	Eduardo Candelaria <jedu@slimlogic.co.uk>,
+	Esteban Blanc <eblanc@baylibre.com>,
+	Graeme Gregory <gg@slimlogic.co.uk>,
+	Gyungoh Yoo <jack.yoo@maxim-ic.com>,
+	Jerome Neanne <jneanne@baylibre.com>,
+	Jin Park <jinyoungp@nvidia.com>,
+	Kevin Hilman <khilman@baylibre.com>,
+	Laxman Dewangan <ldewangan@nvidia.com>,
+	Liam Girdwood <lgirdwood@gmail.com>,
 	linux-omap@vger.kernel.org,
-	linux-gpio@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: stable@vger.kernel.org
-Subject: [PATCH v3 10/12] pinctrl: single: Free pinconf settings array with pinctrl_utils_free_map()
-Date: Fri, 27 Nov 2026 14:04:58 +0000
-Message-ID: <20261127140602.2790001-11-lee@kernel.org>
+	Mal Nadar <m.nirmaladevi@ltts.com>,
+	Mark Brown <broonie@kernel.org>,
+	Markus Schneider-Pargmann <msp@baylibre.com>,
+	Oleksij Rempel <o.rempel@pengutronix.de>,
+	Rajendra Nayak <rnayak@ti.com>,
+	Roger Quadros <rogerq@kernel.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Stephen Warren <swarren@nvidia.com>,
+	Tony Lindgren <tony@atomide.com>,
+	Uday Khare <udaykhare77@gmail.com>
+Subject: [PATCH 0/8] regulator: Fix locking, OOB read, lifetime, and global state bugs (batch 2)
+Date: Fri, 27 Nov 2026 18:35:40 +0000
+Message-ID: <20261127183624.3341010-1-lee@kernel.org>
 X-Mailer: git-send-email 2.56.1.839.g22a8290db9-goog
-In-Reply-To: <20261127140602.2790001-1-lee@kernel.org>
-References: <20261127140602.2790001-1-lee@kernel.org>
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -66,100 +81,68 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-pcs_parse_pinconf() allocates a per-map settings array and attaches it
-to map[i].data.configs.configs, while pcs_dt_node_to_map() allocates
-*map itself, both via devm_kzalloc_objs() on pcs->dev.
+These issues were reported by Sashiko.
 
-When a consumer device unbinds and re-probes, pcs_dt_free_map() only
-frees map and leaks the settings array on pcs->dev.  Moreover, because
-pcs_probe() registers the pinctrl device with devres before pinctrl
-hogs or consumers call pcs_dt_node_to_map(), devres teardown on
-pcs->dev unbind frees *map and settings before
-devm_pinctrl_dev_release() invokes .dt_free_map().
+This is batch 2 of Regulator bug fixes, based on regulator/for-next.
+It addresses supply teardown and locking bugs in regulator core, slab
+and global out-of-bounds reads in tps6594 and tps65910, devres lifetime
+mismatches in tps6594, a NULL device_node dereference in of_regulator,
+and shared global table mutations in max8907 and aat2870.
 
-Allocate *map and settings with unmanaged kzalloc_objs() and wire
-.dt_free_map directly to pinctrl_utils_free_map(), dropping the custom
-pcs_dt_free_map() callback.
+Cc: "André Draszik" <andre.draszik@linaro.org>
+Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Alexey Charkov <alchark@flipper.net>
+Cc: Andreas Kemnade <andreas@kemnade.info>
+Cc: Corentin Labbe <clabbe@baylibre.com>
+Cc: Douglas Anderson <dianders@chromium.org>
+Cc: Eduardo Candelaria <jedu@slimlogic.co.uk>
+Cc: Esteban Blanc <eblanc@baylibre.com>
+Cc: Graeme Gregory <gg@slimlogic.co.uk>
+Cc: Gyungoh Yoo <jack.yoo@maxim-ic.com>
+Cc: Jerome Neanne <jneanne@baylibre.com>
+Cc: Jin Park <jinyoungp@nvidia.com>
+Cc: Kevin Hilman <khilman@baylibre.com>
+Cc: Laxman Dewangan <ldewangan@nvidia.com>
+Cc: Liam Girdwood <lgirdwood@gmail.com>
+Cc: linux-omap@vger.kernel.org
+Cc: Mal Nadar <m.nirmaladevi@ltts.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Markus Schneider-Pargmann <msp@baylibre.com>
+Cc: Oleksij Rempel <o.rempel@pengutronix.de>
+Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Roger Quadros <rogerq@kernel.org>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Stephen Warren <swarren@nvidia.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Uday Khare <udaykhare77@gmail.com>
 
-Fixes: 8f773bfbdd42 ("pinctrl: single: fix possible memory leak when pinctrl_enable() fails")
-Fixes: 9dddb4df90d1 ("pinctrl: single: support generic pinconf")
-Closes: https://sashiko.dev/#/bug/linux-fcedec46-4487-4392-a882-3d3bef07e56f
-Cc: stable@vger.kernel.org
-Signed-off-by: Lee Jones <lee@kernel.org>
----
-v2 => v3:
- - Allocate the pinconf settings array with kzalloc_objs() and wire .dt_free_map directly to pinctrl_utils_free_map(), dropping pcs_dt_free_map(), per Alexander Sverdlin's review.
- - Update the first Fixes tag to commit 8f773bfbdd42 ("pinctrl: single: fix possible memory leak when pinctrl_enable() fails").
+Lee Jones (8):
+  regulator: core: Defer supply cleanup and unregister event forwarding
+    on error
+  regulator: max8907: Duplicate of_regulator_match table per device
+  regulator: tps6594-regulator: Use dedicated handler for external
+    regulator IRQs
+  regulator: tps65910: Fix OOB read and bit shift in external sleep
+    config
+  regulator: tps6594-regulator: Bind IRQ resources to child platform
+    device
+  regulator: core: Respect is_locked when disabling supply on enable
+    failure
+  regulator: of: Guard against NULL device_node in
+    of_regulator_bulk_get_all()
+  regulator: aat2870: Duplicate regulator data per device
 
- drivers/pinctrl/pinctrl-single.c | 18 +++++-------------
- 1 file changed, 5 insertions(+), 13 deletions(-)
+ drivers/regulator/aat2870-regulator.c  | 30 +++++++++-----
+ drivers/regulator/core.c               | 18 ++++----
+ drivers/regulator/max8907-regulator.c  | 57 +++++++++++---------------
+ drivers/regulator/of_regulator.c       |  3 ++
+ drivers/regulator/tps65910-regulator.c | 20 +++++++--
+ drivers/regulator/tps6594-regulator.c  | 27 +++++++++---
+ 6 files changed, 95 insertions(+), 60 deletions(-)
 
-diff --git a/drivers/pinctrl/pinctrl-single.c b/drivers/pinctrl/pinctrl-single.c
-index 6f5113dcdb4b..3f756796c792 100644
---- a/drivers/pinctrl/pinctrl-single.c
-+++ b/drivers/pinctrl/pinctrl-single.c
-@@ -32,6 +32,7 @@
- #include "core.h"
- #include "devicetree.h"
- #include "pinconf.h"
-+#include "pinctrl-utils.h"
- #include "pinmux.h"
- 
- #define DRIVER_NAME			"pinctrl-single"
-@@ -308,15 +309,6 @@ static void pcs_pin_dbg_show(struct pinctrl_dev *pctldev,
- 	seq_printf(s, "%zx %08x %s ", pa, val, DRIVER_NAME);
- }
- 
--static void pcs_dt_free_map(struct pinctrl_dev *pctldev,
--				struct pinctrl_map *map, unsigned num_maps)
--{
--	struct pcs_device *pcs;
--
--	pcs = pinctrl_dev_get_drvdata(pctldev);
--	devm_kfree(pcs->dev, map);
--}
--
- static int pcs_dt_node_to_map(struct pinctrl_dev *pctldev,
- 				struct device_node *np_config,
- 				struct pinctrl_map **map, unsigned *num_maps);
-@@ -327,7 +319,7 @@ static const struct pinctrl_ops pcs_pinctrl_ops = {
- 	.get_group_pins = pinctrl_generic_get_group_pins,
- 	.pin_dbg_show = pcs_pin_dbg_show,
- 	.dt_node_to_map = pcs_dt_node_to_map,
--	.dt_free_map = pcs_dt_free_map,
-+	.dt_free_map = pinctrl_utils_free_map,
- };
- 
- static int pcs_get_function(struct pinctrl_dev *pctldev, unsigned pin,
-@@ -960,7 +952,7 @@ static int pcs_parse_pinconf(struct pcs_device *pcs, struct device_node *np,
- 	func->nconfs = nconfs;
- 	conf = &(func->conf[0]);
- 	m++;
--	settings = devm_kzalloc_objs(pcs->dev, unsigned long, nconfs);
-+	settings = kzalloc_objs(unsigned long, nconfs);
- 	if (!settings)
- 		return -ENOMEM;
- 	s = &settings[0];
-@@ -1284,7 +1276,7 @@ static int pcs_dt_node_to_map(struct pinctrl_dev *pctldev,
- 	pcs = pinctrl_dev_get_drvdata(pctldev);
- 
- 	/* create 2 maps. One is for pinmux, and the other is for pinconf. */
--	*map = devm_kzalloc_objs(pcs->dev, **map, 2);
-+	*map = kzalloc_objs(**map, 2);
- 	if (!*map)
- 		return -ENOMEM;
- 
-@@ -1319,7 +1311,7 @@ static int pcs_dt_node_to_map(struct pinctrl_dev *pctldev,
- free_pgnames:
- 	devm_kfree(pcs->dev, pgnames);
- free_map:
--	devm_kfree(pcs->dev, *map);
-+	kfree(*map);
- 
- 	return ret;
- }
 -- 
 2.56.1.839.g22a8290db9-goog
 
