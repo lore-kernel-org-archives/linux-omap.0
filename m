@@ -1,58 +1,60 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=101.71.155.101
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1795858980;
-	b=k/7J7HOYFyHv5q/uBb6SR+Px5aRmW5SmkjPMtJhr58ngusBvv/dAbecr44kbtbcS4jSb
-	 i46dmkGXl7LdAV1u8RxfG8iFHWztSn9H2Y/qyByOa3PCjwh0x4e7g759Uy9XlBvUI6VEF
-	 4iNPUou9uNTGZ/LuQh/zhm0bdGQLOdSa1xIMTIzQ1aNSpWNtWvRpmYFygkrmQ5seMtmtI
-	 sh9wgV2lIzf377YFu2G6C7QwCGvN78ZSSHzcIfKCUIh6PdFE4nXmNxR3jTTGWY0aT8j1/
-	 /bdfghaFwaXm4vWidkHnzzlbMtyIX8qctMMIlvH5GfD4HFFreWJ8s0ASPqm+AP23AXA==
+	t=1795868278;
+	b=LGv8/tpBMvj8lNfbdSkNxs64wx6eGZqMqWjD1g0M2vSUubA6P7BmNnppconyfYQrtgYI
+	 I6I5AfLI4KJOxm59EMMtFmD/Nvnouqkgr5ISEQPdHuDj82kcymjBpQgdSdbDAPT8OgWPg
+	 AGCClIuUtujdFv7aHBjwl3PY43g9NOMLPi2FUG8mIScFWNUSnjobPcO6LdThA94/a5dU7
+	 v+HO2J9OX/rwjEjF3QpeqUxkdOtz1MAij3mU/0OQbbCPzPk1rfyfILbI7s48cK9AyTRhZ
+	 z3+HG4KtKsycO7dlv+Su6hkmelQU7ESLCZGzNGviqnYouzQrnheL/MxtXGjuGhzZTVA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1795858980;
-	h=DMARC-Filter:Received:From:To:Cc:Subject:Date:Message-ID:X-Mailer:
-	 MIME-Version:Content-Transfer-Encoding:X-HM-Tid:X-HM-MType:
-	 X-HM-Spam-Status:DKIM-Signature;
-	bh=S1hQEu5trwXKmGr1HfNKzlYezMNzp0YmSQ2509eW2SU=;
-	b=BljaCyZR18ja3BR+8BNnIJzZfmHn03i1LjugCQqdnkC1J3Hi/l2oh4cMESHW0OFHv8D8
-	 MEk3SsQFseRMzhhnz1PRKLBAesaWhKVoj+Uhn5niG9pHCiqW1VWAalFff4764gVxi2ApS
-	 RilrJSdseKG/EGVoKRhApevqFlxrmSO19eyrXdvJBmE0PVrLxH6r1syou6JNDR0KGL+cu
-	 LP+Ih6LD0bFUsmcba23IUdgcyBHyuFpJH3yztPooWLlBe8xkygDTWcJacLlvh9wRT3j7S
-	 7mxn1CBJA2gXREY/jDOpbmuPIvoi33/HlDd8TYRY93kxWzEu9AQXgbSrXlsfoohzZXw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795868278;
+	h=Received:DKIM-Signature:Subject:From:To:Cc:Date:Message-ID:
+	 In-Reply-To:References:X-sashiko-severity:Content-Type:
+	 Content-Transfer-Encoding:MIME-Version;
+	bh=nm/PsFJBYui06j3UcjnQSuEvasqzOT2qCIsgjBSze0M=;
+	b=lWfeERFkuKHD47HnjR6AeqZC6ajuLkQw9aTJaVTFWPRpQAjevarpoEpgJbvIqNLXlZwb
+	 ZJnXhalWjmqEKjpGwJ5A6k/8mPCFG/pt+XDhgddIZaLRJfPoMfonDW/sHmg46mHAOk50o
+	 yYGVbYCD/i6hoN5VZG5RCtreGeHobQjLm1hgRvXuoGWpm3/F2/ZS7F/cUHTbI18ke4tS9
+	 sD0F2nrwtihvLA/0cm1ki6ltz6poQwMXEXzpAwXvmWxQIPec/arWHR0AycCd4NEP7AQsq
+	 mbCPaAvwsin3FEMleXlTv2WCXYvMXrJFiLRpvnVHYPQAZQG3yB49bwzdPawq5PdBA0g==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=mail.sdu.edu.cn;
-	spf=pass smtp.mailfrom=mail.sdu.edu.cn;
-	dkim=pass header.d=mail.sdu.edu.cn header.i=@mail.sdu.edu.cn header.a=rsa-sha256 header.s=default header.b=ZrUB12Qi;
-	arc=none smtp.remote-ip=101.71.155.101
-Received: from mail-m155101.qiye.163.com (mail-m155101.qiye.163.com [101.71.155.101])
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mCUm79wU;
+	arc=none smtp.remote-ip=100.103.45.18
+Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
+	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B68CF606A31C;
-	Sat, 28 Nov 2026 09:42:58 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org B68CF606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mail.sdu.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mail.sdu.edu.cn
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C350606A31C;
+	Sat, 28 Nov 2026 12:17:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=mail.sdu.edu.cn header.i=@mail.sdu.edu.cn header.a=rsa-sha256 header.s=default header.b=ZrUB12Qi
-Received: from lgs.. (unknown [101.76.249.61])
-	by smtp.qiye.163.com (Hmail) with ESMTP id 5655b0821;
-	Sat, 28 Nov 2026 17:42:53 +0800 (GMT+08:00)
-From: Guangshuo Li <liguangshuo@mail.sdu.edu.cn>
-To: vigneshr@ti.com,
-	lpieralisi@kernel.org,
-	kwilczynski@kernel.org,
-	mani@kernel.org,
-	bhelgaas@google.com,
-	jg1.han@samsung.com,
-	kishon@kernel.org
-Cc: s-vadapalli@ti.com,
-	robh@kernel.org,
-	linux-omap@vger.kernel.org,
-	linux-pci@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Subject: [PATCH] PCI: dra7xx: Remove the IRQ domain with the root port
-Date: Sat, 28 Nov 2026 17:42:52 +0800
-Message-ID: <20261128-f81b700d6c-u40-0@mail.sdu.edu.cn>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=mCUm79wU
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1AC31F00899;
+	Sat, 28 Nov 2026 12:17:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1795868277;
+	bh=nm/PsFJBYui06j3UcjnQSuEvasqzOT2qCIsgjBSze0M=;
+	h=Subject:From:To:Cc:Date:In-Reply-To:References;
+	b=mCUm79wUL38qosU+954EAGAZrPnGOzzk46SKCfudC+EjRJnjqRK1+5vQuCzXtFCFT
+	 sx07Rry0mPzRjHcEqQpDLcMa90NRBdYfcth3bXsNANEsaMM0CfXG84JzNkL8HRgrGu
+	 rAfrYErMvt3OdC15a7hx1nmLQg69xsktJw0IPEBnwzEQ5nGq18WKtIYVpMDr1VbXVo
+	 oazL1VeoUWmT7yUYSzREmnKUOKo/qlTlGymutd6cmqxbsRZEAd6W4XaZ5Qj0lYc28P
+	 PNDyWBLQu4IlGIQnlJR2hec1DW6gu1UOtHuUpUcjURCsvQsgmV/IeP5JsITxPw6RgG
+	 yofcRXO6DsI0A==
+Subject:
+ Re: [PATCH net] net: ethernet: ti: cpsw_ale: serialize ALE table accesses
+From: netdev-bot+sashiko@kernel.org
+To: manuel.janocha@amperfied.com
+Cc: s-vadapalli@ti.com, rogerq@kernel.org, andrew+netdev@lunn.ch,
+ davem@davemloft.net, edumazet@kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ linux-omap@vger.kernel.org, netdev@vger.kernel.org, kuniyu@google.com,
+ stable@vger.kernel.org
+Date: Sat, 28 Nov 2026 12:17:56 +0000
+Message-ID: <179586827652.3135.4662043469697713881@kernel.org>
+In-Reply-To: <20261127-cpsw-ale-lock-v1-1-a72772d9a5ae@amperfied.com>
+References: <20261127-cpsw-ale-lock-v1-1-a72772d9a5ae@amperfied.com>
+X-sashiko-severity: High
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 X-Mailing-List: linux-omap@vger.kernel.org
 List-Id: <linux-omap.vger.kernel.org>
 List-Post: <mailto:linux-omap@vger.kernel.org>
@@ -62,179 +64,236 @@ List-Unsubscribe: <mailto:linux-omap+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:linux-omap+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-HM-Tid: 0aa22189427003a1kunmb84ad43e451e5e
-X-HM-MType: 10
-X-HM-Spam-Status: e1kfGhgUHx5ZQUpXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
-	tZV1koWUFITzdXWRgWCB1ZQUpXWS1ZQUlXWQ8JGhUIEh9ZQVlDSx5OVhlPH0wZSEwZQx1NTFYeHw
-	5VEwETFhoSFyQUDg9ZV1kYEgtZQVlKS0pVTE1VSU9CVU1KWVdZFhoPEhUdFFlBWU9LSFVKS0lCQ0
-	NMVUpLS1VLWQY+
-DKIM-Signature: a=rsa-sha256;
-	b=ZrUB12Qi+AzWm4+5bS0ywAP1fEfYa3S3kRVuWRxpsLItr5XJFmu6mbMsSNF31380XzYS5PUIvjh0Tx1MUpHtmYR+qd0mo0Rx5+7RVdONg4XtNpi2561DjuuKZ+ZcIzCLEl/wXspPA+Y9BJ+ejScGDXPf4cJ5W9WE7/F8+TyVuMk=; c=relaxed/relaxed; s=default; d=mail.sdu.edu.cn; v=1;
-	bh=S1hQEu5trwXKmGr1HfNKzlYezMNzp0YmSQ2509eW2SU=;
-	h=date:mime-version:subject:message-id:from;
 
-The platform driver leaves its INTx domain and chained handler pointing
-to released controller data. Create them in the host init callback and
-remove them from its matching deinit callback. On driver removal, stop
-the controller before releasing its PHY and runtime PM reference.
+Thank you for your contribution! Sashiko AI review found 3 potential
+issue(s) to consider.
 
-This issue was found by our static analysis tool under development.
+Critical: 0 · High: 1 (1) · Medium: 0 · Low: 2
 
-Fixes: 47ff3de911a7 ("PCI: dra7xx: Add TI DRA7xx PCIe driver")
-Signed-off-by: Guangshuo Li <liguangshuo@mail.sdu.edu.cn>
----
- drivers/pci/controller/dwc/pci-dra7xx.c | 60 ++++++++++++++++---------
- 1 file changed, 39 insertions(+), 21 deletions(-)
+If you believe none of the issues are legitimate, please reply to each
+issue of Medium severity or higher and explain why the AI is wrong.
+If any of them are legitimate and you plan to respin, please let patchwork
+know by including "pw-bot: cr" as a separate line at the end of your reply
+(one such reply per series is enough).
 
-diff --git a/drivers/pci/controller/dwc/pci-dra7xx.c b/drivers/pci/controller/dwc/pci-dra7xx.c
-index 1d8eeb013769..509d0068ee3f 100644
---- a/drivers/pci/controller/dwc/pci-dra7xx.c
-+++ b/drivers/pci/controller/dwc/pci-dra7xx.c
-@@ -91,6 +91,7 @@ struct dra7xx_pcie {
- 	struct phy		**phy;
- 	struct irq_domain	*irq_domain;
- 	struct clk              *clk;
-+	int			main_irq;
- };
- 
- struct dra7xx_pcie_of_data {
-@@ -176,16 +177,6 @@ static void dra7xx_pcie_enable_interrupts(struct dra7xx_pcie *dra7xx)
- 	dra7xx_pcie_enable_msi_interrupts(dra7xx);
- }
- 
--static int dra7xx_pcie_host_init(struct dw_pcie_rp *pp)
--{
--	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
--	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(pci);
--
--	dra7xx_pcie_enable_interrupts(dra7xx);
--
--	return 0;
--}
--
- static int dra7xx_pcie_intx_map(struct irq_domain *domain, unsigned int irq,
- 				irq_hw_number_t hwirq)
- {
-@@ -342,7 +333,7 @@ static irqreturn_t dra7xx_pcie_irq_handler(int irq, void *arg)
- 	return IRQ_HANDLED;
- }
- 
--static int dra7xx_pcie_init_irq_domain(struct dw_pcie_rp *pp)
-+static int dra7xx_pcie_host_init(struct dw_pcie_rp *pp)
- {
- 	struct dw_pcie *pci = to_dw_pcie_from_pp(pp);
- 	struct device *dev = pci->dev;
-@@ -355,8 +346,6 @@ static int dra7xx_pcie_init_irq_domain(struct dw_pcie_rp *pp)
- 		return -ENODEV;
- 	}
- 
--	irq_set_chained_handler_and_data(pp->irq, dra7xx_pcie_msi_irq_handler,
--					 pp);
- 	dra7xx->irq_domain = irq_domain_create_linear(of_fwnode_handle(pcie_intc_node),
- 						      PCI_NUM_INTX, &intx_domain_ops, pp);
- 	of_node_put(pcie_intc_node);
-@@ -365,11 +354,25 @@ static int dra7xx_pcie_init_irq_domain(struct dw_pcie_rp *pp)
- 		return -ENODEV;
- 	}
- 
-+	irq_set_chained_handler_and_data(pp->irq, dra7xx_pcie_msi_irq_handler, pp);
-+	dra7xx_pcie_enable_interrupts(dra7xx);
- 	return 0;
- }
- 
-+static void dra7xx_pcie_host_deinit(struct dw_pcie_rp *pp)
-+{
-+	struct dra7xx_pcie *dra7xx = to_dra7xx_pcie(to_dw_pcie_from_pp(pp));
-+	unsigned int i;
-+
-+	irq_set_chained_handler_and_data(pp->irq, NULL, NULL);
-+	for (i = 0; i < PCI_NUM_INTX; i++)
-+		irq_dispose_mapping(irq_find_mapping(dra7xx->irq_domain, i));
-+	irq_domain_remove(dra7xx->irq_domain);
-+}
-+
- static const struct dw_pcie_host_ops dra7xx_pcie_host_ops = {
- 	.init = dra7xx_pcie_host_init,
-+	.deinit = dra7xx_pcie_host_deinit,
- };
- 
- static int dra7xx_pcie_ep_init(struct dw_pcie_ep *ep)
-@@ -490,10 +493,6 @@ static int dra7xx_add_pcie_port(struct dra7xx_pcie *dra7xx,
- 	/* MSI IRQ is muxed */
- 	pp->msi_irq[0] = -ENODEV;
- 
--	ret = dra7xx_pcie_init_irq_domain(pp);
--	if (ret < 0)
--		return ret;
--
- 	pci->dbi_base = devm_platform_ioremap_resource_byname(pdev, "rc_dbics");
- 	if (IS_ERR(pci->dbi_base))
- 		return PTR_ERR(pci->dbi_base);
-@@ -671,6 +670,14 @@ static int dra7xx_pcie_configure_two_lane(struct device *dev,
- 	return 0;
- }
- 
-+static void dra7xx_pcie_deinit(struct dra7xx_pcie *dra7xx)
-+{
-+	if (dra7xx->pci->mode == DW_PCIE_RC_TYPE)
-+		dw_pcie_host_deinit(&dra7xx->pci->pp);
-+	else
-+		dw_pcie_ep_deinit(&dra7xx->pci->ep);
-+}
-+
- static int dra7xx_pcie_probe(struct platform_device *pdev)
- {
- 	u32 reg;
-@@ -814,6 +821,7 @@ static int dra7xx_pcie_probe(struct platform_device *pdev)
- 		dev_err(dev, "INVALID device type %d\n", mode);
- 	}
- 	dra7xx->pci->mode = mode;
-+	dra7xx->main_irq = irq;
- 
- 	ret = devm_request_threaded_irq(dev, irq, NULL, dra7xx_pcie_irq_handler,
- 					IRQF_SHARED | IRQF_ONESHOT,
-@@ -826,10 +834,7 @@ static int dra7xx_pcie_probe(struct platform_device *pdev)
- 	return 0;
- 
- err_deinit:
--	if (dra7xx->pci->mode == DW_PCIE_RC_TYPE)
--		dw_pcie_host_deinit(&dra7xx->pci->pp);
--	else
--		dw_pcie_ep_deinit(&dra7xx->pci->ep);
-+	dra7xx_pcie_deinit(dra7xx);
- 
- err_gpio:
- err_get_sync:
-@@ -840,6 +845,18 @@ static int dra7xx_pcie_probe(struct platform_device *pdev)
- 	return ret;
- }
- 
-+static void dra7xx_pcie_remove(struct platform_device *pdev)
-+{
-+	struct dra7xx_pcie *dra7xx = platform_get_drvdata(pdev);
-+	struct device *dev = &pdev->dev;
-+
-+	devm_free_irq(dev, dra7xx->main_irq, dra7xx);
-+	dra7xx_pcie_deinit(dra7xx);
-+	pm_runtime_put_sync(dev);
-+	pm_runtime_disable(dev);
-+	dra7xx_pcie_disable_phy(dra7xx);
-+}
-+
- static int dra7xx_pcie_suspend(struct device *dev)
- {
- 	struct dra7xx_pcie *dra7xx = dev_get_drvdata(dev);
-@@ -923,6 +940,7 @@ static const struct dev_pm_ops dra7xx_pcie_pm_ops = {
- 
- static struct platform_driver dra7xx_pcie_driver = {
- 	.probe = dra7xx_pcie_probe,
-+	.remove = dra7xx_pcie_remove,
- 	.driver = {
- 		.name	= "dra7-pcie",
- 		.of_match_table = of_dra7xx_pcie_match,
+- [High] netcp calls the ALE VLAN helpers with interrupts disabled, but
+  those helpers now use spin_lock_bh()/spin_unlock_bh().
+- [Low] The changelog says that ndo_set_rx_mode() 'runs under
+  netif_addr_lock_bh() of one port only and never took RTNL', and…
+- [Low] The new ale->lock serializes table sequences that use
+  writel_relaxed()/readl_relaxed() in cpsw_ale_read() and…
 
-base-commit: 647e1e846730c6aad27e9b858df292f5d4377f63
+Pre-existing issues:
+- [High] This problem wasn't introduced by this patch, but
+  cpsw_ale_control_set() (drivers/net/ethernet/ti/cpsw_ale.c) still does…
+
+--
+
+net: ethernet: ti: cpsw_ale: serialize ALE table accesses
+
+This commit adds a spinlock to struct cpsw_ale and takes it with
+spin_lock_bh() in all exported functions that access the ALE table. The
+table is reached through the shared index and data registers. The goal is
+to stop table corruption seen on am65-cpsw when ndo_set_rx_mode() runs
+without RTNL after IPv6 multicast joins stopped holding RTNL, and
+cpsw_ale_add_vlan() is split into a locked wrapper and an unlocked
+__cpsw_ale_add_vlan() helper.
+
+> This did not matter as long as the callers were serialized by someone
+> else. Both ports of a CPSW switch share one ALE, but the port VLAN
+> and address operations run under RTNL, while ndo_set_rx_mode() runs
+> under netif_addr_lock_bh() of one port only and never took RTNL. Since
+
+[Severity: Low]
+Is this accurate for all ALE users?
+
+For the legacy cpsw and cpsw_new drivers, commit 0b8c878d1173 ("net: cpsw:
+Execute ndo_set_rx_mode callback in a work queue") already addressed the
+same Fixes: commit, and it was also tagged for stable. There,
+cpsw_ndo_set_rx_mode() only schedules work, and the work takes RTNL before
+it touches the ALE:
+
+drivers/net/ethernet/ti/cpsw.c:cpsw_ndo_set_rx_mode_work() {
+	rtnl_lock();
+	if (!netif_running(ndev))
+		goto unlock_rtnl;
+
+	netif_addr_lock_bh(ndev);
+	...
+}
+
+cpsw_new.c uses the same pattern. So in those two drivers, the rx_mode ALE
+accesses are already serialized against VLAN and address operations by
+RTNL.
+
+The users that still reach the ALE table from rx_mode without RTNL seem to
+be am65-cpsw and netcp. am65-cpsw does it through
+am65_cpsw_nuss_ndo_slave_set_rx_mode(), which calls
+cpsw_ale_set_allmulti(), cpsw_ale_flush_multicast() and
+cpsw_ale_add_mcast() directly.
+
+Could the changelog name the affected drivers and mention the earlier cpsw
+fix? Could it also explain why a library-level lock was chosen over the
+RTNL work approach used there?
+
+> context (RTNL, workqueue, ethtool, system suspend). None of them runs
+> in hard interrupt context, and a sleeping lock cannot be used because
+> of the atomic callers. The register accesses under the lock are plain
+> readl()/writel(); the regmap of the ALE is only used for the version,
+
+[Severity: Low]
+Is the "plain readl()/writel()" description correct? cpsw_ale_read() and
+cpsw_ale_write() use the relaxed accessors:
+
+drivers/net/ethernet/ti/cpsw_ale.c:cpsw_ale_write() {
+	...
+	writel_relaxed(idx | ALE_TABLE_WRITE, ale->params.ale_regs +
+		       ALE_TABLE_CONTROL);
+	...
+}
+
+Documentation/memory-barriers.txt says readX_relaxed()/writeX_relaxed() do
+not guarantee ordering with respect to locking.
+
+The fix relies on one CPU's final ALE_TABLE_CONTROL write, or its index
+write plus data reads, reaching the ALE before the next lock holder's
+accesses. With relaxed accessors, that ordering comes from architecture
+behaviour and not from the documented contract. On ARCH_HAS_MMIOWB
+architectures, only the non-relaxed accessors call mmiowb_set_pending().
+
+Outside COMPILE_TEST this driver only builds for ARM/ARM64, and the arm64
+unlock probably orders these Device stores in practice. The hardware test
+also passed. Should the changelog be corrected? Alternatively, should these
+helpers use writel()/readl(), or at least use writel() for the final
+ALE_TABLE_CONTROL write?
+
+> The lock covers the table (index and data registers) only. The
+> read-modify-write of the ALE control registers and the policer index
+> registers are separate and left alone.
+
+[Severity: High]
+This isn't a bug introduced by this patch, but can the unlocked
+read-modify-write in cpsw_ale_control_set() lose port state updates in a
+similar way?
+
+drivers/net/ethernet/ti/cpsw_ale.c:cpsw_ale_control_set() {
+	...
+	tmp = readl_relaxed(ale->params.ale_regs + offset);
+	tmp = (tmp & ~(mask << shift)) | (value << shift);
+	writel_relaxed(tmp, ale->params.ale_regs + offset);
+	...
+}
+
+ALE_PORT_STATE and ALE_PORT_MACONLY_CAF are both in ALE_PORTCTL[port]. On
+am65-cpsw, the rx_mode path runs without RTNL and rewrites that register on
+every call:
+
+am65_cpsw_nuss_ndo_slave_set_rx_mode()
+  am65_cpsw_slave_set_promisc()
+    cpsw_ale_control_set(common->ale, port->port_id,
+                         ALE_PORT_MACONLY_CAF, 0);
+
+Other paths write ALE_PORT_STATE in the same word:
+am65_cpsw_nuss_mac_link_up() and am65_cpsw_nuss_mac_link_down() from the
+phylink worker, and am65_cpsw_port_stp_state_set() under RTNL.
+
+A possible interleaving:
+
+CPU0 (rx_mode)                      CPU1 (mac_link_up)
+readl(PORTCTL) -> STATE=DISABLE
+                                    readl(PORTCTL)
+                                    writel(STATE=FORWARD)
+writel(STATE=DISABLE | CAF=0)
+
+This would leave the port disabled in the ALE while the driver thinks it is
+forwarding. All ingress would then be dropped until the next link or STP
+transition. That is the same symptom this patch fixes.
+
+ALE_CONTROL looks similar. cpsw_ale_timer() sets the AGEOUT bit from
+softirq, while the promisc paths modify BYPASS and P0_UNI_FLOOD in the same
+register.
+
+An unprivileged IPv6 multicast join can now trigger rx_mode without RTNL.
+Would it make sense to serialize cpsw_ale_control_set() as well?
+
+> diff --git a/drivers/net/ethernet/ti/cpsw_ale.c b/drivers/net/ethernet/ti/cpsw_ale.c
+> index 9304405c9581a..dc550142ed822 100644
+> --- a/drivers/net/ethernet/ti/cpsw_ale.c
+> +++ b/drivers/net/ethernet/ti/cpsw_ale.c
+
+[ ... ]
+
+> @@ -681,6 +699,19 @@ int cpsw_ale_add_vlan(struct cpsw_ale *ale, u16 vid, int port_mask, int untag,
+>  	cpsw_ale_write(ale, idx, ale_entry);
+>  	return 0;
+>  }
+> +
+> +int cpsw_ale_add_vlan(struct cpsw_ale *ale, u16 vid, int port_mask, int untag,
+> +		      int reg_mcast, int unreg_mcast)
+> +{
+> +	int ret;
+> +
+> +	spin_lock_bh(&ale->lock);
+> +	ret = __cpsw_ale_add_vlan(ale, vid, port_mask, untag, reg_mcast,
+> +				  unreg_mcast);
+> +	spin_unlock_bh(&ale->lock);
+
+[Severity: High]
+Can this spin_unlock_bh() run with hard interrupts disabled? netcp calls
+the ALE VLAN helpers from inside an irqsave section:
+
+drivers/net/ethernet/ti/netcp_core.c:netcp_rx_kill_vid() {
+	...
+	spin_lock_irqsave(&netcp->lock, flags);
+	for_each_module(netcp, intf_modpriv) {
+		module = intf_modpriv->netcp_module;
+		if (module->del_vid) {
+			err = module->del_vid(intf_modpriv->module_priv, vid);
+	...
+}
+
+netcp_rx_add_vid() does the same for module->add_vid(). For both the gbe
+and xgbe modules, the call chains are:
+
+gbe_add_vid() -> cpsw_ale_add_vlan()
+gbe_del_vid() -> cpsw_ale_del_vlan()
+
+Both ALE functions now take ale->lock with spin_lock_bh(). That includes
+the -ENOENT early return in cpsw_ale_del_vlan().
+
+On non-RT kernels, __local_bh_enable_ip() then triggers
+lockdep_assert_irqs_enabled(). With CONFIG_TRACE_IRQFLAGS it also wraps
+do_softirq() in local_irq_disable() ... local_irq_enable(). So hard IRQs
+get re-enabled and pending softirqs run while netcp->lock is still held.
+That allows re-entry into netcp code that takes the same lock, such as
+netcp_set_rx_mode().
+
+This looks easy to reach. netcp sets NETIF_F_HW_VLAN_CTAG_FILTER, so with
+8021q loaded, every NETDEV_DOWN goes through:
+
+vlan_vid0_del()
+  vlan_vid_del(dev, htons(ETH_P_8021Q), 0)
+    netcp_rx_kill_vid()
+      gbe_del_vid()
+        cpsw_ale_del_vlan()
+
+netcp_rx_kill_vid() does not filter out vid 0. Creating any VLAN on a
+netcp interface likewise reaches cpsw_ale_add_vlan() under the irqsave
+lock.
+
+The changelog says the other callers run in process context and that netcp
+was only compile-tested. It doesn't seem to cover this IRQs-disabled
+caller.
+
+Would spin_lock_irqsave() work for ale->lock here? The other option would
+be for netcp to stop calling into the ALE while holding netcp->lock.
+
+> +
+> +	return ret;
+> +}
+>  EXPORT_SYMBOL_GPL(cpsw_ale_add_vlan);
+
+[ ... ]
+
 -- 
-2.43.0
-
+Sashiko AI review · https://netdev-ai.bots.linux.dev/sashiko/#/patchset/20261127-cpsw-ale-lock-v1-1-a72772d9a5ae%40amperfied.com
